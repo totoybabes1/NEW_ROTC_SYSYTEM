@@ -1,0 +1,237 @@
+{% extends 'personnel/base.html' %}
+{% load static %}
+
+{% block title %}Personnel Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/personnel_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Card -->
+    <div class="card welcome-card mb-4">
+        <div class="welcome-content">
+            <div class="welcome-logo">
+                {% if personnel.profile_picture %}
+                    <img src="{{ personnel.profile_picture.url }}" alt="Profile Picture" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                    <img src="{% static 'img/default-profile.png' %}" alt="Default Profile Picture" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover;">
+                {% endif %}
+            </div>
+            <div class="welcome-text">
+                <h2>Welcome back, {{ personnel.first_name }}!</h2>
+                <div class="welcome-badges">
+                    <span class="badge">
+                        <i class="fas fa-briefcase"></i> {{ personnel.position }}
+                    </span>
+                    <span class="badge">
+                        <i class="fas fa-check-circle"></i> {{ personnel.status }}
+                    </span>
+                    <span class="badge">
+                        <i class="fas fa-users"></i> {{ personnel.flight_group.name }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Flight Group Information -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <i class="fas fa-users text-primary me-2"></i> Flight Group Information
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <i class="fas fa-plane-departure fa-2x text-primary me-3"></i>
+                        <div>
+                            <h5 class="mb-1">{{ personnel.flight_group.name }}</h5>
+                            <p class="text-muted mb-0">{{ personnel.flight_group.description }}</p>
+                        </div>
+                    </div>
+                    
+                    <h6 class="section-title">Group Members</h6>
+                    <div class="member-list">
+                        {% for member in flight_group_members %}
+                        <div class="member-item">
+                            {% if member.profile_picture %}
+                                <img src="{{ member.profile_picture.url }}" alt="Profile">
+                            {% else %}
+                                <img src="{% static 'images/default-profile.png' %}" alt="Default">
+                            {% endif %}
+                            <div>
+                                <strong>{{ member.first_name }} {{ member.last_name }}</strong>
+                                <div class="text-muted">{{ member.position }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Information -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <i class="fas fa-info-circle text-info me-2"></i> Personal Information
+                </div>
+                <div class="card-body">
+                    <ul class="personal-info-list">
+                        <li class="personal-info-item">
+                            <i class="fas fa-id-badge"></i>
+                            <span class="personal-info-label">Student ID:</span>
+                            <span class="personal-info-value">{{ personnel.student_id }}</span>
+                        </li>
+                        <li class="personal-info-item">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span class="personal-info-label">Age:</span>
+                            <span class="personal-info-value">{{ personnel.age }}</span>
+                        </li>
+                        <li class="personal-info-item">
+                            <i class="fas fa-venus-mars"></i>
+                            <span class="personal-info-label">Gender:</span>
+                            <span class="personal-info-value">{{ personnel.gender_assignment }}</span>
+                        </li>
+                        <li class="personal-info-item">
+                            <i class="fas fa-phone"></i>
+                            <span class="personal-info-label">Phone:</span>
+                            <span class="personal-info-value">{{ personnel.phone_number }}</span>
+                        </li>
+                    </ul>
+
+                    <h6 class="section-title">Performance Metrics</h6>
+                    <div class="performance-metrics">
+                        <div class="performance-metric">
+                            <div class="metric-value">{{ attendance_rate }}%</div>
+                            <div class="metric-title">
+                                <i class="fas fa-calendar-check me-1"></i> Attendance
+                            </div>
+                        </div>
+                        <div class="performance-metric">
+                            <div class="metric-value">{{ participation_score }}%</div>
+                            <div class="metric-title">
+                                <i class="fas fa-chart-line me-1"></i> Participation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Announcements & Events -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <i class="fas fa-bullhorn text-warning me-2"></i> Announcements & Events
+                </div>
+                <div class="card-body">
+                    {% for announcement in announcements %}
+                    <div class="announcement-item">
+                        <h6 class="announcement-title">{{ announcement.title }}</h6>
+                        <p class="announcement-content">{{ announcement.content }}</p>
+                        <div class="announcement-meta">
+                            <i class="fas fa-calendar-alt me-1"></i> {{ announcement.date|date:"M d, Y" }}
+                            {% if announcement.is_event %}
+                            <span class="badge bg-warning text-dark announcement-badge">
+                                <i class="fas fa-star me-1"></i> Event
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No announcements at this time.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Calendar -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <i class="fas fa-calendar-alt text-success me-2"></i> Attendance Calendar
+                </div>
+                <div class="card-body">
+                    <div class="calendar-wrapper">
+                        {% for day in attendance_calendar %}
+                        <div class="calendar-day {% if day.present %}active{% else %}inactive{% endif %}"
+                             data-bs-toggle="tooltip" 
+                             title="{{ day.date|date:'M d, Y' }}">
+                            {{ day.date|date:"d" }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity History -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <i class="fas fa-history text-success me-2"></i> Activity Summary
+        </div>
+        <div class="card-body">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stats-counter">{{ total_logins }}</div>
+                    <div class="text-muted">
+                        <i class="fas fa-sign-in-alt me-1"></i> Total Logins
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stats-counter">{{ days_active }}</div>
+                    <div class="text-muted">
+                        <i class="fas fa-calendar-day me-1"></i> Days Active
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stats-counter">{{ last_active_days }}</div>
+                    <div class="text-muted">
+                        <i class="fas fa-hourglass-half me-1"></i> Days Since Last Activity
+                    </div>
+                </div>
+            </div>
+            
+            <h6 class="section-title">Recent Activities</h6>
+            {% for activity in recent_activities %}
+            <div class="activity-item">
+                <div class="activity-icon {% if activity.activity_type == 'login' %}login-icon{% else %}logout-icon{% endif %}">
+                    <i class="fas {% if activity.activity_type == 'login' %}fa-sign-in-alt{% else %}fa-sign-out-alt{% endif %}"></i>
+                </div>
+                <div class="activity-content">
+                    <div>{{ activity.activity_type|title }}</div>
+                    <div class="activity-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-4">
+                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No recent activities found.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

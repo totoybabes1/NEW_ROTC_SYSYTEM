@@ -1,0 +1,179 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+{% block title %}Uploaded Tables{% endblock %}
+
+{% block content %}
+   <link rel="stylesheet" href="{% static 'css/admin_upload_tables.css' %}">
+   <!-- Add AOS CSS -->
+   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+
+    <div class="container-fluid px-4 py-4" style="background-color: #f8f9fa;">
+
+        <!-- Header Section -->
+        <div class="mb-4 header-section" data-aos="fade-up" data-aos-delay="100" style="background-color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="header-content">
+                <h1 class="h4 header-title">
+                    <div class="icon-wrapper">
+                        <i class="fa-solid fa-database text-primary"></i>
+                    </div>
+                    <span>Database Tables Overview</span>
+                </h1>
+                <p class="header-description text-muted">
+                    View and manage your uploaded database tables. Use the search functionality to quickly find specific tables,
+                    or browse through the complete collection below. Each table displays its full structure and content.
+                </p>
+            </div>
+        </div>
+
+        <!-- Main content wrapper -->
+        <div class="d-flex gap-4">
+            <!-- Left side: Search and Tables -->
+            <div class="content-area flex-grow-1">
+                <div class="search-container mb-4" data-aos="fade-up" data-aos-delay="150" style="background: white; padding: 0.75rem; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <i class="fa-solid fa-search search-icon text-muted"></i>
+                    <input type="text" id="tableSearch" class="search-input" placeholder="Search tables..." onkeyup="searchTables()">
+                </div>
+
+                {% if tables_data %}
+                    {% for table in tables_data %}
+                        <div class="card border-0" data-aos="fade-up" data-aos-delay="200" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1.5rem;">
+                            <div class="card-body p-0">
+                                <h2 class="h5 p-3 mb-0 border-bottom" style="background-color: #f8f9fa; border-radius: 8px 8px 0 0;">
+                                    <i class="fa-solid fa-table me-2 text-primary"></i>
+                                    Table: {{ table.table_name }}
+                                </h2>
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                {% for column in table.columns %}
+                                                    <th>{{ column }}</th>
+                                                {% endfor %}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for row in table.rows %}
+                                                <tr>
+                                                    {% for value in row %}
+                                                        <td>{{ value }}</td>
+                                                    {% endfor %}
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <div class="card-body">
+                            <p class="text-muted mb-0">No tables available.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Right side: Action Cards -->
+            <div class="action-cards-sidebar" style="min-width: 300px; max-width: 320px;">
+                <div class="d-flex flex-column gap-3">
+                    <!-- Uploaded Tables Card -->
+                    <div class="action-card compact" data-aos="fade-up" data-aos-delay="200" style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 1.25rem;">
+                        <div class="card-content">
+                            <h1 class="h4 compact-heading">
+                                <i class="fa-solid fa-table"></i>
+                                <span>Uploaded Tables</span>
+                            </h1>
+                            <p class="compact-text">View and manage system tables</p>
+                        </div>
+                    </div>
+
+                    <!-- Assign Officials Card -->
+                    <div class="action-card compact" data-aos="fade-up" data-aos-delay="400" style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 1.25rem;">
+                        <div class="card-content">
+                            <h1 class="h4 compact-heading">
+                                <i class="fas fa-user-check"></i>
+                                <span>Assign Officials</span>
+                            </h1>
+                            <p class="compact-text">Manage table assignments</p>
+                            <a href="{% url 'assign_official' %}" class="btn btn-primary btn-sm mt-2">
+                                Assign Now
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Personnel Management Card -->
+                    <div class="action-card compact" data-aos="fade-up" data-aos-delay="600" style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 1.25rem;">
+                        <div class="card-content">
+                            <h1 class="h4 compact-heading">
+                                <i class="fas fa-users"></i>
+                                <span>Personnel</span>
+                            </h1>
+                            <p class="compact-text">Manage personnel database</p>
+                            <div class="d-flex gap-2 mt-2">
+                                <a href="{% url 'assign_gender' %}" class="btn btn-primary btn-sm flex-grow-1">
+                                    Assign
+                                </a>
+                                <a href="{% url 'admin_personnel_list' %}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add AOS JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+    </script>
+
+    <script>
+    function searchTables() {
+        let input = document.getElementById("tableSearch");
+        let filter = input.value.toLowerCase();
+        let tables = document.getElementsByClassName("table-responsive");
+        let headers = document.getElementsByTagName("h2");
+
+        for (let i = 0; i < tables.length; i++) {
+            let table = tables[i];
+            let header = headers[i];
+            let rows = table.getElementsByTagName("tr");
+            let visible = false;
+
+            // Search in table name
+            if (header.textContent.toLowerCase().includes(filter)) {
+                visible = true;
+            }
+
+            // Search in table content
+            for (let j = 1; j < rows.length; j++) { // Start from 1 to skip header row
+                let cells = rows[j].getElementsByTagName("td");
+                let rowVisible = false;
+                
+                for (let cell of cells) {
+                    if (cell.textContent.toLowerCase().includes(filter)) {
+                        rowVisible = true;
+                        visible = true;
+                        break;
+                    }
+                }
+                
+                // Show/hide individual rows
+                rows[j].style.display = rowVisible ? "" : "none";
+            }
+
+            // Show table and header if any content matches
+            table.style.display = visible ? "" : "none";
+            header.style.display = visible ? "" : "none";
+        }
+    }
+    </script>
+{% endblock %} 

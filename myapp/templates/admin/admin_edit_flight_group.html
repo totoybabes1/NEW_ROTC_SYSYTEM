@@ -1,0 +1,21 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Edit Flight Group{% endblock %}
+
+{% block content %}
+    <h1>Edit Flight Group</h1>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <label for="name">Group Name</label>
+        <input type="text" name="name" value="{{ group.name }}" required>
+
+        <label for="description">Description</label>
+        <textarea name="description" required>{{ group.description }}</textarea>
+
+        <button type="submit">Update</button>
+    </form>
+
+    <br>
+    <a href="{% url 'admin_flight_groups' %}">Back to Flight Groups</a>
+{% endblock %}

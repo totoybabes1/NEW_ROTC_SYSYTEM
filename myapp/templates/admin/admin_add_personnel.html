@@ -1,0 +1,61 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Add Personnel{% endblock %}
+
+{% block content %}
+<h2>Add New Personnel</h2>
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="form-group">
+        <label for="position">Position</label>
+        <input type="text" class="form-control" id="position" name="position" required>
+    </div>
+    <div class="form-group">
+        <label for="status">Status</label>
+        <input type="text" class="form-control" id="status" name="status" required>
+    </div>
+    <div class="form-group">
+        <label for="student_id">Student ID</label>
+        <input type="text" class="form-control" id="student_id" name="student_id" required>
+    </div>
+    <div class="form-group">
+        <label for="age">Age</label>
+        <input type="text" class="form-control" id="age" name="age" required>
+    </div>
+    <div class="form-group">
+        <label for="gender">Gender</label>
+        <input type="text" class="form-control" id="gender" name="gender" required>
+    </div>
+    <div class="form-group">
+        <label for="phone_number">Phone Number</label>
+        <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+    </div>
+    <div class="form-group">
+        <label for="profile_picture">Profile Picture</label>
+        <input type="file" class="form-control" id="profile_picture" name="profile_picture">
+    </div>
+    <div class="form-group">
+        <label for="flight_group">Flight Group</label>
+        <select class="form-control" id="flight_group" name="flight_group">
+            <option value="">Select a Flight Group</option>
+            {% for group in flight_groups %}
+                <option value="{{ group.id }}">{{ group.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-success">Add Personnel</button>
+</form>
+{% endblock %}

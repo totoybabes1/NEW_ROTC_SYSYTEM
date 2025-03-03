@@ -1,0 +1,389 @@
+/* ========================================
+   Base Container Styles
+   ======================================== */
+.container {
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 35px 30px;
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========================================
+   Button Styles
+   ======================================== */
+.btn-animated {
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.btn-animated:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px);
+}
+
+.btn-animated::before {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  content: "";
+  height: 0;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  width: 0;
+}
+
+.btn-animated:active::before {
+  height: 300px;
+  width: 300px;
+}
+
+.btn-primary.btn-animated:hover {
+  background: #0056b3;
+}
+
+.btn-secondary.btn-animated:hover {
+  background: #5a6268;
+}
+
+/* Button Group Card */
+.button-group-card {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 20px;
+}
+
+.button-group-card .btn-group .btn {
+  margin-right: 10px;
+}
+
+.button-group-card .btn-outline-secondary {
+  margin-left: 10px;
+}
+
+/* ========================================
+   Chart Styles
+   ======================================== */
+#genderChart {
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.chart-card {
+  margin-right: 10px;
+  display: flex;
+  flex-direction: column;
+  height: 200px;
+  width: 250px;
+}
+
+.chart-container {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+/* ========================================
+   Custom Heading Styles
+   ======================================== */
+.h4,
+.h5 {
+  align-items: center;
+  background-color: #f8f9fa;
+  border-bottom: #007bff solid 2px;
+  border-radius: 10px;
+  color: #333;
+  display: flex;
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding: 10px 25px;
+  text-transform: uppercase;
+}
+
+.h4 i,
+.h5 i {
+  background-color: #b5d7fb;
+  border-radius: 10px;
+  color: #007bff;
+  font-size: 3.5rem;
+  margin-right: 0.5rem;
+  padding: 10px 15px;
+}
+
+/* ========================================
+   Modal Styles
+   ======================================== */
+.modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.modal-header {
+  background-color: #f8f9fa;
+  padding: 1rem 1.5rem;
+}
+
+.modal-title {
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.modal.fade .modal-dialog {
+  transform: scale(0.8);
+  transition: transform 0.3s ease-in-out;
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+}
+
+/* ========================================
+   Profile Image Styles
+   ======================================== */
+.profile-img {
+  border: 2px solid #e9ecef;
+  height: 40px;
+  object-fit: cover;
+  transition: transform 0.2s;
+  width: 40px;
+}
+
+.profile-img:hover {
+  border-color: #4e73df;
+  transform: scale(1.1);
+}
+
+.profile-preview {
+  animation: fadeIn 0.3s ease forwards;
+  border-radius: 8px;
+  margin: 10px 20px;
+  max-height: 80vh;
+  object-fit: contain;
+  opacity: 0;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cursor-pointer:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+/* ========================================
+   Responsive Styles
+   ======================================== */
+@media (max-width: 768px) {
+  .fw-bold {
+    font-size: 0.8rem;
+  }
+
+  .profile-img {
+    height: 30px;
+    width: 30px;
+  }
+
+  .search-wrapper {
+    padding: 15px;
+  }
+
+  .text-muted {
+    font-size: 0.7rem;
+  }
+
+  .total-box {
+    margin-top: 10px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .btn-group {
+    width: 100%;
+  }
+
+  .btn-group .btn {
+    width: 100%;
+  }
+
+  .chart-card {
+    width: 100%;
+  }
+
+  .input-group {
+    flex-wrap: wrap;
+  }
+
+  .input-group .form-control {
+    margin-bottom: 0.5rem;
+  }
+
+  .input-group-append {
+    justify-content: center;
+    width: 100%;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* ========================================
+   Search and Sort Section
+   ======================================== */
+.search-wrapper {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.search-box .input-group,
+.sort-box .input-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border: none;
+  color: #6c757d;
+  padding: 8px 12px;
+}
+
+#searchInput,
+#sortSelect {
+  border: none;
+  color: #495057;
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+#searchInput:focus,
+#sortSelect:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+/* ========================================
+   Table Styles
+   ======================================== */
+.table {
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  margin: 10px 0;
+  width: 100%;
+}
+
+/* Table Header */
+.table thead tr {
+  background: linear-gradient(135deg, #343a40, #000000bb);
+  border-radius: 8px;
+  color: #fff;
+}
+
+.table thead th {
+  border: none;
+  font-size: 14px;
+  padding: 12px;
+  text-align: center;
+}
+
+/* Table Body */
+.table tbody tr {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.table td {
+  border: none;
+  font-size: 13px;
+  padding: 12px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Table Rounded Corners */
+.table tbody tr td:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.table tbody tr td:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+/* Table Hover Effects */
+.table tbody tr:hover {
+  background-color: #f1f1f1;
+  transform: scale(1.02);
+}
+
+/* ========================================
+   Text Styles
+   ======================================== */
+.fw-bold {
+  color: #2e3338;
+  font-size: 0.9rem;
+}
+
+.text-muted {
+  font-size: 0.8rem;
+}
+
+/* ========================================
+   Total Box Styles
+   ======================================== */
+.total-box {
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  padding: 8px 15px;
+  text-align: center;
+}
+
+.total-box span {
+  color: rgb(0, 0, 0);
+  display: block;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.total-box small {
+  color: #6c757d;
+  font-size: 12px;
+}

@@ -1,0 +1,159 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Assign{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/admin_assign_gender.css' %}"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/assign_gender.js' %}"></script>
+<div class="container mt-5">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <h1 class="h4 mb-3 mb-md-0"><i class="fa-solid fa-user-pen"></i>Assign to Personnel</h1>
+    </div>
+    <div class="d-flex flex-column flex-md-row justify-content-start mb-4">
+        <div class="card shadow p-3 mb-3 mb-md-0 mr-md-3 chart-card">
+            <div class="card-body">
+                <h5 class="card-title">Gender Distribution</h5>
+                <div class="chart-container">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow p-3 w-100">
+            <div class="card-body">
+                <h5 class="card-title">Manage Personnel Assignments</h5>
+                <p class="card-text">Select personnel and assign their gender or manage selections.</p>
+                <div class="d-flex flex-column flex-md-row flex-wrap gap-3">
+                    <div class="btn-group flex-wrap">
+                        <button type="button" class="btn btn-outline-primary btn-lg mb-2 mb-md-0" onclick="assignGender('Male')">
+                            <i class="fas fa-mars"></i> Assign Male
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-lg" onclick="assignGender('Female')">
+                            <i class="fas fa-venus"></i> Assign Female
+                        </button>
+                    </div>
+                    <div class="btn-group flex-wrap">
+                        <button type="button" class="btn btn-outline-secondary btn-lg mb-2 mb-md-0"
+                                onclick="toggleSelectAllCheckboxes()">
+                            <i class="fas fa-check-double"></i> Select All
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg" form="genderAssignmentForm">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form method="post" class="card shadow p-4" id="genderAssignmentForm">
+        {% csrf_token %}
+        <input type="hidden" name="gender_to_assign" id="gender_to_assign">
+        <input type="hidden" name="selected_personnel" id="selected_personnel">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" id="searchInput" placeholder="Search by name..." onkeyup="filterPersonnel()">
+            <div class="input-group-append">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+            </div>
+        </div>
+        <div id="feedbackMessage" class="alert alert-success d-none" role="alert">
+            Assignment updated successfully!
+        </div>
+        <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th><input type="checkbox" id="select_all" onclick="toggleSelectAll(this)"></th>
+                    <th><i class="fas fa-user"></i> Name</th>
+                    <th><i class="fas fa-genderless"></i> Current Gender</th>
+                    <th><i class="fas fa-exchange-alt"></i> Assign Gender</th>
+                </tr>
+            </thead>
+            <tbody id="personnelTable">
+                {% for person in personnel_list %}
+                <tr>
+                    <td><input type="checkbox" name="selected_personnel" class="select-person" value="{{ person.id }}"></td>
+                    <td>{{ person.first_name }} {{ person.last_name }}</td>
+                    <td>{{ person.gender_assignment|default:"Not Assigned" }}</td>
+                    <td>
+                        <div class="input-group">
+                            <select class="form-control gender-select" id="gender_assignment_{{ person.id }}" name="gender_assignment_{{ person.id }}">
+                                <option value="">Select Gender</option>
+                                <option value="Male" {% if person.gender_assignment == "Male" %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if person.gender_assignment == "Female" %}selected{% endif %}>Female</option>
+                                <option value="Non-binary" {% if person.gender_assignment == "Non-binary" %}selected{% endif %}>Non-binary</option>
+                                <option value="Other" {% if person.gender_assignment == "Other" %}selected{% endif %}>Other</option>
+                            </select>
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fas fa-check"></i></span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+</div>
+
+<script>
+function assignGender(gender) {
+    // Get all selected checkboxes
+    const selectedCheckboxes = document.querySelectorAll('input[name="selected_personnel"]:checked');
+    
+    if (selectedCheckboxes.length === 0) {
+        alert('Please select at least one person');
+        return;
+    }
+
+    // Update the dropdown selections for selected personnel
+    selectedCheckboxes.forEach(checkbox => {
+        const personId = checkbox.value;
+        const genderSelect = document.getElementById(`gender_assignment_${personId}`);
+        if (genderSelect) {
+            genderSelect.value = gender;
+        }
+    });
+
+    // Get all selected IDs
+    const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+    
+    // Set the hidden inputs
+    document.getElementById('gender_to_assign').value = gender;
+    document.getElementById('selected_personnel').value = selectedIds.join(',');
+    
+    // Submit the form
+    document.getElementById('genderAssignmentForm').submit();
+}
+
+function toggleSelectAll(source) {
+    const checkboxes = document.getElementsByClassName('select-person');
+    for (let checkbox of checkboxes) {
+        checkbox.checked = source.checked;
+    }
+}
+
+function toggleSelectAllCheckboxes() {
+    const selectAllCheckbox = document.getElementById('select_all');
+    selectAllCheckbox.checked = !selectAllCheckbox.checked;
+    toggleSelectAll(selectAllCheckbox);
+}
+
+function filterPersonnel() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById('personnelTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 0; i < tr.length; i++) {
+        const nameCell = tr[i].getElementsByTagName('td')[1];
+        if (nameCell) {
+            const txtValue = nameCell.textContent || nameCell.innerText;
+            tr[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? '' : 'none';
+        }
+    }
+}
+</script>
+{% endblock %}

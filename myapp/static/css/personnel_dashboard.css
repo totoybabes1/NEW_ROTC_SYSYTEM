@@ -1,0 +1,528 @@
+:root {
+    --primary-color: #6366f1;
+    --secondary-color: #818cf8;
+    --success-color: #34d399;
+    --warning-color: #fbbf24;
+    --info-color: #60a5fa;
+    --light-bg: #ffffff;
+    --dark-text: #4b5563;
+    --muted-text: #9ca3af;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+body {
+    background-color: #f9fafb;
+    font-family: 'Inter', sans-serif;
+    color: var(--dark-text);
+}
+
+.dashboard-container {
+    padding: 20px;
+}
+
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-weight: 600;
+    color: var(--dark-text);
+    padding: 1.25rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.welcome-card {
+    background: linear-gradient(135deg, #4e54c8, #8f94fb);
+    color: white;
+    padding: 20px;
+}
+
+.welcome-card h2 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: white;
+}
+
+.welcome-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.welcome-logo {
+    width: 140px;
+    height: 140px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 25px;
+}
+
+.welcome-logo img {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.welcome-logo img:hover {
+    transform: scale(1.1);
+}
+
+.welcome-text {
+    flex: 1;
+}
+
+.welcome-badges {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.badge {
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    transition: background 0.3s ease;
+}
+
+.badge:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.badge i {
+    margin-right: 5px;
+}
+
+.stats-counter {
+    font-size: 28px;
+    font-weight: bold;
+    color: #4e54c8;
+    margin-bottom: 10px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.activity-item:hover {
+    background: #f8f9fa;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.login-icon {
+    background: #28a745;
+    color: white;
+}
+
+.logout-icon {
+    background: #dc3545;
+    color: white;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-timestamp {
+    font-size: 0.85rem;
+    color: var(--muted-text);
+}
+
+.calendar-wrapper {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    padding: 10px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.calendar-day.active {
+    background: #28a745;
+    color: white;
+}
+
+.calendar-day.inactive {
+    background: #f8f9fa;
+    color: #6c757d;
+}
+
+.calendar-day:hover {
+    transform: scale(1.1);
+}
+
+.member-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.member-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.member-item:hover {
+    background: #e9ecef;
+}
+
+.member-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.performance-metrics {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.performance-metric {
+    text-align: center;
+    position: relative;
+}
+
+.metric-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #4e54c8;
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.metric-title {
+    color: var(--muted-text);
+    font-weight: 500;
+}
+
+.announcement-item {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    background: #f8fafc;
+    border: 1px solid rgba(0,0,0,0.03);
+    border-left: 5px solid var(--warning-color);
+    transition: all 0.2s ease;
+}
+
+.announcement-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.announcement-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--dark-text);
+}
+
+.announcement-content {
+    color: var(--dark-text);
+    margin-bottom: 12px;
+}
+
+.announcement-meta {
+    display: flex;
+    align-items: center;
+    color: var(--muted-text);
+    font-size: 0.85rem;
+}
+
+.announcement-badge {
+    margin-left: 10px;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 50px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    animation: fadeIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+
+.personal-info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.personal-info-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.personal-info-item i {
+    width: 35px;
+    height: 35px;
+    background-color: rgba(67, 97, 238, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    margin-right: 15px;
+}
+
+.personal-info-label {
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.personal-info-value {
+    color: var(--muted-text);
+}
+
+.section-title {
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--dark-text);
+    position: relative;
+    padding-left: 15px;
+}
+
+.section-title:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 10px;
+    }
+
+    .welcome-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .welcome-card h2 {
+        font-size: 1.8rem;
+        margin: 15px 0;
+    }
+
+    .welcome-badges {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .welcome-logo {
+        margin: 0 auto;
+        width: 100px;
+        height: 100px;
+        padding: 15px;
+    }
+
+    .row {
+        margin: 0;
+    }
+
+    .col-md-6, .col-md-8, .col-md-4 {
+        padding: 0;
+        margin-bottom: 15px;
+    }
+
+    .card {
+        margin-bottom: 15px;
+        border-radius: 12px;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .member-list {
+        max-height: 250px;
+    }
+
+    .member-item {
+        padding: 8px;
+    }
+
+    .member-item img {
+        width: 35px;
+        height: 35px;
+    }
+
+    .performance-metrics {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .performance-metric {
+        flex: 1;
+        padding: 10px;
+    }
+
+    .metric-value {
+        font-size: 20px;
+    }
+
+    .announcement-item {
+        padding: 15px;
+    }
+
+    .announcement-meta {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .calendar-wrapper {
+        gap: 3px;
+    }
+
+    .calendar-day {
+        font-size: 12px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .activity-item {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-card h2 {
+        font-size: 1.5rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .performance-metrics {
+        flex-direction: column;
+    }
+
+    .performance-metric {
+        margin-bottom: 10px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 5px 10px;
+    }
+
+    .announcement-title {
+        font-size: 1rem;
+    }
+
+    .announcement-content {
+        font-size: 0.9rem;
+    }
+
+    .personal-info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 0;
+    }
+
+    .personal-info-label {
+        margin-bottom: 5px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .dashboard-container {
+        padding: 15px;
+    }
+
+    .welcome-card h2 {
+        font-size: 2.2rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+} 

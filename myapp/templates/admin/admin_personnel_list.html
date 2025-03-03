@@ -1,0 +1,875 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Personnel List{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/admin_personnel_list.css' %}">
+<style>
+    .header-description {
+        color: #718096;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        max-width: 800px;
+        position: relative;
+        padding-left: 1rem;
+        border-left: 3px solid #e2e8f0;
+    }
+
+    /* Styling for the Personnel List heading */
+h1.h4 {
+    font-size: 30px;
+    background-color:rgb(240, 244, 251);
+    width: 280px;
+    margin: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Icon styling */
+h1.h4 i {
+    color: #007bff;
+    font-size: 35px;
+}
+
+/* Optional: Add some spacing */
+h1.h4.mb-1 {
+    margin-bottom: 10px;
+}
+
+</style>
+<div class="container-fluid mt-4">
+    <!-- Header with Search -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 bg-white shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h1 class="h4 mb-1"><i class="fa-solid fa-users-line"></i> Personnel List</h1>
+                            <p class="header-description">
+                                View, manage, and keep track of all personnel records in one place.  
+                                Easily add new members, update existing information, and ensure accurate record-keeping.  
+                                Maintain an organized database to streamline personnel management and improve efficiency.
+                            </p>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPersonnelModal">
+                                <i class="fas fa-plus"></i> Add Personnel
+                            </button>
+                            <a href="{% url 'assign_gender' %}" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-user-tag"></i> Assign
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Search and Filters -->
+                    <div class="search-filters mb-0">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="search-box">
+                                    <div class="input-group">
+                                        <span class="input-group-text border-0">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                        <input type="text" 
+                                               id="searchInput" 
+                                               class="form-control border-0" 
+                                               placeholder="Search personnel...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="sort-box">
+                                    <div class="input-group">
+                                        <span class="input-group-text border-0">
+                                            <i class="fas fa-sort"></i>
+                                        </span>
+                                        <select id="sortSelect" class="form-select border-0">
+                                            <option value="name_asc">Name (A-Z)</option>
+                                            <option value="name_desc">Name (Z-A)</option>
+                                            <option value="position_asc">Position (A-Z)</option>
+                                            <option value="position_desc">Position (Z-A)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="status-filter">
+                                    <div class="input-group">
+                                        <span class="input-group-text border-0">
+                                            <i class="fas fa-filter"></i>
+                                        </span>
+                                        <select class="form-select border-0">
+                                            <option value="">All Status</option>
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="total-box text-end">
+                                    <small class="text-muted d-block">Total Personnel</small>
+                                    <span id="totalPersonnel" class="h4 mb-0">{{ personnel.count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- Table Section -->
+        <div class="col-lg-9">
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Bulk Actions -->
+            <div class="bulk-actions mb-3" style="display: none;">
+                <button id="bulkDeleteBtn" class="btn btn-danger btn-sm">
+                    <i class="fas fa-trash"></i> Delete Selected (<span id="selectedCount">0</span>)
+                </button>
+            </div>
+
+            <!-- Personnel Table Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="personnelTable">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th style="width: 30px;">
+                                        <input type="checkbox" id="selectAll" class="form-check-input">
+                                    </th>
+                                    <th class="d-none d-md-table-cell" style="width: 50px;">Profile</th>
+                                    <th>Name</th>
+                                    <th class="d-none d-md-table-cell">Student ID</th>
+                                    <th class="d-none d-md-table-cell">Position</th>
+                                    <th>Status</th>
+                                    <th class="d-none d-lg-table-cell">Flight Group</th>
+                                    <th class="d-none d-lg-table-cell">Contact</th>
+                                    <th class="d-none d-lg-table-cell">Gender Assignment</th>
+                                    <th style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for person in personnel %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="form-check-input personnel-checkbox" 
+                                               value="{{ person.id }}">
+                                    </td>
+                                    <td class="d-none d-md-table-cell">
+                                        {% if person.profile_picture %}
+                                            <img src="{{ person.profile_picture.url }}" 
+                                                 class="rounded-circle profile-img cursor-pointer" 
+                                                 alt="Profile Picture"
+                                                 data-bs-toggle="modal" 
+                                                 data-bs-target="#imageModal{{ person.id }}">
+                                        {% else %}
+                                            <img src="{% static 'images/default-profile.png' %}" 
+                                                 class="rounded-circle profile-img cursor-pointer" 
+                                                 alt="Default Profile"
+                                                 data-bs-toggle="modal" 
+                                                 data-bs-target="#imageModal{{ person.id }}">
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold">{{ person.first_name }} {{ person.last_name }}</span>
+                                            <small class="text-muted">@{{ person.user.username }}</small>
+                                            <!-- Mobile-only info -->
+                                            <div class="d-md-none">
+                                                <small class="text-muted">{{ person.position }}</small>
+                                                <small class="text-muted d-block">ID: {{ person.student_id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="d-none d-md-table-cell">{{ person.student_id }}</td>
+                                    <td class="d-none d-md-table-cell">{{ person.position }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if person.status == 'Active' %}success{% else %}warning{% endif %}">
+                                            {{ person.status }}
+                                        </span>
+                                    </td>
+                                    <td class="d-none d-lg-table-cell">
+                                        {% if person.flight_group %}
+                                            {{ person.flight_group.name }}
+                                        {% else %}
+                                            <span class="text-muted">None</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="d-none d-lg-table-cell">{{ person.phone_number }}</td>
+                                    <td class="d-none d-lg-table-cell">{{ person.gender_assignment|default:"Not Assigned" }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" 
+                                                    data-bs-target="#viewPersonnelModal{{ person.id }}">
+                                                <i class="fas fa-eye"></i><span class="d-none d-md-inline"> View</span>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" 
+                                                    data-bs-target="#editPersonnelModal{{ person.id }}">
+                                                <i class="fas fa-edit"></i><span class="d-none d-md-inline"> Edit</span>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" 
+                                                    data-bs-target="#deletePersonnelModal{{ person.id }}">
+                                                <i class="fas fa-trash"></i><span class="d-none d-md-inline"> Delete</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="col-lg-3">
+            <!-- Statistics card -->
+            <div class="card border-0 bg-white shadow-sm mb-4">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-semibold mb-0">Overview</h6>
+                        <button class="btn btn-sm btn-outline-primary" id="zoomChartBtn">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container" style="position: relative; height: 200px;">
+                        <canvas id="personnelChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card border-0 bg-white shadow-sm">
+                <div class="card-body p-3">
+                    <h6 class="fw-semibold mb-3">Quick Stats</h6>
+                    <div class="quick-stat mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Active Personnel</span>
+                            <span class="badge bg-success">85%</span>
+                        </div>
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-success" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <div class="quick-stat mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Assigned Groups</span>
+                            <span class="badge bg-primary">92%</span>
+                        </div>
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-primary" style="width: 92%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Personnel Modal -->
+<div class="modal fade" id="addPersonnelModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus"></i> Add Personnel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'add_personnel' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> Username</label>
+                            <input type="text" name="username" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-key"></i> Password</label>
+                            <input type="password" name="password" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> First Name</label>
+                            <input type="text" name="first_name" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> Last Name</label>
+                            <input type="text" name="last_name" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-briefcase"></i> Position</label>
+                            <input type="text" name="position" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-info-circle"></i> Status</label>
+                            <select name="status" class="form-control form-control-sm" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-id-card"></i> Student ID</label>
+                            <input type="text" name="student_id" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-birthday-cake"></i> Age</label>
+                            <input type="number" name="age" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-venus-mars"></i> Gender</label>
+                            <select name="gender" class="form-control form-control-sm" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-phone"></i> Phone Number</label>
+                            <input type="text" name="phone_number" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-users"></i> Flight Group</label>
+                            <select name="flight_group" class="form-control form-control-sm">
+                                <option value="">None</option>
+                                {% for group in flight_groups %}
+                                    <option value="{{ group.id }}">{{ group.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-image"></i> Profile Picture</label>
+                            <input type="file" name="profile_picture" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-primary">Add Personnel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/personnel_list.js' %}"></script>
+
+<!-- Add this for no results message -->
+<div class="no-results" style="display: none;">
+    <i class="fas fa-search"></i>
+    <p>No personnel found matching your search.</p>
+</div>
+
+<!-- Image Preview Modal -->
+{% for person in personnel %}
+<div class="modal fade" id="imageModal{{ person.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">{{ person.first_name }} {{ person.last_name }}'s Profile Picture</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                {% if person.profile_picture %}
+                    <img src="{{ person.profile_picture.url }}" 
+                         class="img-fluid profile-preview" 
+                         alt="Profile Picture">
+                {% else %}
+                    <img src="{% static 'images/default-profile.png' %}" 
+                         class="img-fluid profile-preview" 
+                         alt="Default Profile">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Delete Confirmation Modal -->
+{% for person in personnel %}
+<div class="modal fade" id="deletePersonnelModal{{ person.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger"></i> Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ person.first_name }} {{ person.last_name }}</strong>?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'delete_personnel' person.id %}" class="btn btn-sm btn-danger">
+                    <i class="fas fa-trash"></i> Delete Personnel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Add this new modal for bulk delete confirmation -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-danger"></i> 
+                    Confirm Bulk Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <span id="deleteCount">0</span> selected personnel?</p>
+                <p class="text-danger">This action cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBulkDelete">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this JavaScript code at the end of your template -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const personnelCheckboxes = document.querySelectorAll('.personnel-checkbox');
+    const bulkActions = document.querySelector('.bulk-actions');
+    const selectedCount = document.getElementById('selectedCount');
+    const deleteCount = document.getElementById('deleteCount');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkDeleteModal = new bootstrap.Modal(document.getElementById('bulkDeleteModal'));
+    const confirmBulkDelete = document.getElementById('confirmBulkDelete');
+
+    // Handle select all checkbox
+    selectAll.addEventListener('change', function() {
+        personnelCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateBulkActions();
+    });
+
+    // Handle individual checkboxes
+    personnelCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateBulkActions();
+            // Update select all checkbox
+            selectAll.checked = [...personnelCheckboxes].every(cb => cb.checked);
+        });
+    });
+
+    // Update bulk actions visibility and counter
+    function updateBulkActions() {
+        const checkedCount = [...personnelCheckboxes].filter(cb => cb.checked).length;
+        if (checkedCount > 0) {
+            bulkActions.style.display = 'block';
+            selectedCount.textContent = checkedCount;
+            deleteCount.textContent = checkedCount;
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+
+    // Handle bulk delete button click
+    bulkDeleteBtn.addEventListener('click', function() {
+        bulkDeleteModal.show();
+    });
+
+    // Handle confirm bulk delete
+    confirmBulkDelete.addEventListener('click', function() {
+        const selectedIds = [...personnelCheckboxes]
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+
+        // Send delete request
+        fetch('{% url "bulk_delete_personnel" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: 'personnel_ids[]=' + selectedIds.join('&personnel_ids[]=')
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Reload the page to show updated list
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting personnel');
+        })
+        .finally(() => {
+            bulkDeleteModal.hide();
+        });
+    });
+});
+</script>
+
+<!-- Add before the closing body tag -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('personnelChart').getContext('2d');
+    
+    // Calculate statistics from personnel data
+    const personnel = Array.from(document.querySelectorAll('#personnelTable tbody tr'));
+    
+    const activeCount = personnel.filter(row => 
+        row.querySelector('td:nth-child(6) .badge').textContent.trim() === 'Active'
+    ).length;
+    const inactiveCount = personnel.length - activeCount;
+
+    const maleCount = personnel.filter(row => 
+        row.querySelector('td:nth-child(9)').textContent.trim().includes('Male')
+    ).length;
+    const femaleCount = personnel.filter(row => 
+        row.querySelector('td:nth-child(9)').textContent.trim().includes('Female')
+    ).length;
+    const otherCount = personnel.length - maleCount - femaleCount;
+
+    // Create chart configuration
+    const chartConfig = {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Inactive', 'Male', 'Female', 'Other'],
+            datasets: [{
+                data: [activeCount, inactiveCount, maleCount, femaleCount, otherCount],
+                backgroundColor: [
+                    '#4CAF50',  // Active - soft green
+                    '#FF9800',  // Inactive - soft orange
+                    '#2196F3',  // Male - soft blue
+                    '#E91E63',  // Female - soft pink
+                    '#9E9E9E'   // Other - soft gray
+                ],
+                borderWidth: 0,
+                borderRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        usePointStyle: true,
+                        font: {
+                            size: 11,
+                            family: "'Inter', sans-serif"
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    titleColor: '#333',
+                    bodyColor: '#666',
+                    bodyFont: {
+                        size: 12
+                    },
+                    borderColor: '#e0e0e0',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // Initialize the main chart
+    const mainChart = new Chart(ctx, chartConfig);
+
+    // Handle zoom functionality
+    const zoomChartBtn = document.getElementById('zoomChartBtn');
+    if (document.getElementById('chartZoomModal')) {
+    const chartZoomModal = new bootstrap.Modal(document.getElementById('chartZoomModal'));
+    let zoomedChart = null;
+
+    zoomChartBtn.addEventListener('click', function() {
+        const zoomCtx = document.getElementById('zoomedPersonnelChart').getContext('2d');
+        
+        // Destroy existing zoomed chart if it exists
+        if (zoomedChart) {
+            zoomedChart.destroy();
+        }
+
+        // Create zoomed chart configuration with larger fonts
+        const zoomedConfig = JSON.parse(JSON.stringify(chartConfig)); // Deep clone the config
+        zoomedConfig.options.plugins.legend.labels.font.size = 14;
+        zoomedConfig.options.plugins.tooltip.bodyFont.size = 14;
+        
+        // Show modal and create new chart
+        chartZoomModal.show();
+        zoomedChart = new Chart(zoomCtx, zoomedConfig);
+    });
+
+    // Clean up zoomed chart when modal is closed
+    document.getElementById('chartZoomModal').addEventListener('hidden.bs.modal', function() {
+        if (zoomedChart) {
+            zoomedChart.destroy();
+            zoomedChart = null;
+        }
+    });
+    }
+});
+</script>
+
+<!-- Add this modal for the zoomed chart -->
+<div class="modal fade" id="chartZoomModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Personnel Distribution</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="zoomed-chart-container" style="position: relative; height: 400px;">
+                    <canvas id="zoomedPersonnelChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add back the Edit and View Personnel Modals -->
+{% for person in personnel %}
+<!-- Edit Personnel Modal -->
+<div class="modal fade" id="editPersonnelModal{{ person.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Edit Personnel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'edit_personnel' person.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> Username</label>
+                            <input type="text" name="username" class="form-control form-control-sm" 
+                                   value="{{ person.user.username }}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-key"></i> Password</label>
+                            <input type="password" name="password" class="form-control form-control-sm" 
+                                   placeholder="Leave blank to keep current password">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> First Name</label>
+                            <input type="text" name="first_name" class="form-control form-control-sm" 
+                                   value="{{ person.first_name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> Last Name</label>
+                            <input type="text" name="last_name" class="form-control form-control-sm" 
+                                   value="{{ person.last_name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-briefcase"></i> Position</label>
+                            <input type="text" name="position" class="form-control form-control-sm" 
+                                   value="{{ person.position }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-info-circle"></i> Status</label>
+                            <select name="status" class="form-control form-control-sm" required>
+                                <option value="Active" {% if person.status == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Inactive" {% if person.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-id-card"></i> Student ID</label>
+                            <input type="text" name="student_id" class="form-control form-control-sm" 
+                                   value="{{ person.student_id }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-birthday-cake"></i> Age</label>
+                            <input type="number" name="age" class="form-control form-control-sm" 
+                                   value="{{ person.age }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-venus-mars"></i> Gender</label>
+                            <select name="gender" class="form-control form-control-sm" required>
+                                <option value="Male" {% if person.gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if person.gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if person.gender == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-phone"></i> Phone Number</label>
+                            <input type="text" name="phone_number" class="form-control form-control-sm" 
+                                   value="{{ person.phone_number }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-users"></i> Flight Group</label>
+                            <select name="flight_group" class="form-control form-control-sm">
+                                <option value="">None</option>
+                                {% for group in flight_groups %}
+                                    <option value="{{ group.id }}" 
+                                        {% if person.flight_group.id == group.id %}selected{% endif %}>
+                                        {{ group.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-image"></i> Profile Picture</label>
+                            <input type="file" name="profile_picture" class="form-control form-control-sm">
+                            {% if person.profile_picture %}
+                                <small class="text-muted">Current: {{ person.profile_picture.name }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-primary">Update Personnel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Personnel Modal -->
+<div class="modal fade" id="viewPersonnelModal{{ person.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title"><i class="fas fa-user"></i> Personnel Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <!-- Profile Header -->
+                <div class="text-center mb-3">
+                    {% if person.profile_picture %}
+                        <img src="{{ person.profile_picture.url }}" 
+                             class="rounded-circle shadow-sm" 
+                             style="width: 80px; height: 80px; object-fit: cover;"
+                             alt="Profile Picture">
+                    {% else %}
+                        <img src="{% static 'images/default-profile.png' %}" 
+                             class="rounded-circle shadow-sm" 
+                             style="width: 80px; height: 80px; object-fit: cover;"
+                             alt="Default Profile">
+                    {% endif %}
+                    <h5 class="mt-2 mb-0">{{ person.first_name }} {{ person.last_name }}</h5>
+                    <p class="text-muted small">@{{ person.user.username }}</p>
+                </div>
+
+                <!-- Info Cards -->
+                <div class="row g-2">
+                    <!-- Basic Info Card -->
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm mb-2">
+                            <div class="card-body p-3">
+                                <h6 class="mb-2"><i class="fas fa-user-circle me-2"></i>Basic Information</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block">Position</label>
+                                        <span>{{ person.position }}</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block">Status</label>
+                                        <span class="badge bg-{% if person.status == 'Active' %}success{% else %}warning{% endif %}">
+                                            {{ person.status }}
+                                        </span>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block">Student ID</label>
+                                        <span>{{ person.student_id }}</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block">Age</label>
+                                        <span>{{ person.age }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Info Card -->
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-3">
+                                <h6 class="mb-2"><i class="fas fa-info-circle me-2"></i>Additional Information</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block">Gender</label>
+                                        <span>{{ person.gender }}</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block">Phone Number</label>
+                                        <span>{{ person.phone_number }}</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block">Flight Group</label>
+                                        {% if person.flight_group %}
+                                            <span>{{ person.flight_group.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted">None</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small d-block">Gender Assignment</label>
+                                        <span>{{ person.gender_assignment|default:"Not Assigned" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

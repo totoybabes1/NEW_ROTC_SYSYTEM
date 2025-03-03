@@ -1,0 +1,128 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Upload Excel{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/excel_upload.css' %}">
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h4 mb-0">
+            <i class="fas fa-file-excel me-2"></i>Excel File Upload
+        </h1>
+        <span class="badge bg-info">
+            <i class="fas fa-file-alt me-1"></i>Total Uploaded Files: {{ total_files }}
+        </span>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-info alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Upload Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" class="upload-form">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="excel_file" class="form-label">
+                        <i class="fas fa-upload me-2"></i>Choose Excel File
+                    </label>
+                    <input type="file" 
+                           class="form-control" 
+                           id="excel_file" 
+                           name="excel_file"
+                           accept=".xlsx,.xls">
+                    <div class="form-text">Only .xlsx and .xls files are supported</div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-cloud-upload-alt me-2"></i>Upload File
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Uploaded Files List -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Uploaded Files</h5>
+        </div>
+        <div class="card-body">
+            {% if uploaded_files %}
+                <ul class="list-group">
+                    {% for file in uploaded_files %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ file.table_name }} - Uploaded on: {{ file.created_at|date:"d M Y" }}
+                            <div>
+                                <a href="{% url 'view_excel_content' file.id %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <form method="POST" action="{% url 'delete_uploaded_file' file.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash-alt"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No files uploaded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <!-- Excel Content Preview -->
+    {% if columns and rows %}
+    <div class="card">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>Excel Data
+                </h5>
+                <span class="badge bg-primary">
+                    <i class="fas fa-list me-1"></i>{{ total_rows }} Rows
+                </span>
+                <span class="badge bg-secondary">
+                    <i class="fas fa-calendar-alt me-1"></i>Uploaded on: {{ selected_file_id|slice:"7:" }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered" id="excelTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" style="width: 50px;">#</th>
+                            {% for column in columns %}
+                            <th>{{ column }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            <td class="text-center">{{ forloop.counter }}</td>
+                            {% for value in row %}
+                            <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

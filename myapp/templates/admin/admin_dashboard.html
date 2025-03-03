@@ -1,0 +1,584 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<!-- Add AOS CSS -->
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+
+{% if user.is_staff %}
+    <div class="admin-dashboard">        <div class="dashboard-header" data-aos="fade-up" data-aos-delay="100">
+            <div class="header-logo">
+                <img src="{% static 'img/logo.png' %}" alt="University Logo" class="dashboard-logo">
+            </div>
+            <div class="header-text">
+                <h1>Admin Dashboard</h1>
+                <p class="welcome-text">Welcome, {{ user.username }}!</p>
+                <div class="datetime-container">
+                    <div class="date-display">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="currentDate"></span>
+                    </div>
+                    <div class="time-display">
+                        <i class="fas fa-clock"></i>
+                        <span id="currentTime"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            
+
+            .datetime-container {
+                display: flex;
+                gap: 20px;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            .date-display, .time-display {
+                background: rgba(255, 255, 255, 0.1);
+                padding: 8px 15px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                backdrop-filter: blur(5px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+
+            .date-display:hover, .time-display:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+
+            .date-display i, .time-display i {
+                color: #4a90e2;
+            }
+
+            #currentDate, #currentTime {
+                font-size: 0.95rem;
+                color: #333;
+                font-weight: 500;
+            }
+
+            .quick-actions-panel {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                margin-bottom: 30px;
+            }
+
+            .action-buttons {
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+
+            .action-btn {
+                display: flex;
+                align-items: center;
+                background: #fff;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .action-btn:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+
+            .action-icon {
+                font-size: 2rem;
+                color: #007bff;
+                margin-right: 15px;
+            }
+
+            .action-title {
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+
+            .action-desc {
+                font-size: 0.9rem;
+                color: #666;
+            }
+
+            .dashboard-row {
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+
+            .dashboard-card {
+                flex: 1;
+                min-width: 300px;
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                margin-bottom: 30px;
+            }
+
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .activity-timeline {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+
+            .activity-item {
+                display: flex;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+
+            .activity-icon {
+                font-size: 1.5rem;
+                color: #007bff;
+                margin-right: 15px;
+            }
+
+            .activity-description {
+                font-weight: 500;
+                color: #333;
+            }
+
+            .activity-meta {
+                font-size: 0.85rem;
+                color: #999;
+            }
+
+            .stats-overview {
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+
+            .stat-card {
+                flex: 1;
+                min-width: 200px;
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .stat-card i {
+                font-size: 2rem;
+                color: #007bff;
+            }
+
+            .stat-info h3 {
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin-bottom: 5px;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #333;
+            }
+
+            .chart-container {
+                position: relative;
+                height: 300px;
+            }
+        </style>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions-panel" data-aos="fade-up" data-aos-delay="200">
+            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+            <div class="action-buttons">
+                <a href="{% url 'add_personnel' %}" class="action-btn">
+                    <div class="action-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="action-text">
+                        <span class="action-title">Add Personnel</span>
+                        <span class="action-desc">Create new personnel records</span>
+                    </div>
+                </a>
+                <a href="{% url 'upload_excel' %}" class="action-btn">
+                    <div class="action-icon">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <div class="action-text">
+                        <span class="action-title">Upload File</span>
+                        <span class="action-desc">Import data from Excel</span>
+                    </div>
+                </a>
+                <a href="{% url 'admin_flight_groups' %}" class="action-btn">
+                    <div class="action-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="action-text">
+                        <span class="action-title">Manage Groups</span>
+                        <span class="action-desc">Organize flight groups</span>
+                    </div>
+                </a>
+                <a href="{% url 'assign_gender' %}" class="action-btn">
+                    <div class="action-icon">
+                        <i class="fas fa-venus-mars"></i>
+                    </div>
+                    <div class="action-text">
+                        <span class="action-title">Assign Gender</span>
+                        <span class="action-desc">Update gender information</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity and Login/Logout History in a single row -->
+        <div class="dashboard-row">
+            <div class="dashboard-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="card-header">
+                    <h2 style="font-size: 1.5em;"><i class="fas fa-history"></i> Recent Activity</h2>
+                    <div class="activity-controls">
+                        <input type="text" id="activitySearch" placeholder="Search activities..." class="activity-search">
+                    </div>
+                </div>
+                <div class="activity-timeline">
+                    {% if recent_activities %}
+                        {% for activity in recent_activities %}
+                        <div class="activity-item" data-type="{{ activity.type }}">
+                            <div class="activity-icon">
+                                <i class="{% if activity.type == 'upload' %}fas fa-file-upload{% else %}fas fa-user-plus{% endif %}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-details">
+                                    <p class="activity-description">{{ activity.description }}</p>
+                                    <div class="activity-meta">
+                                        <span class="activity-user">
+                                            <i class="fas fa-user"></i> {{ activity.user }}
+                                        </span>
+                                        <span class="activity-time">
+                                            <i class="fas fa-clock"></i> {{ activity.timestamp }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-activities">
+                            <p>No recent activities to display</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="dashboard-card" data-aos="fade-up" data-aos-delay="400">
+                <div class="card-header">
+                    <h2><i class="fas fa-sign-in-alt"></i> Login/Logout History</h2>
+                </div>
+                <div class="activity-timeline">
+                    {% if recent_activities %}
+                        {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="{% if activity.activity_type == 'login' %}fas fa-sign-in-alt{% else %}fas fa-sign-out-alt{% endif %}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-details">
+                                    <p class="activity-description">{{ activity.user.username }} {{ activity.activity_type }} at {{ activity.timestamp }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-activities">
+                            <p>No login/logout activities to display</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="stats-overview">
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="500">
+                <i class="fas fa-users"></i>
+                <div class="stat-info">
+                    <h3>Total Personnel</h3>
+                    <span class="stat-number">{{ stats.total_personnel }}</span>
+                </div>
+            </div>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="600">
+                <i class="fas fa-users-cog"></i>
+                <div class="stat-info">
+                    <h3>Flight Groups</h3>
+                    <span class="stat-number">{{ stats.total_groups }}</span>
+                </div>
+            </div>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="700">
+                <i class="fas fa-file-excel"></i>
+                <div class="stat-info">
+                    <h3>Uploaded Files</h3>
+                    <span class="stat-number">{{ stats.total_files }}</span>
+                </div>
+            </div>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="800">
+                <i class="fas fa-calendar-alt"></i>
+                <div class="stat-info">
+                    <h3>Recent Uploads</h3>
+                    <span class="stat-number">{{ stats.recent_uploads }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Charts Section -->
+            <div class="dashboard-card" data-aos="fade-up" data-aos-delay="900">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-pie"></i> Gender Distribution</h2>
+                    <div class="chart-controls">
+                        <button class="chart-toggle" data-chart="pie"><i class="fas fa-chart-pie"></i></button>
+                        <button class="chart-toggle" data-chart="doughnut"><i class="fas fa-circle-notch"></i></button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="genderChart"></canvas>
+                    <div class="chart-legend" id="genderLegend"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-card" data-aos="fade-up" data-aos-delay="1000">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-bar"></i> Flight Group Members</h2>
+                    <div class="chart-controls">
+                        <select id="groupChartView" class="chart-select">
+                            <option value="bar">Bar Chart</option>
+                            <option value="line">Line Chart</option>
+                            <option value="radar">Radar Chart</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="groupChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/admin_activities.js' %}"></script>
+    <!-- Add AOS JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Common chart options
+            const chartDefaults = {
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                family: "'Poppins', sans-serif",
+                                size: 12
+                            },
+                            padding: 20
+                        },
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        cornerRadius: 6,
+                        displayColors: true
+                    }
+                }
+            };
+
+            // Gender Distribution Chart
+            let genderChart;
+            const genderColors = {
+                Male: '#4a90e2',
+                Female: '#e25c5c',
+                'Non-binary': '#50c878',
+                Other: '#ffd700'
+            };
+
+            function createGenderChart(type = 'pie') {
+                const genderCtx = document.getElementById('genderChart').getContext('2d');
+                
+                if (genderChart) {
+                    genderChart.destroy();
+                }
+
+                genderChart = new Chart(genderCtx, {
+                    type: type,
+                    data: {
+                        labels: ['Male', 'Female', 'Non-binary', 'Other'],
+                        datasets: [{
+                            data: [
+                                {{ stats.gender_male }},
+                                {{ stats.gender_female }},
+                                {{ stats.gender_nonbinary }},
+                                {{ stats.gender_other }}
+                            ],
+                            backgroundColor: Object.values(genderColors),
+                            borderWidth: 2,
+                            borderColor: '#ffffff',
+                            hoverOffset: 15
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true,
+                            duration: 1000,
+                            easing: 'easeInOutQuart'
+                        },
+                        plugins: {
+                            ...chartDefaults.plugins,
+                            title: {
+                                display: true,
+                                text: 'Personnel Gender Distribution',
+                                padding: 20
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Flight Group Members Chart
+            let groupChart;
+            function createGroupChart(type = 'bar') {
+                const groupCtx = document.getElementById('groupChart').getContext('2d');
+                
+                if (groupChart) {
+                    groupChart.destroy();
+                }
+
+                const chartConfig = {
+                    type: type,
+                    data: {
+                        labels: {{ group_names|safe }},
+                        datasets: [{
+                            label: 'Members',
+                            data: {{ group_members }},
+                            backgroundColor: 'rgba(74, 144, 226, 0.7)',
+                            borderColor: '#4a90e2',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeInOutQuart'
+                        },
+                        scales: type !== 'radar' ? {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        } : {},
+                        plugins: {
+                            ...chartDefaults.plugins,
+                            title: {
+                                display: true,
+                                text: 'Flight Group Distribution',
+                                padding: 20
+                            }
+                        }
+                    }
+                };
+
+                groupChart = new Chart(groupCtx, chartConfig);
+            }
+
+            // Initialize charts
+            createGenderChart('pie');
+            createGroupChart('bar');
+
+            // Event listeners for chart controls
+            document.querySelectorAll('.chart-toggle').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const chartType = e.target.closest('button').dataset.chart;
+                    createGenderChart(chartType);
+                });
+            });
+
+            document.getElementById('groupChartView').addEventListener('change', (e) => {
+                createGroupChart(e.target.value);
+            });
+
+            // Initialize the activity manager
+            const activityManager = new ActivityManager();
+        });
+
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Update date
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+            
+            // Update time
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // Update immediately and then every second
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+    </script>
+{% else %}
+    <p>You do not have permission to access this page.</p>
+{% endif %}
+{% endblock %}

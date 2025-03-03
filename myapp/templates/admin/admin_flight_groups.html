@@ -1,0 +1,701 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Flight Groups{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/admin_flight_groups.css' %}"/>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        /* Modern Search Container Styles */
+        .search-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .search-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .search-description {
+            color: #6B7280;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            max-width: 800px;
+        }
+
+        .search-tools {
+            display: grid;
+            grid-template-columns: minmax(200px, 2fr) minmax(150px, 1fr) auto;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .search-input-wrapper, .sort-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input-wrapper .form-control,
+        .sort-wrapper .form-select {
+            height: 45px;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            padding-left: 40px;
+            font-size: 0.95rem;
+            background-color: #F9FAFB;
+            transition: all 0.2s ease;
+        }
+
+        .search-input-wrapper .form-control:focus,
+        .sort-wrapper .form-select:focus {
+            background-color: #FFFFFF;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-input-wrapper i,
+        .sort-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            z-index: 2;
+        }
+
+        .table-container {
+            min-height: 300px; /* Adjust this value based on your needs */
+            position: relative;
+        }
+
+        .table-modern {
+            width: 100% !important;
+            table-layout: fixed;
+        }
+
+        .table-modern th,
+        .table-modern td {
+            padding: 12px;
+        }
+
+        .table-modern th:nth-child(1),
+        .table-modern td:nth-child(1) {
+            width: 25%;
+        }
+
+        .table-modern th:nth-child(2),
+        .table-modern td:nth-child(2) {
+            width: 45%;
+        }
+
+        .table-modern th:nth-child(3),
+        .table-modern td:nth-child(3) {
+            width: 30%;
+        }
+
+        .no-results {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .no-results i {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .no-results p {
+            color: #64748b;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .search-tools {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .add-new-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+    <div class="background-container" data-aos="fade-down" data-aos-delay="100">
+        <div class="dashboard-layout">
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-down" data-aos-delay="200">
+                    <div class="main-stats-card" data-aos="fade-right" data-aos-delay="200">
+                        <div class="stats-header">
+                            <h1><i class="fas fa-users" style="color: #4a90e2; margin-right: 10px; font-size: 1.2em;"></i>Flight Groups</h1>
+                            <p class="stats-subtitle">
+                                Update existing flight groups or remove them when no longer needed.
+                                Easily modify group details and delete outdated entries to keep your records current.
+                            </p>
+                        </div>
+                        
+                        <div class="stats-body">
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <div class="stat-info">
+                                    <span id="totalGroups" class="stat-number">Loading...</span>
+                                    <span class="stat-label">Total Groups</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-check-circle"></i>
+                                <div class="stat-info">
+                                    <span id="activeGroupsCount" class="stat-number">0</span>
+                                    <span class="stat-label">Active Groups</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="search-container" data-aos="fade-right" data-aos-delay="250">
+                    <p class="search-description">
+                        Search and manage flight groups efficiently. Use filters to find specific groups and keep your organization streamlined.
+                    </p>
+                    <div class="search-tools">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search flight groups..."/>
+                        </div>
+                        <div class="sort-wrapper">
+                            <i class="fas fa-sort"></i>
+                            <select id="sortSelect" class="form-select">
+                                <option value="name_asc">Name (A-Z)</option>
+                                <option value="name_desc">Name (Z-A)</option>
+                                <option value="description_asc">Description (A-Z)</option>
+                                <option value="description_desc">Description (Z-A)</option>
+                            </select>
+                        </div>
+                        <button class="add-new-btn btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addFlightGroupModal">
+                            <i class="fas fa-plus"></i>
+                            Add New Group
+                        </button>
+                    </div>
+                </div>
+                
+
+                <div class="data-card glass-effect" data-aos="fade-up" data-aos-delay="300">
+                    {% if flight_groups %}
+                        <div class="table-container">
+                            <table class="table table-modern" id="flightGroupsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Group Name</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for group in flight_groups %}
+                                        <tr>
+                                            <td><i class="fas fa-tag"></i> {{ group.name }}</td>
+                                            <td><i class="fas fa-align-left"></i> {{ group.description }}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary edit-group-btn" 
+                                                        data-group-id="{{ group.id }}" 
+                                                        data-group-name="{{ group.name }}"
+                                                        data-group-description="{{ group.description }}">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger delete-group-btn" 
+                                                        data-group-id="{{ group.id }}" 
+                                                        data-group-name="{{ group.name }}">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <div class="no-results">
+                                <i class="fas fa-search"></i>
+                                <p>No matching flight groups found</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-plane-slash"></i>
+                            <p>No flight groups available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right Side Panel -->
+            <div class="side-panel">
+                <div class="quick-actions glass-effect" data-aos="slide-left" data-aos-delay="200">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn" data-bs-toggle="modal" data-bs-target="#addFlightGroupModal">
+                            <div class="btn-icon">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div class="btn-content">
+                                <span class="btn-title">New Flight Group</span>
+                                <span class="btn-description">Create a new flight group</span>
+                            </div>
+                        </button>
+                        <button class="action-btn" id="exportDataBtn">
+                            <div class="btn-icon">
+                                <i class="fas fa-file-export"></i>
+                            </div>
+                            <div class="btn-content">
+                                <span class="btn-title">Export Data</span>
+                                <span class="btn-description">Download as CSV/Excel</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-widget glass-effect" data-aos="zoom-in-left" data-aos-delay="300">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-chart-pie"></i> Overview</h3>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-widget-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="sideActiveGroups">0</span>
+                                <span class="stat-label">Active Groups</span>
+                            </div>
+                        </div>
+                        <div class="stat-widget-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="todaysUpdates">3</span>
+                                <span class="stat-label">Today's Updates</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activity glass-effect" data-aos="flip-up" data-aos-delay="400">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-history"></i> Recent Activity</h3>
+                    </div>
+                    <div class="activity-list" id="activityList">
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <span class="activity-title">New group created</span>
+                                <span class="activity-time">2 mins ago</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="activity-content">
+                                <span class="activity-title">Group updated</span>
+                                <span class="activity-time">1 hour ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Flight Group Modal -->
+    <div class="modal fade" id="addFlightGroupModal" data-aos="zoom-in" data-aos-duration="400" tabindex="-1" aria-labelledby="addFlightGroupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addFlightGroupModalLabel">
+                        <i class="fas fa-plus"></i> Add New Flight Group
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i> Group Name
+                            </label>
+                            <input type="text" name="name" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-align-left"></i> Description
+                            </label>
+                            <textarea name="description" class="form-control" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Flight Group
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Flight Group Modal -->
+    <div class="modal fade" id="editFlightGroupModal" data-aos="zoom-in" data-aos-duration="400" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">
+                        <i class="fas fa-edit text-primary"></i> 
+                        Edit Flight Group
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" id="editFlightGroupForm">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">
+                                <i class="fas fa-tag"></i> Group Name
+                            </label>
+                            <input type="text" 
+                                    id="editName"
+                                    name="name" 
+                                    class="form-control" 
+                                    required/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">
+                                <i class="fas fa-align-left"></i> Description
+                            </label>
+                            <textarea id="editDescription"
+                                    name="description" 
+                                    class="form-control" 
+                                    rows="3" 
+                                    required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" 
+                                class="btn btn-outline-secondary" 
+                                data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> 
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> 
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Flight Modal (if needed) -->
+    <div class="modal fade" id="updateFlightModal" tabindex="-1" aria-labelledby="updateFlightModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateFlightModalLabel">
+                        <i class="fas fa-plane"></i> Update Flight
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="updateFlightForm" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" id="groupId" name="group_id">
+                        
+                        <div class="mb-3">
+                            <label for="flightGroup" class="form-label">
+                                <i class="fas fa-tags"></i> Flight Group
+                            </label>
+                            <input type="text" id="flightGroup" class="form-control" readonly>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="flightNumber" class="form-label">
+                                <i class="fas fa-plane"></i> Flight Number
+                            </label>
+                            <input type="text" id="flightNumber" name="flight_number" class="form-control" required>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="departureDate" class="form-label">
+                                    <i class="fas fa-calendar"></i> Departure Date
+                                </label>
+                                <input type="date" id="departureDate" name="departure_date" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="departureTime" class="form-label">
+                                    <i class="fas fa-clock"></i> Departure Time
+                                </label>
+                                <input type="time" id="departureTime" name="departure_time" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="origin" class="form-label">
+                                    <i class="fas fa-map-marker-alt"></i> Origin
+                                </label>
+                                <input type="text" id="origin" name="origin" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="destination" class="form-label">
+                                    <i class="fas fa-map-pin"></i> Destination
+                                </label>
+                                <input type="text" id="destination" name="destination" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Flight
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" data-aos="zoom-in" data-aos-duration="400" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="fas fa-exclamation-triangle text-danger"></i> 
+                        Delete Flight Group
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="delete-confirmation">
+                        <div class="confirmation-icon">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <div class="confirmation-message">
+                            <p>You are about to delete this flight group:</p>
+                            <p class="group-name" id="deleteGroupName"></p>
+                            <p class="warning-text">
+                                <i class="fas fa-exclamation-circle"></i>
+                                This action cannot be undone. All associated data will be permanently removed.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> 
+                        <span>Cancel</span>
+                    </button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> 
+                        <span>Delete Permanently</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+   
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Initialize Bootstrap components
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+            
+            // Table search and sort functionality
+            const searchInput = document.getElementById("searchInput");
+            const sortSelect = document.getElementById("sortSelect");
+            const table = document.getElementById("flightGroupsTable");
+            
+            if (table) {
+                const tbody = table.getElementsByTagName("tbody")[0];
+                const rows = Array.from(tbody.getElementsByTagName("tr"));
+                const noResults = document.querySelector('.no-results');
+
+                // Store initial counts
+                const initialTotalCount = rows.length;
+                document.getElementById("totalGroups").textContent = initialTotalCount;
+                document.getElementById("activeGroupsCount").textContent = initialTotalCount;
+                document.getElementById("sideActiveGroups").textContent = initialTotalCount;
+
+                // Search functionality
+                searchInput.addEventListener("input", function () {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    let hasVisibleRows = false;
+
+                    rows.forEach((row) => {
+                        const name = row.cells[0].textContent.toLowerCase();
+                        const description = row.cells[1].textContent.toLowerCase();
+                        if (name.includes(searchTerm) || description.includes(searchTerm)) {
+                            row.style.display = "";
+                            hasVisibleRows = true;
+                        } else {
+                            row.style.display = "none";
+                        }
+                    });
+
+                    // Show/hide no results message
+                    if (hasVisibleRows) {
+                        noResults.style.display = 'none';
+                        table.style.display = '';
+                    } else {
+                        noResults.style.display = 'block';
+                        table.style.display = 'none';
+                    }
+                });
+
+                // Sort functionality
+                sortSelect.addEventListener("change", function () {
+                    const sortValue = sortSelect.value;
+                    rows.sort((a, b) => {
+                        const aName = a.cells[0].textContent.toLowerCase();
+                        const bName = b.cells[0].textContent.toLowerCase();
+                        const aDescription = a.cells[1].textContent.toLowerCase();
+                        const bDescription = b.cells[1].textContent.toLowerCase();
+
+                        if (sortValue === "name_asc") return aName.localeCompare(bName);
+                        else if (sortValue === "name_desc") return bName.localeCompare(aName);
+                        else if (sortValue === "description_asc") return aDescription.localeCompare(bDescription);
+                        else if (sortValue === "description_desc") return bDescription.localeCompare(aDescription);
+                    });
+
+                    // Clear and repopulate the table with sorted rows
+                    tbody.innerHTML = "";
+                    rows.forEach((row) => tbody.appendChild(row));
+                });
+            }
+
+            // Edit Flight Group Modal functionality
+            const editButtons = document.querySelectorAll('.edit-group-btn');
+            const editFlightGroupForm = document.getElementById('editFlightGroupForm');
+            
+            editButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const groupId = this.dataset.groupId;
+                    const groupName = this.dataset.groupName;
+                    const groupDescription = this.dataset.groupDescription;
+                    
+                    // Set form action to the correct URL
+                    editFlightGroupForm.action = `/admin-flight-groups/edit/${groupId}/`;
+                    
+                    // Populate form fields
+                    document.getElementById('editName').value = groupName;
+                    document.getElementById('editDescription').value = groupDescription;
+                    
+                    // Show modal
+                    const editFlightGroupModal = new bootstrap.Modal(document.getElementById('editFlightGroupModal'));
+                    editFlightGroupModal.show();
+                });
+            });
+
+            // Update Flight Modal functionality
+            const updateFlightButtons = document.querySelectorAll('.edit-btn');
+            
+            updateFlightButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const groupId = this.dataset.groupId;
+                    const groupName = this.dataset.groupName;
+                    const groupDescription = this.dataset.groupDescription;
+                    
+                    // Set form action and populate hidden group id
+                    document.getElementById('updateFlightForm').action = `/admin/update_flight/${groupId}/`;
+                    document.getElementById('groupId').value = groupId;
+                    document.getElementById('flightGroup').value = groupName;
+                    
+                    // Reset other fields or pre-populate with default values if needed
+                    document.getElementById('flightNumber').value = '';
+                    
+                    // Set today's date as default departure date
+                    const today = new Date();
+                    const formattedDate = today.toISOString().split('T')[0];
+                    document.getElementById('departureDate').value = formattedDate;
+                    
+                    // Set default time
+                    document.getElementById('departureTime').value = '12:00';
+                    document.getElementById('origin').value = '';
+                    document.getElementById('destination').value = '';
+                });
+            });
+
+            // Delete modal functionality
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            const deleteButtons = document.querySelectorAll('.delete-group-btn');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const deleteGroupNameElement = document.getElementById('deleteGroupName');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const groupId = this.dataset.groupId;
+                    const groupName = this.dataset.groupName;
+                    
+                    // Update modal content
+                    deleteGroupNameElement.textContent = groupName;
+                    confirmDeleteBtn.href = `/admin-flight-groups/delete/${groupId}/`;
+                    
+                    // Show modal
+                    deleteModal.show();
+                });
+            });
+
+            // Clean up when delete modal is hidden
+            document.getElementById('deleteModal').addEventListener('hidden.bs.modal', function () {
+                confirmDeleteBtn.href = '#';
+                deleteGroupNameElement.textContent = '';
+            });
+
+            // Export data button functionality
+            document.getElementById('exportDataBtn').addEventListener('click', function() {
+                // Add export functionality here
+                alert('Export functionality will be implemented here');
+            });
+
+            // Initialize AOS with custom settings
+            AOS.init({
+                duration: 800,          // Animation duration
+                easing: 'ease-in-out',  // Animation timing function
+                once: true,             // Whether animation should happen only once
+                mirror: false,          // Whether elements should animate out while scrolling past them
+                anchorPlacement: 'top-bottom' // Defines which position of the element regarding to window should trigger the animation
+            });
+        });
+    </script>
+{% endblock %}

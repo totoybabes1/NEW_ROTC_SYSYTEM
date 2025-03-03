@@ -1,0 +1,286 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Admin Profile{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1><i class="fas fa-user-circle"></i> Admin Profile</h1>
+    </div>
+
+    <div class="profile-content">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="profile-image-section">
+                    {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-image">
+                    {% else %}
+                        <div class="default-profile-image">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                    <form method="POST" enctype="multipart/form-data" id="profile-picture-form">
+                        {% csrf_token %}
+                        <div class="upload-btn-wrapper">
+                            <button class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-camera"></i> Change Picture
+                            </button>
+                            <input type="file" name="profile_picture" id="profile-picture-input" accept="image/*">
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="profile-details">
+                    <form method="POST" class="profile-form">
+                        {% csrf_token %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        <div class="form-group">
+                            <label for="username"><i class="fas fa-user"></i> Username</label>
+                            <input type="text" class="form-control" id="username" value="{{ user.username }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="bio"><i class="fas fa-info-circle"></i> Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3">{{ user.profile.bio }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password"><i class="fas fa-lock"></i> New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password"><i class="fas fa-lock"></i> Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        padding: 2.5rem;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transform: translateY(0);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .profile-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.2);
+    }
+
+    .profile-header {
+        margin-bottom: 2.5rem;
+        border-bottom: 2px solid rgba(240, 240, 240, 0.5);
+        padding-bottom: 1.5rem;
+    }
+
+    .profile-header h1 {
+        font-size: 2.2rem;
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .profile-image-section {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        position: relative;
+    }
+
+    .profile-image {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border: 4px solid white;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .profile-image:hover {
+        transform: scale(1.05);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .default-profile-image {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #f0f0f0, #e6e6e6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border: 4px solid white;
+    }
+
+    .default-profile-image i {
+        font-size: 5.5rem;
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .upload-btn-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    .upload-btn-wrapper button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        border: 2px solid #3498db;
+        background: transparent;
+        color: #3498db;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .upload-btn-wrapper button:hover {
+        background: #3498db;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .upload-btn-wrapper input[type=file] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    .profile-details {
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 15px;
+        backdrop-filter: blur(5px);
+    }
+
+    .form-group {
+        margin-bottom: 2rem;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+        display: block;
+        font-size: 0.95rem;
+    }
+
+    .form-group label i {
+        margin-right: 0.5rem;
+        color: #3498db;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        border: 2px solid rgba(52, 152, 219, 0.2);
+        border-radius: 12px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+        width: 100%;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+        outline: none;
+        background: white;
+    }
+
+    .form-group input[readonly] {
+        background: rgba(240, 240, 240, 0.5);
+        border-color: transparent;
+    }
+
+    .btn-primary {
+        padding: 1rem 2.5rem;
+        font-weight: 500;
+        border-radius: 50px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        background: linear-gradient(135deg, #2980b9, #3498db);
+    }
+
+    .alert {
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border: none;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .alert-success {
+        background: rgba(46, 204, 113, 0.1);
+        color: #27ae60;
+        border-left: 4px solid #27ae60;
+    }
+
+    .alert-danger {
+        background: rgba(231, 76, 60, 0.1);
+        color: #c0392b;
+        border-left: 4px solid #c0392b;
+    }
+
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 1.5rem;
+        }
+
+        .profile-image,
+        .default-profile-image {
+            width: 180px;
+            height: 180px;
+        }
+
+        .profile-header h1 {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<script>
+document.getElementById('profile-picture-input').addEventListener('change', function() {
+    document.getElementById('profile-picture-form').submit();
+});
+</script>
+{% endblock %}

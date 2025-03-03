@@ -1,0 +1,39 @@
+{% extends 'personnel/base.html' %}
+{% load static %}
+
+{% block title %}Personnel Login{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/personnel_login.css' %}">
+
+<div class="container login-container">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-center logo-container">
+                        <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid">
+                        <h2>Welcome Back</h2>
+                    </div>
+                    <form method="POST" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="username" name="username" placeholder="Username" required>
+                            <label for="username">Username</label>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" name="password" placeholder="Password" required>
+                            <label for="password">Password</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            Sign In <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
