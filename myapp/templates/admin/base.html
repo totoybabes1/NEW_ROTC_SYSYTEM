@@ -101,24 +101,77 @@
         <!-- Page Content -->
         <div class="content {% if not user.is_authenticated %}no-sidebar{% endif %}" id="content">
             <!-- Top Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #3f37c9;">
-                {% if user.is_authenticated %}
-                <button type="button" id="sidebarCollapse" class="btn">
-                    <i class="fas fa-bars"></i>
-                </button>
-                {% else %}
-                <a class="navbar-brand" href="{% url 'home' %}">
-                    <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="30">
-                </a>
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">
-                            <i class="fas fa-sign-in-alt me-1"></i>Login
+            <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #3f37c9; border-radius: 10px; margin: 10px; padding: 10px 20px;">
+                <div class="container-fluid">
+                    {% if user.is_authenticated %}
+                    
+                    <!-- Sidebar Toggle Button -->
+                    <button type="button" id="sidebarCollapse" class="btn text-white me-3">
+                        <i class="fas fa-bars"></i>
+                    </button>
+            
+                    <!-- Profile Picture & Username with Dropdown -->
+                    <div class="dropdown ms-auto">
+                        <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if user.profile.profile_picture %}
+                                <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle me-2" width="40" height="40" style="object-fit: cover; border: 2px solid white;">
+                            {% else %}
+                                <i class="fas fa-user-circle me-2" style="font-size: 24px;"></i>
+                            {% endif %}
+                            <span class="fw-bold">{{ user.username }}</span>
                         </a>
-                    </li>
-                </ul>
-                {% endif %}
+            
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm animate-dropdown" aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'admin_profile' %}">
+                                    <i class="fas fa-user me-2 text-primary"></i> Profile
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+            
+                    {% else %}
+                    <a class="navbar-brand" href="{% url 'home' %}">
+                        <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="30">
+                    </a>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-light px-3 rounded-pill" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </a>
+                        </li>
+                    </ul>
+                    {% endif %}
+                </div>
             </nav>
+            
+            <!-- Custom CSS -->
+            <style>
+            /* Dropdown smooth animation */
+            .animate-dropdown {
+                transform: translateY(-10px);
+                opacity: 0;
+                transition: all 0.3s ease-in-out;
+            }
+            .dropdown-menu.show {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            
+            /* Hover effect */
+            .dropdown-item:hover {
+                background-color: rgba(63, 55, 201, 0.1);
+                border-radius: 5px;
+            }
+            </style>
+            
+            
 
             <!-- Breadcrumb -->
             {% if user.is_authenticated %}

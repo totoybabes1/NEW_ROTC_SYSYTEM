@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # Use MySQL as the database backend
-        'NAME': 'ROTCversion2',                # Name of your MySQL database
+        'NAME': 'rotc_manage',                # Name of your MySQL database
         'USER': 'root',        # MySQL username (default is often 'root')
         'PASSWORD': '',    # MySQL password (leave empty if no password)
         'HOST': 'localhost',                  # MySQL host (use 'localhost' if running locally)
