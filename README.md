@@ -7,8 +7,7 @@ The ROTC (Reserve Officers' Training Corps) Management System is a web-based app
 - User authentication (Admin, Cadets, Instructors)
 - Cadet profile management
 - Attendance tracking
-- Training schedule management
-- Performance evaluations
+- Event schedule management
 - Reports generation
 
 ---
