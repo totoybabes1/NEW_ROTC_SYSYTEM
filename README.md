@@ -2,7 +2,7 @@
 
 ## Project Description
 
-The ROTC (Reserve Officers' Training Corps) Management System is a web-based application designed to streamline the management of ROTC cadets, attendance tracking, Event schedules, and performance evaluations. The system allows administrators to manage cadet records efficiently, generate reports, and ensure smooth communication between cadets and instructors.
+The ROTC (Reserve Officers' Training Corps) Management System is a web-based application designed to streamline the management of ROTC cadets, attendance tracking, event schedules, and performance evaluations. The system allows administrators to manage cadet records efficiently, generate reports, and ensure smooth communication between cadets and instructors.
 
 ## Features
 
