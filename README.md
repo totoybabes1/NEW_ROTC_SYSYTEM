@@ -6,7 +6,7 @@ The ROTC (Reserve Officers' Training Corps) Management System is a web-based app
 
 ## Features
 
-- User authentication (Admin, Cadets, Instructors)
+- User authentication (Admin, Cadets, Instructors/Personnel)
 - Cadet profile management
 - Attendance tracking
 - Event schedule management
@@ -59,7 +59,7 @@ deactivate
 
 ### 3. Install Django
 
-Once the virtual environment is activated, install Django and all requirements in the text if u have
+Once the virtual environment is activated, install Django and all requirements.txt if have any
 
 ```sh
 pip install -r requirements.txt
