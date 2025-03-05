@@ -1,5 +1,5 @@
 from django.urls import path
-from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, admin_official_assign_views, personnel_views
+from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, admin_official_assign_views, personnel_views, personnel_attendance_assign_views
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -44,4 +44,11 @@ urlpatterns = [
     path('personnel/logout/', personnel_views.personnel_logout, name='personnel_logout'),
     path('personnel/dashboard/', personnel_views.personnel_dashboard, name='personnel_dashboard'),
     path('personnel/profile/', personnel_views.personnel_profile, name='personnel_profile'),
+
+    # Attendance URLs
+    path('attendance/', personnel_attendance_assign_views.mark_attendance, name='mark_attendance'),
+    path('attendance/view/', personnel_attendance_assign_views.view_attendance, name='view_attendance'),
+    path('attendance/view/<int:upload_id>/', personnel_attendance_assign_views.view_attendance, name='view_attendance_by_upload'),
+    path('attendance/mark/', personnel_attendance_assign_views.mark_attendance, name='mark_attendance'),
+    path('attendance/personnel/<int:personnel_id>/', personnel_attendance_assign_views.personnel_attendance, name='personnel_attendance'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

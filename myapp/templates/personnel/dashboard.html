@@ -122,6 +122,83 @@
         </div>
     </div>
 
+    <!-- Add new Attendance Section -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <i class="fas fa-calendar-check text-primary me-2"></i> My Attendance
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="attendance-quick-links">
+                                <a href="{% url 'personnel_attendance' personnel.id %}" class="btn btn-primary mb-2 w-100">
+                                    <i class="fas fa-history me-2"></i> View My Attendance History
+                                </a>
+                                <a href="{% url 'view_attendance' %}" class="btn btn-outline-primary mb-2 w-100">
+                                    <i class="fas fa-list me-2"></i> View Current Assignments
+                                </a>
+                            </div>
+                            <div class="attendance-stats mt-3">
+                                <h6 class="section-title">Quick Stats</h6>
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <div class="stat-value text-success">{{ attendance_rate }}%</div>
+                                        <div class="stat-label">Attendance Rate</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value text-warning">{{ stats.late|default:0 }}</div>
+                                        <div class="stat-label">Late Count</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value text-danger">{{ stats.absent|default:0 }}</div>
+                                        <div class="stat-label">Absences</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h6 class="section-title">Recent Attendance Records</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th>Assignment</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for record in recent_attendance|slice:":5" %}
+                                        <tr>
+                                            <td>{{ record.date|date:"M d, Y" }}</td>
+                                            <td>
+                                                <span class="badge {% if record.status == 'PRESENT' %}bg-success{% elif record.status == 'ABSENT' %}bg-danger{% elif record.status == 'LATE' %}bg-warning{% else %}bg-info{% endif %}">
+                                                    {{ record.status }}
+                                                </span>
+                                            </td>
+                                            <td>{{ record.upload_file.table_name }}</td>
+                                            <td>{{ record.remarks|default:"-" }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">
+                                                No recent attendance records found
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Announcements & Events -->
         <div class="col-md-8 mb-4">

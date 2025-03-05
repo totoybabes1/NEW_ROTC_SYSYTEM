@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Personnel, Profile, UserActivity, Announcement
+from .models import Personnel, Profile, UserActivity, Announcement, UploadedData, AttendanceRecord
 from django.utils import timezone
 from datetime import timedelta, datetime
 from django.db.models import Count, Avg
@@ -35,71 +35,35 @@ def personnel_logout(request):
 def personnel_dashboard(request):
     personnel = Personnel.objects.get(user=request.user)
     
-    # Get user's activities
+    # Get existing data
     recent_activities = UserActivity.objects.filter(user=request.user).order_by('-timestamp')[:5]
-    
-    # Calculate activity statistics
     total_logins = UserActivity.objects.filter(user=request.user, activity_type='login').count()
     
-    # Calculate days active (unique days with activity)
-    unique_days = UserActivity.objects.filter(user=request.user).dates('timestamp', 'day')
-    days_active = len(unique_days)
+    # Get attendance data using new models
+    recent_attendance = AttendanceRecord.objects.filter(
+        personnel=personnel
+    ).select_related('uploaded_data').order_by('-marked_at')[:5]
     
-    # Calculate days since last activity
-    last_activity = UserActivity.objects.filter(user=request.user).order_by('-timestamp').first()
-    last_active_days = 0
-    if last_activity:
-        last_active_days = (timezone.now().date() - last_activity.timestamp.date()).days
-
-    # Get flight group members
-    flight_group_members = Personnel.objects.filter(
-        flight_group=personnel.flight_group
-    ).exclude(id=personnel.id)
-
-    # Get announcements and upcoming events
-    announcements = Announcement.objects.filter(
-        flight_group=personnel.flight_group,
-        date__gte=timezone.now() - timedelta(days=30)
-    ).order_by('-date')[:5]
-
-    # Calculate attendance rate (example calculation)
-    total_days = 30  # Last 30 days
-    present_days = UserActivity.objects.filter(
-        user=request.user,
-        timestamp__gte=timezone.now() - timedelta(days=total_days)
-    ).dates('timestamp', 'day').count()
-    attendance_rate = int((present_days / total_days) * 100)
-
-    # Calculate participation score (example calculation)
-    participation_score = 85  # This would be calculated based on your specific metrics
-
-    # Generate attendance calendar data
-    attendance_calendar = []
-    today = timezone.now().date()
-    for i in range(30):
-        date = today - timedelta(days=i)
-        present = UserActivity.objects.filter(
-            user=request.user,
-            timestamp__date=date
-        ).exists()
-        attendance_calendar.append({
-            'date': date,
-            'present': present
-        })
-    attendance_calendar.reverse()
+    # Calculate attendance statistics
+    total_records = AttendanceRecord.objects.filter(personnel=personnel).count()
+    present_count = AttendanceRecord.objects.filter(personnel=personnel, status='PRESENT').count()
+    absent_count = AttendanceRecord.objects.filter(personnel=personnel, status='ABSENT').count()
+    late_count = AttendanceRecord.objects.filter(personnel=personnel, status='LATE').count()
+    
+    attendance_rate = (present_count / total_records * 100) if total_records > 0 else 0
     
     context = {
         'personnel': personnel,
-        'flight_group': personnel.flight_group,
         'recent_activities': recent_activities,
         'total_logins': total_logins,
-        'days_active': days_active,
-        'last_active_days': last_active_days,
-        'flight_group_members': flight_group_members,
-        'announcements': announcements,
-        'attendance_rate': attendance_rate,
-        'participation_score': participation_score,
-        'attendance_calendar': attendance_calendar,
+        'recent_attendance': recent_attendance,
+        'attendance_stats': {
+            'total': total_records,
+            'present': present_count,
+            'absent': absent_count,
+            'late': late_count,
+            'rate': round(attendance_rate, 2)
+        }
     }
     return render(request, 'personnel/dashboard.html', context)
 
