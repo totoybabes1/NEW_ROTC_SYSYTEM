@@ -14,6 +14,7 @@ def admin_profile(request):
         if 'profile_picture' in request.FILES:
             profile.profile_picture = request.FILES['profile_picture']
             profile.save()
+            profile.log_activity(f"Updated profile picture")
             messages.success(request, 'Profile picture updated successfully.')
             return redirect('admin_profile')
 
@@ -27,17 +28,20 @@ def admin_profile(request):
         if email and email != request.user.email:
             request.user.email = email
             request.user.save()
+            profile.log_activity(f"Updated email address")
 
         # Update bio
-        if bio is not None:  # Allow empty bio
+        if bio is not None:
             profile.bio = bio
             profile.save()
+            profile.log_activity(f"Updated bio")
 
         # Update password
         if new_password:
             if new_password == confirm_password:
                 request.user.set_password(new_password)
                 request.user.save()
+                profile.log_activity(f"Changed password")
                 messages.success(request, 'Password updated successfully. Please login again.')
                 return redirect('login')
             else:

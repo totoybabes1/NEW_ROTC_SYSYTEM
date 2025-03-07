@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from myapp.models import Personnel, FlightGroup, UploadFiles
+from myapp.models import Personnel, FlightGroup, UploadFiles, Profile
 from django.http import JsonResponse
+from datetime import datetime
 
 def home(request):
     stats = {
@@ -55,11 +56,29 @@ def admin_dashboard(request):
             'user': 'Admin'
         })
 
+    # Get profile activities
+    profile_activities = []
+    profiles = Profile.objects.all().order_by('-last_activity')[:10]
+    for profile in profiles:
+        if profile.activity_log:
+            # Get the last 5 activities for each profile
+            recent_logs = profile.activity_log[-5:]
+            for log in recent_logs:
+                profile_activities.append({
+                    'user': profile.user.username,
+                    'action': log['action'],
+                    'timestamp': datetime.fromisoformat(log['timestamp'])
+                })
+    
+    # Sort activities by timestamp
+    profile_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+    
     context = {
         'stats': stats,
         'group_names': group_names,
         'group_members': group_members,
-        'recent_activities': recent_activities
+        'recent_activities': recent_activities,
+        'profile_activities': profile_activities[:10]  # Get the 10 most recent activities
     }
 
     return render(request, 'admin/admin_dashboard.html', context)

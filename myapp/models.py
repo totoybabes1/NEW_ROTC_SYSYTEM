@@ -1,11 +1,25 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 # Profile model for storing additional user information and this is part of the admin
 class Profile(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE)  # Links to Django's built-in User model
     bio = models.TextField(blank=True)  # Optional biography text
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True)  # Optional profile picture
+    last_activity = models.DateTimeField(auto_now=True)  # Add this field
+    activity_log = models.JSONField(default=list, blank=True)  # Add this field
+
+    def log_activity(self, action):
+        """Log an activity with timestamp"""
+        activity = {
+            'action': action,
+            'timestamp': timezone.now().isoformat()
+        }
+        if not self.activity_log:
+            self.activity_log = []
+        self.activity_log.append(activity)
+        self.save()
 
     def __str__(self):
         return self.user.username

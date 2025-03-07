@@ -65,7 +65,7 @@
                         <i class="fas fa-venus-mars"></i>
                     </div>
                     <div class="action-text">
-                        <span class="action-title">Assign Gender</span>
+                        <span class="action-title">Assign Gender to Personnel</span>
                         <span class="action-desc">Update gender information</span>
                     </div>
                 </a>
@@ -132,6 +132,40 @@
                     {% else %}
                         <div class="no-activities">
                             <p>No login/logout activities to display</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="dashboard-card" data-aos="fade-up" data-aos-delay="500">
+                <div class="card-header">
+                    <h2><i class="fas fa-user-shield"></i> Admin Profile Activities</h2>
+                </div>
+                <div class="activity-timeline">
+                    {% if profile_activities %}
+                        {% for activity in profile_activities %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-user-cog"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-details">
+                                    <p class="activity-description">{{ activity.action }}</p>
+                                    <div class="activity-meta">
+                                        <span class="activity-user">
+                                            <i class="fas fa-user"></i> {{ activity.user }}
+                                        </span>
+                                        <span class="activity-time">
+                                            <i class="fas fa-clock"></i> {{ activity.timestamp|date:"M d, Y H:i" }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-activities">
+                            <p>No admin profile activities to display</p>
                         </div>
                     {% endif %}
                 </div>

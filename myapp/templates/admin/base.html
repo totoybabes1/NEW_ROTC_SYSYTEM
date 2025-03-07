@@ -15,6 +15,106 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <!-- Include custom CSS -->
     <link rel="stylesheet" href="{% static 'css/admin_base.css' %}">
+    <!-- Additional custom CSS for sidebar collapse -->
+    <style>
+        /* Sidebar collapse functionality */
+        .wrapper {
+            display: flex;
+            width: 100%;
+        }
+
+        .sidebar {
+            width: 250px;
+            transition: all 0.3s;
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .sidebar.minimized {
+            width: 80px;
+        }
+
+        .sidebar.minimized .sidebar-header h3,
+        .sidebar.minimized .components span {
+            display: none;
+        }
+
+        .sidebar.minimized .sidebar-footer span {
+            display: none;
+        }
+
+        .sidebar.minimized .sidebar-logo {
+            margin: 0 auto;
+        }
+
+        .content {
+            width: calc(100% - 250px);
+            margin-left: 250px;
+            transition: all 0.3s;
+        }
+
+        .content.expanded {
+            width: calc(100% - 80px);
+            margin-left: 80px;
+        }
+
+        /* Dropdown smooth animation */
+        .animate-dropdown {
+            transform: translateY(-10px);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+        .dropdown-menu.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Hover effect */
+        .dropdown-item:hover {
+            background-color: rgba(63, 55, 201, 0.1);
+            border-radius: 5px;
+        }
+
+        /* Mobile sidebar styles */
+        @media (max-width: 991px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                transition: all 0.3s;
+                z-index: 1050;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .sidebar.minimized {
+                left: -80px; /* When minimized, still hide on mobile */
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.4);
+                z-index: 1040;
+                top: 0;
+                left: 0;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="wrapper">
@@ -82,6 +182,9 @@
         </nav>
         {% endif %}
 
+        <!-- Add this overlay div right after the sidebar -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
         <!-- Logout Confirmation Modal -->
         <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -106,7 +209,7 @@
                     {% if user.is_authenticated %}
                     
                     <!-- Sidebar Toggle Button -->
-                    <button type="button" id="sidebarCollapse" class="btn text-white me-3">
+                    <button type="button" id="sidebarCollapse" class="btn text-black me-3">
                         <i class="fas fa-bars"></i>
                     </button>
             
@@ -150,28 +253,6 @@
                     {% endif %}
                 </div>
             </nav>
-            
-            <!-- Custom CSS -->
-            <style>
-            /* Dropdown smooth animation */
-            .animate-dropdown {
-                transform: translateY(-10px);
-                opacity: 0;
-                transition: all 0.3s ease-in-out;
-            }
-            .dropdown-menu.show {
-                transform: translateY(0);
-                opacity: 1;
-            }
-            
-            /* Hover effect */
-            .dropdown-item:hover {
-                background-color: rgba(63, 55, 201, 0.1);
-                border-radius: 5px;
-            }
-            </style>
-            
-            
 
             <!-- Breadcrumb -->
             {% if user.is_authenticated %}
@@ -238,34 +319,58 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Sidebar toggle functionality
             const sidebar = document.getElementById('sidebar');
             const content = document.getElementById('content');
             const sidebarCollapse = document.getElementById('sidebarCollapse');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isMobile = () => window.innerWidth <= 991;
 
-            // Create overlay element
-            const overlay = document.createElement('div');
-            overlay.className = 'sidebar-overlay';
-            document.body.appendChild(overlay);
+            // Function to toggle sidebar on mobile
+            function toggleSidebar() {
+                if (isMobile()) {
+                    sidebar.classList.toggle('active');
+                    overlay.classList.toggle('active');
+                } else {
+                    // On desktop, minimize instead of hiding completely
+                    sidebar.classList.toggle('minimized');
+                    content.classList.toggle('expanded');
+                }
+            }
 
-            sidebarCollapse.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                content.classList.toggle('expanded');
-                overlay.classList.toggle('active');
+            sidebarCollapse.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleSidebar();
             });
 
-            // Close sidebar when clicking overlay
             overlay.addEventListener('click', function() {
-                sidebar.classList.remove('collapsed');
-                content.classList.remove('expanded');
-                overlay.classList.remove('active');
+                if (isMobile()) {
+                    toggleSidebar();
+                }
+            });
+
+            // Close sidebar when clicking a link (for mobile)
+            const sidebarLinks = sidebar.querySelectorAll('a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (isMobile() && sidebar.classList.contains('active')) {
+                        toggleSidebar();
+                    }
+                });
             });
 
             // Handle window resize
             window.addEventListener('resize', function() {
                 if (window.innerWidth > 991) {
-                    overlay.classList.remove('active');
+                    // On desktop
                     sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                    // Maintain minimized state if it was set
+                } else {
+                    // On mobile
+                    if (sidebar.classList.contains('minimized')) {
+                        sidebar.classList.remove('minimized');
+                        content.classList.remove('expanded');
+                    }
                 }
             });
         });
