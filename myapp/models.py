@@ -28,6 +28,7 @@ class Profile(models.Model):
 class FlightGroup(models.Model):
     name = models.CharField(max_length=100)  # Name of the flight group
     description = models.TextField()  # Description of the flight group
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         app_label = 'myapp'
@@ -121,3 +122,31 @@ class AttendanceRecord(models.Model):
 
     def __str__(self):
         return f"{self.personnel} - {self.uploaded_data.date} - {self.status}"
+
+# Add this new model
+class StudentRecord(models.Model):
+    student_no = models.CharField(max_length=20)
+    name = models.CharField(max_length=100)
+    gender = models.CharField(max_length=1, choices=[('M', 'Male'), ('F', 'Female')])
+    course = models.CharField(max_length=20)
+    year = models.IntegerField()
+    status = models.CharField(max_length=10, choices=[('ACTIVE', 'Active'), ('INACTIVE', 'Inactive')], default='ACTIVE')
+    upload_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student_no} - {self.name}"
+
+    class Meta:
+        ordering = ['student_no']
+
+class ExcelUpload(models.Model):
+    file_name = models.CharField(max_length=255)
+    upload_date = models.DateTimeField(auto_now_add=True)
+    total_records = models.IntegerField(default=0)
+    processed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.file_name} ({self.upload_date})"
+
+    class Meta:
+        ordering = ['-upload_date']

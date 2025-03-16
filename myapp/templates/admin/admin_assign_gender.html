@@ -1,105 +1,204 @@
 {% extends 'admin/base.html' %}
 {% load static %}
 
-{% block title %}Assign{% endblock %}
+{% block title %}Assign Gender{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/admin_assign_gender.css' %}"/>
+<!-- Add the custom CSS link -->
+<link rel="stylesheet" href="{% static 'css/assign_gender.css' %}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'js/assign_gender.js' %}"></script>
-<div class="container mt-5">
 
+<div class="container mt-4">
     <!-- Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
-        <h1 class="h4"><i class="fa-solid fa-user-pen me-2"></i>Assign to Personnel</h1>
-    </div>
-
-    <div class="row">
-        <!-- Main content - Personnel list on left (8 columns) -->
-        <div class="col-md-8">
-            <form method="post" class="card shadow p-4 mb-4" id="genderAssignmentForm">
-                {% csrf_token %}
-                <input type="hidden" name="gender_to_assign" id="gender_to_assign">
-                <input type="hidden" name="selected_personnel" id="selected_personnel">
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="searchInput" placeholder="Search by name..." onkeyup="filterPersonnel()">
-                    <div class="input-group-append">
-                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+    <!-- Page Header Card -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="card border-0 bg-white shadow-sm">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                <i class="fa-solid fa-users-line text-primary fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="h3 mb-2">Assign Gender</h1>
+                            <p class="text-muted mb-0">
+                                Efficiently assign gender to personnel in the system.
+                                Select multiple personnel at once to streamline the gender assignment process.
+                                Maintain accurate demographic information for reporting and organizational purposes.
+                            </p>
+                        </div>
                     </div>
                 </div>
-                <div id="feedbackMessage" class="alert alert-success d-none" role="alert">
-                    Assignment updated successfully!
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Main content - Personnel list -->
+        <div class="col-md-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Personnel List</h5>
+                        <span class="badge bg-primary rounded-pill" style="font-size: 1.1rem; padding: 0.8em 1.2em;">{{ personnel_list|length }} Total</span>
+                    </div>
                 </div>
-                <table class="table table-striped table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th><input type="checkbox" id="select_all" onclick="toggleSelectAll(this)"></th>
-                            <th><i class="fas fa-user"></i> Name</th>
-                            <th><i class="fas fa-genderless"></i> Current Gender</th>
-                            <th><i class="fas fa-exchange-alt"></i> Assign Gender</th>
-                        </tr>
-                    </thead>
-                    <tbody id="personnelTable">
-                        {% for person in personnel_list %}
-                        <tr>
-                            <td><input type="checkbox" name="selected_personnel" class="select-person" value="{{ person.id }}"></td>
-                            <td>{{ person.first_name }} {{ person.last_name }}</td>
-                            <td>{{ person.gender_assignment|default:"Not Assigned" }}</td>
-                            <td>
-                                <div class="input-group">
-                                    <select class="form-control gender-select" id="gender_assignment_{{ person.id }}" name="gender_assignment_{{ person.id }}">
-                                        <option value="">Select Gender</option>
-                                        <option value="Male" {% if person.gender_assignment == "Male" %}selected{% endif %}>Male</option>
-                                        <option value="Female" {% if person.gender_assignment == "Female" %}selected{% endif %}>Female</option>
-                                        <option value="Non-binary" {% if person.gender_assignment == "Non-binary" %}selected{% endif %}>Non-binary</option>
-                                        <option value="Other" {% if person.gender_assignment == "Other" %}selected{% endif %}>Other</option>
-                                    </select>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text"><i class="fas fa-check"></i></span>
+                <div class="card-body">
+                    <!-- Quick Stats as modern gradient cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-0 rounded-3 shadow-sm h-100 stats-card-with-bg assigned-card" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
+                                <div class="card-body text-white p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1 text-white-50">Assigned</h6>
+                                            <h3 class="mb-0 fw-bold" id="assignedCount">0</h3>
+                                        </div>
+                                        <div class="rounded-circle bg-white bg-opacity-25 p-3">
+                                            <img src="{% static 'img/users.svg' %}" width="32" height="32" class="text-white" style="filter: brightness(0) invert(1);">
+                                        </div>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </form>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-0 rounded-3 shadow-sm h-100 stats-card-with-bg unassigned-card" style="background: linear-gradient(135deg, #f09819 0%, #ff5858 100%);">
+                                <div class="card-body text-white p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1 text-white-50">Unassigned</h6>
+                                            <h3 class="mb-0 fw-bold" id="unassignedCount">0</h3>
+                                        </div>
+                                        <div class="rounded-circle bg-white bg-opacity-25 p-3">
+                                            <img src="{% static 'img/user-check.svg' %}" width="32" height="32" class="text-white" style="filter: brightness(0) invert(1);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-0 rounded-3 shadow-sm h-100 stats-card-with-bg selected-card" style="background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);">
+                                <div class="card-body text-white p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1 text-white-50">Selected</h6>
+                                            <h3 class="mb-0 fw-bold" id="selectedCount">0</h3>
+                                        </div>
+                                        <div class="rounded-circle bg-white bg-opacity-25 p-3">
+                                            <img src="{% static 'img/user3.svg' %}" width="32" height="32" class="text-white" style="filter: brightness(0) invert(1);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" id="genderAssignmentForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="gender_to_assign" id="gender_to_assign">
+                        <input type="hidden" name="selected_personnel" id="selected_personnel">
+                        
+                        <!-- Search bar -->
+                        <div class="input-group mb-3 shadow-sm">
+                            <input type="text" class="form-control form-control-lg" id="searchInput" placeholder="Search by name..." onkeyup="filterPersonnel()">
+                            <span class="input-group-text bg-primary text-white"><i class="fas fa-search"></i></span>
+                        </div>
+                        
+                        <!-- Feedback message -->
+                        <div id="feedbackMessage" class="alert alert-success d-none" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>Assignment updated successfully!
+                        </div>
+                        
+                        <!-- Personnel table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%"><input type="checkbox" id="select_all" onclick="toggleSelectAll(this)" class="form-check-input"></th>
+                                        <th width="40%">Name</th>
+                                        <th width="25%">Current Gender</th>
+                                        <th width="30%">Assign Gender</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="personnelTable">
+                                    {% for person in personnel_list %}
+                                    <tr>
+                                        <td><input type="checkbox" name="selected_personnel" class="select-person form-check-input" value="{{ person.id }}"></td>
+                                        <td><strong>{{ person.first_name }} {{ person.last_name }}</strong></td>
+                                        <td>
+                                            {% if person.gender_assignment %}
+                                                <span class="badge bg-info text-dark">{{ person.gender_assignment }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not Assigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm" id="gender_assignment_{{ person.id }}" name="gender_assignment_{{ person.id }}">
+                                                <option value="">Select Gender</option>
+                                                <option value="Male" {% if person.gender_assignment == "Male" %}selected{% endif %}>Male</option>
+                                                <option value="Female" {% if person.gender_assignment == "Female" %}selected{% endif %}>Female</option>
+                                                <option value="Non-binary" {% if person.gender_assignment == "Non-binary" %}selected{% endif %}>Non-binary</option>
+                                                <option value="Other" {% if person.gender_assignment == "Other" %}selected{% endif %}>Other</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
-        <!-- Sidebar cards on right (4 columns) -->
+        <!-- Sidebar -->
         <div class="col-md-4">
-            <!-- Gender Distribution Card -->
-            <div class="card shadow p-3 mb-4 chart-card">
+
+            <!-- Quick Actions Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Gender Distribution</h5>
-                    <div class="chart-container">
-                        <canvas id="genderChart"></canvas>
+                    <p class="text-muted mb-3">Quickly assign gender to selected personnel or select all records at once.</p>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="btn-group-compact">
+                            <button type="button" class="btn-compact btn-male" onclick="assignGender('Male')">
+                                <i class="fas fa-mars"></i> Male
+                            </button>
+                            <button type="button" class="btn-compact btn-female" onclick="assignGender('Female')">
+                                <i class="fas fa-venus"></i> Female
+                            </button>
+                            <button type="button" class="btn-compact btn-nonbinary" onclick="assignGender('Non-binary')">
+                                <i class="fas fa-venus-mars"></i> Non-binary
+                            </button>
+                            <button type="button" class="btn-compact btn-select" onclick="toggleSelectAllCheckboxes()">
+                                <i class="fas fa-check-double"></i> Select All
+                            </button>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success btn-lg w-100 mt-3" form="genderAssignmentForm">
+                            <i class="fas fa-save me-2"></i>Save All Changes
+                        </button>
                     </div>
                 </div>
             </div>
             
-            <!-- Manage Personnel Card -->
-            <div class="card shadow p-3 mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Manage Personnel</h5>
-                    <p class="card-text">Select personnel and assign their gender or manage selections.</p>
-                    
-                    <div class="d-grid gap-2 mb-3">
-                        <button type="button" class="btn btn-outline-primary" onclick="assignGender('Male')">
-                            <i class="fas fa-mars me-1"></i> Assign Male
-                        </button>
-                        <button type="button" class="btn btn-outline-primary" onclick="assignGender('Female')">
-                            <i class="fas fa-venus me-1"></i> Assign Female
-                        </button>
+            <!-- Gender Distribution Card -->
+            <div class="card mb-4 shadow-sm overview-card">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">Overview</h5>
+                    <div class="chart-container">
+                        <canvas id="genderChart"></canvas>
                     </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-outline-secondary" onclick="toggleSelectAllCheckboxes()">
-                            <i class="fas fa-check-double me-1"></i> Select All
-                        </button>
-                        <button type="submit" class="btn btn-primary" form="genderAssignmentForm">
-                            <i class="fas fa-save me-1"></i> Save Changes
-                        </button>
+                    <div class="chart-legend mt-3">
+                        <span class="legend-item"><span class="legend-dot active-dot"></span> Active</span>
+                        <span class="legend-item"><span class="legend-dot inactive-dot"></span> Inactive</span>
+                        <span class="legend-item"><span class="legend-dot male-dot"></span> Male</span>
+                        <span class="legend-item"><span class="legend-dot female-dot"></span> Female</span>
+                        <span class="legend-item"><span class="legend-dot other-dot"></span> Other</span>
                     </div>
                 </div>
             </div>
@@ -108,6 +207,67 @@
 </div>
 
 <script>
+// Make sure we're not loading Chart.js twice
+document.addEventListener('DOMContentLoaded', function() {
+    // Simple function to create a basic chart
+    function createGenderChart() {
+        // Count gender distribution
+        const maleCount = document.querySelectorAll('select option[value="Male"]:checked').length;
+        const femaleCount = document.querySelectorAll('select option[value="Female"]:checked').length;
+        const nonBinaryCount = document.querySelectorAll('select option[value="Non-binary"]:checked').length;
+        const otherCount = document.querySelectorAll('select option[value="Other"]:checked').length;
+        const notAssignedCount = document.querySelectorAll('select option[value=""]:checked').length;
+        
+        // Update quick stats
+        document.getElementById('assignedCount').textContent = maleCount + femaleCount + nonBinaryCount + otherCount;
+        document.getElementById('unassignedCount').textContent = notAssignedCount;
+        
+        // Only create chart if Chart.js is loaded
+        if (typeof Chart !== 'undefined') {
+            // Check if there's an existing chart and destroy it
+            let existingChart = Chart.getChart("genderChart");
+            if (existingChart) {
+                existingChart.destroy();
+            }
+            
+            const ctx = document.getElementById('genderChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Male', 'Female', 'Non-binary', 'Other', 'Not Assigned'],
+                    datasets: [{
+                        data: [maleCount, femaleCount, nonBinaryCount, otherCount, notAssignedCount],
+                        backgroundColor: [
+                            '#3498db', '#e74c3c', '#9b59b6', '#f39c12', '#95a5a6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Wait a bit to ensure Chart.js is fully loaded
+    setTimeout(createGenderChart, 500);
+    
+    // Update selected count when checkboxes change
+    const checkboxes = document.querySelectorAll('.select-person');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const selectedCount = document.querySelectorAll('.select-person:checked').length;
+            document.getElementById('selectedCount').textContent = selectedCount;
+        });
+    });
+});
+
 function assignGender(gender) {
     // Get all selected checkboxes
     const selectedCheckboxes = document.querySelectorAll('input[name="selected_personnel"]:checked');
@@ -142,6 +302,10 @@ function toggleSelectAll(source) {
     for (let checkbox of checkboxes) {
         checkbox.checked = source.checked;
     }
+    
+    // Update selected count
+    const selectedCount = source.checked ? checkboxes.length : 0;
+    document.getElementById('selectedCount').textContent = selectedCount;
 }
 
 function toggleSelectAllCheckboxes() {

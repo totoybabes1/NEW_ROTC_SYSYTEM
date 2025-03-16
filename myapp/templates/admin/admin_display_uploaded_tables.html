@@ -1,179 +1,336 @@
 {% extends 'admin/base.html' %}
 {% load static %}
-{% block title %}Uploaded Tables{% endblock %}
 
 {% block content %}
-   <link rel="stylesheet" href="{% static 'css/admin_upload_tables.css' %}">
-   <!-- Add AOS CSS -->
-   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
 
-    <div class="container-fluid px-4 py-4" style="background-color: #f8f9fa;">
+<!-- Add this line below your existing static loads -->
+<link rel="stylesheet" href="{% static 'css/admin_display_uploaded_tables.css' %}">
 
-        <!-- Header Section -->
-        <div class="mb-4 header-section" data-aos="fade-up" data-aos-delay="100" style="background-color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <div class="header-content">
-                <h1 class="h4 header-title">
-                    <div class="icon-wrapper">
-                        <i class="fa-solid fa-database text-primary"></i>
-                    </div>
-                    <span>Database Tables Overview</span>
-                </h1>
-                <p class="header-description text-muted">
-                    View and manage your uploaded database tables. Use the search functionality to quickly find specific tables,
-                    or browse through the complete collection below. Each table displays its full structure and content.
-                </p>
-            </div>
-        </div>
-
-        <!-- Main content wrapper -->
-        <div class="d-flex gap-4">
-            <!-- Left side: Search and Tables -->
-            <div class="content-area flex-grow-1">
-                <div class="search-container mb-4" data-aos="fade-up" data-aos-delay="150" style="background: white; padding: 0.75rem; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <i class="fa-solid fa-search search-icon text-muted"></i>
-                    <input type="text" id="tableSearch" class="search-input" placeholder="Search tables..." onkeyup="searchTables()">
-                </div>
-
-                {% if tables_data %}
-                    {% for table in tables_data %}
-                        <div class="card border-0" data-aos="fade-up" data-aos-delay="200" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1.5rem;">
-                            <div class="card-body p-0">
-                                <h2 class="h5 p-3 mb-0 border-bottom" style="background-color: #f8f9fa; border-radius: 8px 8px 0 0;">
-                                    <i class="fa-solid fa-table me-2 text-primary"></i>
-                                    Table: {{ table.table_name }}
-                                </h2>
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="bg-light">
-                                            <tr>
-                                                {% for column in table.columns %}
-                                                    <th>{{ column }}</th>
-                                                {% endfor %}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for row in table.rows %}
-                                                <tr>
-                                                    {% for value in row %}
-                                                        <td>{{ value }}</td>
-                                                    {% endfor %}
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
+<div class="container">
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="card border-0 bg-white shadow-sm">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                <i class="fa-solid fa-graduation-cap text-primary fa-2x"></i>
                             </div>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="card border-0" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-                        <div class="card-body">
-                            <p class="text-muted mb-0">No tables available.</p>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Right side: Action Cards -->
-            <div class="action-cards-sidebar" style="min-width: 300px; max-width: 320px;">
-                <div class="d-flex flex-column gap-3">
-                    <!-- Uploaded Tables Card -->
-                    <div class="action-card compact" data-aos="fade-up" data-aos-delay="200" style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 1.25rem;">
-                        <div class="card-content">
-                            <h1 class="h4 compact-heading">
-                                <i class="fa-solid fa-table"></i>
-                                <span>Uploaded Tables</span>
-                            </h1>
-                            <p class="compact-text">View and manage system tables</p>
-                        </div>
-                    </div>
-
-                    <!-- Assign Officials Card -->
-                    <div class="action-card compact" data-aos="fade-up" data-aos-delay="400" style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 1.25rem;">
-                        <div class="card-content">
-                            <h1 class="h4 compact-heading">
-                                <i class="fas fa-user-check"></i>
-                                <span>Assign Officials</span>
-                            </h1>
-                            <p class="compact-text">Manage table assignments</p>
-                            <a href="{% url 'assign_official' %}" class="btn btn-primary btn-sm mt-2">
-                                Assign Now
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Personnel Management Card -->
-                    <div class="action-card compact" data-aos="fade-up" data-aos-delay="600" style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 1.25rem;">
-                        <div class="card-content">
-                            <h1 class="h4 compact-heading">
-                                <i class="fas fa-users"></i>
-                                <span>Personnel</span>
-                            </h1>
-                            <p class="compact-text">Manage personnel database</p>
-                            <div class="d-flex gap-2 mt-2">
-                                <a href="{% url 'assign_gender' %}" class="btn btn-primary btn-sm flex-grow-1">
-                                    Assign
-                                </a>
-                                <a href="{% url 'admin_personnel_list' %}" class="btn btn-outline-primary btn-sm flex-grow-1">
-                                    View
-                                </a>
-                            </div>
+                        <div class="col">
+                            <h1 class="h3 mb-2">Student Records</h1>
+                            <p class="text-muted mb-0">
+                                View and manage student information including student numbers, names, gender, courses and year levels.
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Search Card -->
+    <div class="card mb-4" data-aos="fade-up">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fa-solid fa-search text-primary fa-2x"></i>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control form-control-lg border-0 bg-light" 
+                               placeholder="Search by student number, name, or course...">
+                        <button class="btn btn-primary" type="button">
+                            <i class="fa-solid fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-info alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Student Records</h5>
+            <div>
+                <a href="{% url 'upload_excel' %}" class="btn btn-primary btn-sm">Upload New File</a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if students %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="studentTable">
+                        <thead>
+                            <tr>
+                                <th>Student No.</th>
+                                <th>Name</th>
+                                <th>Gender</th>
+                                <th>Course</th>
+                                <th>Year</th>
+                                <th>Status</th>
+                                <th>Upload Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ student.student_no }}</td>
+                                <td>{{ student.name }}</td>
+                                <td>{{ student.get_gender_display }}</td>
+                                <td>{{ student.course }}</td>
+                                <td>{{ student.year }}</td>
+                                <td>{{ student.status }}</td>
+                                <td>{{ student.upload_date|date:"d M Y H:i" }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-info view-btn" 
+                                                data-id="{{ student.id }}"
+                                                data-student-no="{{ student.student_no }}"
+                                                data-name="{{ student.name }}"
+                                                data-gender="{{ student.get_gender_display }}"
+                                                data-course="{{ student.course }}"
+                                                data-year="{{ student.year }}"
+                                                data-status="{{ student.status }}"
+                                                data-upload-date="{{ student.upload_date|date:'d M Y H:i' }}">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary edit-btn" 
+                                                data-id="{{ student.id }}"
+                                                data-student-no="{{ student.student_no }}"
+                                                data-name="{{ student.name }}"
+                                                data-gender="{{ student.gender }}"
+                                                data-course="{{ student.course }}"
+                                                data-year="{{ student.year }}"
+                                                data-status="{{ student.status }}">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-btn" 
+                                                data-id="{{ student.id }}"
+                                                data-name="{{ student.name }}">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No student records found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
-    <!-- Add AOS JS -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        // Initialize AOS
-        AOS.init({
-            duration: 800,
-            once: true
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Student Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm" method="POST" action="{% url 'edit_student_record' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="studentId" name="student_id">
+                    <div class="mb-3">
+                        <label for="studentNo" class="form-label">Student No.</label>
+                        <input type="text" class="form-control" id="studentNo" name="student_no" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">Gender</label>
+                        <select class="form-control" id="gender" name="gender" required>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="course" class="form-label">Course</label>
+                        <input type="text" class="form-control" id="course" name="course" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="year" class="form-label">Year</label>
+                        <input type="number" class="form-control" id="year" name="year" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-control" id="status" name="status" required>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the record for <span id="deleteStudentName"></span>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" action="{% url 'delete_student_record' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="deleteStudentId" name="student_id">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add View Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Student Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-4 text-muted">Student No.:</div>
+                    <div class="col-8" id="viewStudentNo"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4 text-muted">Name:</div>
+                    <div class="col-8" id="viewName"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4 text-muted">Gender:</div>
+                    <div class="col-8" id="viewGender"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4 text-muted">Course:</div>
+                    <div class="col-8" id="viewCourse"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4 text-muted">Year:</div>
+                    <div class="col-8" id="viewYear"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4 text-muted">Status:</div>
+                    <div class="col-8" id="viewStatus"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4 text-muted">Upload Date:</div>
+                    <div class="col-8" id="viewUploadDate"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle edit button clicks
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('editModal'));
+                const data = this.dataset;
+    
+                console.log(data); // Debug: Check if data is being captured correctly
+    
+                // Set form values
+                document.getElementById('studentId').value = data.id;
+                document.getElementById('studentNo').value = data.studentNo;
+                document.getElementById('name').value = data.name;
+                document.getElementById('gender').value = data.gender;
+                document.getElementById('course').value = data.course;
+                document.getElementById('year').value = data.year;
+                document.getElementById('status').value = data.status;
+    
+                modal.show();
+            });
         });
-    </script>
 
-    <script>
-    function searchTables() {
-        let input = document.getElementById("tableSearch");
-        let filter = input.value.toLowerCase();
-        let tables = document.getElementsByClassName("table-responsive");
-        let headers = document.getElementsByTagName("h2");
-
-        for (let i = 0; i < tables.length; i++) {
-            let table = tables[i];
-            let header = headers[i];
-            let rows = table.getElementsByTagName("tr");
-            let visible = false;
-
-            // Search in table name
-            if (header.textContent.toLowerCase().includes(filter)) {
-                visible = true;
-            }
-
-            // Search in table content
-            for (let j = 1; j < rows.length; j++) { // Start from 1 to skip header row
-                let cells = rows[j].getElementsByTagName("td");
-                let rowVisible = false;
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const studentTable = document.getElementById('studentTable');
+        
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = studentTable.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const studentNo = row.cells[0].textContent.toLowerCase();
+                const name = row.cells[1].textContent.toLowerCase();
+                const course = row.cells[3].textContent.toLowerCase();
                 
-                for (let cell of cells) {
-                    if (cell.textContent.toLowerCase().includes(filter)) {
-                        rowVisible = true;
-                        visible = true;
-                        break;
-                    }
+                if (studentNo.includes(searchTerm) || 
+                    name.includes(searchTerm) || 
+                    course.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
                 }
-                
-                // Show/hide individual rows
-                rows[j].style.display = rowVisible ? "" : "none";
             }
+        });
 
-            // Show table and header if any content matches
-            table.style.display = visible ? "" : "none";
-            header.style.display = visible ? "" : "none";
-        }
-    }
-    </script>
-{% endblock %} 
+        // Handle delete button clicks
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                const data = this.dataset;
+                
+                document.getElementById('deleteStudentId').value = data.id;
+                document.getElementById('deleteStudentName').textContent = data.name;
+                
+                modal.show();
+            });
+        });
+
+        // Handle view button clicks
+        document.querySelectorAll('.view-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('viewModal'));
+                const data = this.dataset;
+                
+                // Set modal content
+                document.getElementById('viewStudentNo').textContent = data.studentNo;
+                document.getElementById('viewName').textContent = data.name;
+                document.getElementById('viewGender').textContent = data.gender;
+                document.getElementById('viewCourse').textContent = data.course;
+                document.getElementById('viewYear').textContent = data.year;
+                document.getElementById('viewStatus').textContent = data.status;
+                document.getElementById('viewUploadDate').textContent = data.uploadDate;
+                
+                modal.show();
+            });
+        });
+    });
+</script>
+{% endblock %}
+

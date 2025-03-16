@@ -7,6 +7,9 @@
     <!-- Add favicon -->
     <link rel="icon" type="image/x-icon" href="{% static 'img/LOGO.png' %}">
     <title>{% block title %}Admin{% endblock %}</title>
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <!-- Include Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <!-- Include Bootstrap 5 CSS -->
@@ -15,108 +18,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <!-- Include custom CSS -->
     <link rel="stylesheet" href="{% static 'css/admin_base.css' %}">
-    <!-- Additional custom CSS for sidebar collapse -->
-    <style>
-        /* Sidebar collapse functionality */
-        .wrapper {
-            display: flex;
-            width: 100%;
-        }
-
-        .sidebar {
-            width: 250px;
-            transition: all 0.3s;
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            z-index: 1000;
-        }
-
-        .sidebar.minimized {
-            width: 80px;
-        }
-
-        .sidebar.minimized .sidebar-header h3,
-        .sidebar.minimized .components span {
-            display: none;
-        }
-
-        .sidebar.minimized .sidebar-footer span {
-            display: none;
-        }
-
-        .sidebar.minimized .sidebar-logo {
-            margin: 0 auto;
-        }
-
-        .content {
-            width: calc(100% - 250px);
-            margin-left: 250px;
-            transition: all 0.3s;
-        }
-
-        .content.expanded {
-            width: calc(100% - 80px);
-            margin-left: 80px;
-        }
-
-        /* Dropdown smooth animation */
-        .animate-dropdown {
-            transform: translateY(-10px);
-            opacity: 0;
-            transition: all 0.3s ease-in-out;
-        }
-        .dropdown-menu.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        /* Hover effect */
-        .dropdown-item:hover {
-            background-color: rgba(63, 55, 201, 0.1);
-            border-radius: 5px;
-        }
-
-        /* Mobile sidebar styles */
-        @media (max-width: 991px) {
-            .sidebar {
-                position: fixed;
-                left: -250px;
-                transition: all 0.3s;
-                z-index: 1050;
-            }
-
-            .sidebar.active {
-                left: 0;
-            }
-
-            .sidebar.minimized {
-                left: -80px; /* When minimized, still hide on mobile */
-            }
-
-            .sidebar-overlay {
-                display: none;
-                position: fixed;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.4);
-                z-index: 1040;
-                top: 0;
-                left: 0;
-            }
-
-            .sidebar-overlay.active {
-                display: block;
-            }
-
-            .content {
-                margin-left: 0 !important;
-                width: 100% !important;
-            }
-        }
-    </style>
 </head>
 <body>
+    <script>
+        // Apply minimized state immediately before any rendering
+        if (window.innerWidth > 991 && localStorage.getItem('sidebarMinimized') === 'true') {
+            document.documentElement.classList.add('sidebar-starts-minimized');
+            document.body.classList.add('sidebar-minimized-body');
+        }
+    </script>
     <div class="wrapper">
         <!-- Sidebar -->
         {% if user.is_authenticated %}
@@ -128,46 +38,53 @@
 
             <div class="components">
                 <ul class="list-unstyled">
-                    <li>
+                    <li class="menu-item">
                         <a href="{% url 'admin_dashboard' %}" class="{% if request.path == dashboard_url %}active{% endif %}">
                             <i class="fas fa-tachometer-alt"></i>
                             <span>Dashboard</span>
+                            <div class="item-tooltip">Dashboard</div>
                         </a>
                     </li>
-                    <li>
+                    <li class="menu-item">
                         <a href="{% url 'admin_flight_groups' %}" class="{% if request.path == groups_url %}active{% endif %}">
                             <i class="fas fa-plane"></i>
                             <span>Flight Groups</span>
+                            <div class="item-tooltip">Flight Groups</div>
                         </a>
                     </li>
-                    <li>
+                    <li class="menu-item">
                         <a href="{% url 'admin_personnel_list' %}" class="{% if request.path == personnel_url %}active{% endif %}">
                             <i class="fas fa-users"></i>
                             <span>Personnel</span>
+                            <div class="item-tooltip">Personnel List</div>
                         </a>
                     </li>
-                    <li>
+                    <li class="menu-item">
                         <a href="{% url 'upload_excel' %}" class="{% if request.path == upload_url %}active{% endif %}">
                             <i class="fas fa-file-excel"></i>
                             <span>Upload Excel</span>
+                            <div class="item-tooltip">Upload Excel File</div>
                         </a>
                     </li>
-                    <li>
+                    <li class="menu-item">
                         <a href="{% url 'assign_gender' %}" class="{% if request.path == assign_url %}active{% endif %}">
                             <i class="fas fa-venus-mars"></i>
                             <span>Assign Personnel</span>
+                            <div class="item-tooltip">Assign Personnel</div>
                         </a>
                     </li>
-                    <li>
+                    <li class="menu-item">
                         <a href="{% url 'display_uploaded_tables' %}" class="{% if request.path == tables_url %}active{% endif %}">
                             <i class="fas fa-database"></i>
                             <span>Uploaded Tables</span>
+                            <div class="item-tooltip">View Uploaded Tables</div>
                         </a>
                     </li>
-                    <li>
+                    <li class="menu-item">
                         <a href="{% url 'admin_profile' %}" class="{% if request.path == profile_url %}active{% endif %}">
                             <i class="fas fa-user"></i>
                             <span>Profile</span>
+                            <div class="item-tooltip">User Profile</div>
                         </a>
                     </li>
                 </ul>
@@ -193,8 +110,8 @@
                         <i class="fas fa-sign-out-alt fa-2x mb-3 text-muted"></i>
                         <p class="mb-4">Ready to leave?</p>
                         <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-outline-success px-4" data-bs-dismiss="modal">Stay</button>
-                            <a href="{% url 'logout' %}" class="btn btn-outline-danger px-4">Leave</a>
+                            <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">Stay</button>
+                            <a href="{% url 'logout' %}" class="btn btn-danger px-4">Leave</a>
                         </div>
                     </div>
                 </div>
@@ -204,12 +121,12 @@
         <!-- Page Content -->
         <div class="content {% if not user.is_authenticated %}no-sidebar{% endif %}" id="content">
             <!-- Top Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #3f37c9; border-radius: 10px; margin: 10px; padding: 10px 20px;">
+            <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
                 <div class="container-fluid">
                     {% if user.is_authenticated %}
                     
                     <!-- Sidebar Toggle Button -->
-                    <button type="button" id="sidebarCollapse" class="btn text-black me-3">
+                    <button type="button" id="sidebarCollapse" class="btn text-white">
                         <i class="fas fa-bars"></i>
                     </button>
             
@@ -317,63 +234,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            const content = document.getElementById('content');
-            const sidebarCollapse = document.getElementById('sidebarCollapse');
-            const overlay = document.getElementById('sidebarOverlay');
-            const isMobile = () => window.innerWidth <= 991;
-
-            // Function to toggle sidebar on mobile
-            function toggleSidebar() {
-                if (isMobile()) {
-                    sidebar.classList.toggle('active');
-                    overlay.classList.toggle('active');
-                } else {
-                    // On desktop, minimize instead of hiding completely
-                    sidebar.classList.toggle('minimized');
-                    content.classList.toggle('expanded');
-                }
-            }
-
-            sidebarCollapse.addEventListener('click', function(e) {
-                e.preventDefault();
-                toggleSidebar();
-            });
-
-            overlay.addEventListener('click', function() {
-                if (isMobile()) {
-                    toggleSidebar();
-                }
-            });
-
-            // Close sidebar when clicking a link (for mobile)
-            const sidebarLinks = sidebar.querySelectorAll('a');
-            sidebarLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    if (isMobile() && sidebar.classList.contains('active')) {
-                        toggleSidebar();
-                    }
-                });
-            });
-
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 991) {
-                    // On desktop
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                    // Maintain minimized state if it was set
-                } else {
-                    // On mobile
-                    if (sidebar.classList.contains('minimized')) {
-                        sidebar.classList.remove('minimized');
-                        content.classList.remove('expanded');
-                    }
-                }
-            });
-        });
-    </script>
+    <script src="{% static 'js/admin_base.js' %}"></script>
 </body>
 </html>
+

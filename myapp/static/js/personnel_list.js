@@ -247,4 +247,245 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
-}); 
+
+    // Bulk actions and chart initialization
+    const selectAll = document.getElementById('selectAll');
+    const personnelCheckboxes = document.querySelectorAll('.personnel-checkbox');
+    const bulkActions = document.querySelector('.bulk-actions');
+    const selectedCount = document.getElementById('selectedCount');
+    const deleteCount = document.getElementById('deleteCount');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkDeleteModal = new bootstrap.Modal(document.getElementById('bulkDeleteModal'));
+    const confirmBulkDelete = document.getElementById('confirmBulkDelete');
+
+    // Handle select all checkbox
+    selectAll.addEventListener('change', function() {
+        personnelCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateBulkActions();
+    });
+
+    // Handle individual checkboxes
+    personnelCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateBulkActions();
+            // Update select all checkbox
+            selectAll.checked = [...personnelCheckboxes].every(cb => cb.checked);
+        });
+    });
+
+    // Update bulk actions visibility and counter
+    function updateBulkActions() {
+        const checkedCount = [...personnelCheckboxes].filter(cb => cb.checked).length;
+        if (checkedCount > 0) {
+            bulkActions.style.display = 'block';
+            selectedCount.textContent = checkedCount;
+            deleteCount.textContent = checkedCount;
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+
+    // Handle bulk delete button click
+    bulkDeleteBtn.addEventListener('click', function() {
+        bulkDeleteModal.show();
+    });
+
+    // Handle confirm bulk delete
+    confirmBulkDelete.addEventListener('click', function() {
+        const selectedIds = [...personnelCheckboxes]
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+
+        // Send delete request
+        fetch('{% url "bulk_delete_personnel" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: 'personnel_ids[]=' + selectedIds.join('&personnel_ids[]=')
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Reload the page to show updated list
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting personnel');
+        })
+        .finally(() => {
+            bulkDeleteModal.hide();
+        });
+    });
+
+    // Chart Initialization
+    const ctx = document.getElementById('personnelChart').getContext('2d');
+    
+    // Calculate statistics from personnel data
+    const personnel = Array.from(document.querySelectorAll('#personnelTable tbody tr'));
+    
+    const activeCount = personnel.filter(row => 
+        row.querySelector('td:nth-child(6) .badge').textContent.trim() === 'Active'
+    ).length;
+    const inactiveCount = personnel.length - activeCount;
+
+    const maleCount = personnel.filter(row => 
+        row.querySelector('td:nth-child(9)').textContent.trim().includes('Male')
+    ).length;
+    const femaleCount = personnel.filter(row => 
+        row.querySelector('td:nth-child(9)').textContent.trim().includes('Female')
+    ).length;
+    const otherCount = personnel.length - maleCount - femaleCount;
+
+    // Create chart configuration
+    const chartConfig = {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Inactive', 'Male', 'Female', 'Other'],
+            datasets: [{
+                data: [activeCount, inactiveCount, maleCount, femaleCount, otherCount],
+                backgroundColor: [
+                    '#4CAF50',  // Active - soft green
+                    '#FF9800',  // Inactive - soft orange
+                    '#2196F3',  // Male - soft blue
+                    '#E91E63',  // Female - soft pink
+                    '#9E9E9E'   // Other - soft gray
+                ],
+                borderWidth: 0,
+                borderRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        usePointStyle: true,
+                        font: {
+                            size: 11,
+                            family: "'Inter', sans-serif"
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    titleColor: '#333',
+                    bodyColor: '#666',
+                    bodyFont: {
+                        size: 12
+                    },
+                    borderColor: '#e0e0e0',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // Initialize the main chart
+    const mainChart = new Chart(ctx, chartConfig);
+
+    // Handle zoom functionality
+    const zoomChartBtn = document.getElementById('zoomChartBtn');
+    if (document.getElementById('chartZoomModal')) {
+        const chartZoomModal = new bootstrap.Modal(document.getElementById('chartZoomModal'));
+        let zoomedChart = null;
+
+        zoomChartBtn.addEventListener('click', function() {
+            const zoomCtx = document.getElementById('zoomedPersonnelChart').getContext('2d');
+            
+            // Destroy existing zoomed chart if it exists
+            if (zoomedChart) {
+                zoomedChart.destroy();
+            }
+
+            // Create zoomed chart configuration with larger fonts
+            const zoomedConfig = JSON.parse(JSON.stringify(chartConfig)); // Deep clone the config
+            zoomedConfig.options.plugins.legend.labels.font.size = 14;
+            zoomedConfig.options.plugins.tooltip.bodyFont.size = 14;
+            
+            // Show modal and create new chart
+            chartZoomModal.show();
+            zoomedChart = new Chart(zoomCtx, zoomedConfig);
+        });
+
+        // Clean up zoomed chart when modal is closed
+        document.getElementById('chartZoomModal').addEventListener('hidden.bs.modal', function() {
+            if (zoomedChart) {
+                zoomedChart.destroy();
+                zoomedChart = null;
+            }
+        });
+    }
+
+    // Quick Stats Update Function
+    function updateQuickStats() {
+        fetch('/api/quick-stats/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update Active Personnel stats
+            const activePercentage = document.getElementById('activePercentage');
+            const activeProgressBar = document.getElementById('activeProgressBar');
+            if (activePercentage && activeProgressBar) {
+                activePercentage.textContent = `${data.active_percentage}%`;
+                activeProgressBar.style.width = `${data.active_percentage}%`;
+            }
+
+            // Update Assigned Groups stats
+            const assignedPercentage = document.getElementById('assignedPercentage');
+            const assignedProgressBar = document.getElementById('assignedProgressBar');
+            if (assignedPercentage && assignedProgressBar) {
+                assignedPercentage.textContent = `${data.assigned_percentage}%`;
+                assignedProgressBar.style.width = `${data.assigned_percentage}%`;
+            }
+        })
+        .catch(error => {
+            console.error('Error updating quick stats:', error);
+        });
+    }
+
+    // Initial update of quick stats
+    updateQuickStats();
+
+    // Update quick stats every 30 seconds
+    const statsInterval = setInterval(updateQuickStats, 30000);
+
+    // Clean up interval when page is unloaded
+    window.addEventListener('unload', () => {
+        clearInterval(statsInterval);
+    });
+});

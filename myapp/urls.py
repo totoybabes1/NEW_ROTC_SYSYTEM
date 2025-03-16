@@ -34,6 +34,10 @@ urlpatterns = [
     path('delete_uploaded_file/<int:file_id>/', admin_upload_views.delete_uploaded_file, name='delete_uploaded_file'),
     path('admin-upload/download/<int:file_id>/', admin_upload_views.download_uploaded_file, name='download_uploaded_file'),
     path('admin-uploaded-tables/', admin_uploadfiles_display_views.display_uploaded_tables, name='display_uploaded_tables'),
+    path('edit-student/<int:student_id>/', admin_upload_views.edit_student_record, name='edit_student_record'),
+    path('delete-excel/<int:upload_id>/', admin_uploadfiles_display_views.delete_excel_upload, name='delete_excel_upload'),
+    path('edit-student/', admin_uploadfiles_display_views.edit_student_record, name='edit_student_record'),
+    path('delete-student/', admin_uploadfiles_display_views.delete_student_record, name='delete_student_record'),
 
     path('api/activities/', admin_views.get_activities, name='get_activities'),
 
@@ -51,4 +55,6 @@ urlpatterns = [
     path('attendance/view/<int:upload_id>/', personnel_attendance_assign_views.view_attendance, name='view_attendance_by_upload'),
     path('attendance/mark/', personnel_attendance_assign_views.mark_attendance, name='mark_attendance'),
     path('attendance/personnel/<int:personnel_id>/', personnel_attendance_assign_views.personnel_attendance, name='personnel_attendance'),
+
+    path('api/quick-stats/', admin_views.get_quick_stats, name='get_quick_stats'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

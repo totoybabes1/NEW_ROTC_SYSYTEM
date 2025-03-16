@@ -58,7 +58,7 @@ body {
     display: flex;
     align-items: center;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: none;
     margin: 4px 12px;
     border-radius: 8px;
     position: relative;
@@ -153,7 +153,7 @@ body {
     padding: 0.8rem 1.5rem;
     border-radius: 8px;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: none;
     position: relative;
     overflow: hidden;
 }
@@ -165,12 +165,12 @@ body {
     border-radius: 8px;
     padding: 0.8rem 1.5rem;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: none;
 }
 
 .btn-primary:hover {
     background-color: #0052cc;
-    transform: translateY(-2px);
+    transform: none;
     box-shadow: 0 4px 15px rgba(0, 102, 255, 0.2);
 }
 
@@ -564,7 +564,7 @@ body {
     padding: 12px 20px;
     border-radius: 12px;
     color: #2c3e50;
-    transition: all 0.3s ease;
+    transition: none;
     position: relative;
     overflow: hidden;
 }
@@ -582,7 +582,7 @@ body {
     align-items: center;
     justify-content: center;
     margin-right: 12px;
-    transition: transform 0.3s ease;
+    transition: none;
 }
 
 .sidebar a:hover i {
@@ -690,7 +690,7 @@ body {
     border-radius: 12px;
     padding: 12px 24px;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: none;
     position: relative;
     overflow: hidden;
 }

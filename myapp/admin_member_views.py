@@ -10,9 +10,18 @@ from django.http import JsonResponse
 def personnel_list(request):
     personnel = Personnel.objects.all()
     flight_groups = FlightGroup.objects.all()
+    
+    # Calculate counts for the cards
+    active_count = Personnel.objects.filter(status='Active').count()
+    male_count = Personnel.objects.filter(gender='Male').count()
+    female_count = Personnel.objects.filter(gender='Female').count()
+    
     return render(request, 'admin/admin_personnel_list.html', {
         'personnel': personnel,
-        'flight_groups': flight_groups
+        'flight_groups': flight_groups,
+        'active_count': active_count,
+        'male_count': male_count,
+        'female_count': female_count
     })
 
 def add_personnel(request):

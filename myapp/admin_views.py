@@ -4,7 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from myapp.models import Personnel, FlightGroup, UploadFiles, Profile
 from django.http import JsonResponse
-from datetime import datetime
+from django.utils import timezone
+from datetime import datetime, timedelta
+
 
 def home(request):
     stats = {
@@ -16,12 +18,29 @@ def home(request):
 
 @login_required(login_url='login')
 def admin_dashboard(request):
-    # Get statistics
-    stats = {
+    # Get current statistics
+    current_stats = {
         'total_personnel': Personnel.objects.count(),
         'total_groups': FlightGroup.objects.count(),
         'total_files': UploadFiles.objects.count(),
-        'recent_uploads': UploadFiles.objects.order_by('-created_at')[:5].count(),
+        'recent_uploads': UploadFiles.objects.filter(
+            created_at__gte=timezone.now() - timedelta(days=7)
+        ).count(),
+        
+        # Get previous week's numbers for comparison
+        'previous_total_personnel': Personnel.objects.filter(
+            date_joined__lt=timezone.now() - timedelta(days=7)
+        ).count(),
+        'previous_total_groups': FlightGroup.objects.filter(
+            created_at__lt=timezone.now() - timedelta(days=7)
+        ).count(),
+        'previous_total_files': UploadFiles.objects.filter(
+            created_at__lt=timezone.now() - timedelta(days=7)
+        ).count(),
+        'previous_recent_uploads': UploadFiles.objects.filter(
+            created_at__lt=timezone.now() - timedelta(days=7),
+            created_at__gte=timezone.now() - timedelta(days=14)
+        ).count(),
         
         # Gender statistics
         'gender_male': Personnel.objects.filter(gender_assignment='Male').count(),
@@ -67,14 +86,14 @@ def admin_dashboard(request):
                 profile_activities.append({
                     'user': profile.user.username,
                     'action': log['action'],
-                    'timestamp': datetime.fromisoformat(log['timestamp'])
+                    'timestamp': timezone.localtime(datetime.fromisoformat(log['timestamp']))
                 })
     
     # Sort activities by timestamp
     profile_activities.sort(key=lambda x: x['timestamp'], reverse=True)
     
     context = {
-        'stats': stats,
+        'stats': current_stats,
         'group_names': group_names,
         'group_members': group_members,
         'recent_activities': recent_activities,
@@ -161,4 +180,18 @@ def get_activities(request):
     return JsonResponse({
         'activities': activities[start_idx:end_idx],
         'hasMore': end_idx < len(activities)
+    })
+
+@login_required
+def get_quick_stats(request):
+    total_personnel = Personnel.objects.count()
+    active_personnel = Personnel.objects.filter(status='Active').count()
+    personnel_with_groups = Personnel.objects.exclude(flight_group=None).count()
+    
+    active_percentage = (active_personnel / total_personnel * 100) if total_personnel > 0 else 0
+    assigned_percentage = (personnel_with_groups / total_personnel * 100) if total_personnel > 0 else 0
+    
+    return JsonResponse({
+        'active_percentage': round(active_percentage, 1),
+        'assigned_percentage': round(assigned_percentage, 1)
     })

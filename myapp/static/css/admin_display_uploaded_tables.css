@@ -1,45 +1,667 @@
-.table-container {
+/* Base styling */
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  color: #333;
+  background-color: #ffffff;
+  line-height: 1.5;
+}
+
+/* Card styling */
+.card {
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background-color: white;
+  margin-bottom: 1.5rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transform: none;
+}
+
+.card-header {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #222;
+  border-bottom: 1px solid #f5f5f5;
+  padding: 1.25rem;
+}
+
+.card-header h5 {
+  color: #222;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+/* Table styling */
+.table-responsive {
+  border-radius: 0.75rem;
   overflow: hidden;
 }
 
-.table-header {
-  background: #f8f9fa;
-  padding: 15px 20px;
-  border-bottom: 1px solid #dee2e6;
-  font-weight: 500;
-  font-size: 1.1rem;
-  color: #2d3748;
-}
-
-.custom-table {
+.table {
   margin-bottom: 0;
 }
 
-.custom-table thead th {
-  background: #f8f9fa;
-  color: #2d3748;
+.table thead {
+  background: #fafafa !important;
+}
+
+.table thead th {
+  color: #555;
   font-weight: 600;
-  border-bottom: 2px solid #dee2e6;
-  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  padding: 0.75rem 1rem;
 }
 
-.custom-table tbody tr:nth-child(even) {
-  background-color: #f8f9fa;
+.table td {
+  color: #444;
+  border-bottom: 1px solid #f5f5f5;
 }
 
-.custom-table tbody tr:hover {
+.table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+  background-color: #fafafa;
+}
+
+/* Button styling */
+.btn {
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: #0066ff;
+  border: none;
+  box-shadow: none;
+}
+
+.btn-primary:hover {
+  background: #0055dd;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 102, 255, 0.15);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.875rem;
+}
+
+/* Modal styling */
+.modal-content {
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.modal-header {
+  background: white;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.modal-title {
+  color: #222;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  border-top: 1px solid #f5f5f5;
+  padding: 1rem 1.5rem;
+}
+
+/* Form styling */
+.form-label {
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: #0066ff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 102, 255, 0.15);
+}
+
+.form-select {
+  border-radius: 0.5rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+}
+
+/* Upload button styling */
+.btn-upload {
+  background: #0066ff;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-upload:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
+}
+
+/* Empty state styling */
+.text-muted {
+  color: #6c757d !important;
+  font-size: 0.9rem;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card-header {
+    padding: 1rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .table td,
+  .table th {
+    padding: 0.75rem;
+  }
+
+  .btn-group .btn {
+    padding: 0.25rem 0.5rem;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1rem;
+  }
+
+  .container {
+    max-width: 100% !important;
+    padding: 0.5rem;
+  }
+}
+
+/* Edit button styling */
+.edit-btn {
+  background: #0066ff;
+  box-shadow: none;
+}
+
+.edit-btn:hover {
+  background: #0055dd;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 102, 255, 0.15);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
+}
+
+/* Search box styling */
+.input-group .form-control-lg {
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  border-radius: 0.75rem;
+  background-color: #f9f9f9 !important;
+  border: 1px solid #eee;
+}
+
+.input-group .form-control-lg:focus {
+  box-shadow: none;
+  background-color: #fff !important;
+  border-color: #0066ff;
+}
+
+.input-group .btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+.input-group .form-control-lg::placeholder {
+  color: #6c757d;
+  opacity: 0.7;
+}
+
+/* Search card hover effect */
+.card[data-aos="fade-up"] {
+  transition: transform 0.3s ease;
+}
+
+.card[data-aos="fade-up"]:hover {
+  transform: translateY(-2px);
+}
+
+/* Container adjustments */
+.container {
+  max-width: 95% !important;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem !important;
+}
+
+/* Delete button styling */
+.btn-danger {
+  background: #ff3b30;
+  border: none;
+  margin-left: 0.5rem;
+}
+
+.btn-danger:hover {
+  background: #e0352b;
+  box-shadow: 0 2px 4px rgba(255, 59, 48, 0.15);
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Table styling enhancements */
+.table-hover tbody tr:hover {
+  background-color: #f5f9ff; /* Very light blue background on hover */
+}
+
+.table thead th {
+  background-color: #f5f5f5; /* Light gray background for table headers */
+  text-transform: uppercase; /* Uppercase text for headers */
+  letter-spacing: 0.05em; /* Slightly increased letter spacing */
+  border-bottom: 1px solid #eee; /* Lighter border for headers */
+  font-size: 0.8rem;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #f5f5f5; /* Light border for table rows */
+}
+
+.table tbody tr td {
+  vertical-align: middle; /* Center align text vertically */
+  padding: 0.75rem 1rem; /* Add padding for better spacing */
+}
+
+/* View Modal styling enhancements */
+#viewModal .modal-content {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+#viewModal .modal-header {
+  background: white;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f5f5f5;
+  position: relative;
+}
+
+#viewModal .modal-title {
+  color: #222;
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: 0.02rem;
+}
+
+#viewModal .btn-close {
+  background-color: #f5f5f5;
+  border-radius: 50%;
+  padding: 0.5rem;
+  opacity: 0.8;
+}
+
+#viewModal .btn-close:hover {
+  opacity: 1;
+  background-color: #eee;
+}
+
+#viewModal .modal-body {
+  background-color: white;
+  padding: 2rem;
+  position: relative;
+  padding-top: 7rem; /* Space for avatar */
+}
+
+#viewModal .row {
+  margin-bottom: 1.2rem;
+  padding-left: 1rem;
+  transition: all 0.2s ease;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+#viewModal .row:hover {
+  background-color: rgba(0, 102, 255, 0.03);
+  border-radius: 0.5rem;
+  transform: translateX(5px);
+}
+
+#viewModal .col-4 {
+  font-weight: 600;
+  color: #444;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}
+
+#viewModal .col-8 {
+  font-weight: 500;
+  color: #333;
+  font-size: 1rem;
+  position: relative;
+}
+
+#viewModal .col-8::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #0066ff;
+  transition: width 0.3s ease;
+}
+
+#viewModal .row:hover .col-8::after {
+  width: 100%;
+}
+
+#viewModal #viewStatus {
+  padding: 0.3rem 0.8rem;
+  border-radius: 2rem;
+  display: inline-block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}
+
+/* Student info icon indicators */
+#viewModal .row .col-4::before {
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  margin-right: 0.5rem;
+  color: #0066ff;
+  opacity: 0.8;
+}
+
+#viewModal .row:nth-child(1) .col-4::before {
+  content: "\f2bb"; /* ID card icon */
+}
+
+#viewModal .row:nth-child(2) .col-4::before {
+  content: "\f007"; /* User icon */
+}
+
+#viewModal .row:nth-child(3) .col-4::before {
+  content: "\f228"; /* Gender icon */
+}
+
+#viewModal .row:nth-child(4) .col-4::before {
+  content: "\f19d"; /* Graduation cap icon */
+}
+
+#viewModal .row:nth-child(5) .col-4::before {
+  content: "\f073"; /* Calendar icon */
+}
+
+#viewModal .row:nth-child(6) .col-4::before {
+  content: "\f111"; /* Circle icon */
+}
+
+#viewModal .row:nth-child(7) .col-4::before {
+  content: "\f017"; /* Clock icon */
+}
+
+#viewModal .modal-footer {
+  background-color: #f8fafb;
+  border-top: 1px solid #eef2f7;
+  padding: 1.2rem 2rem;
+}
+
+#viewModal .btn-secondary {
+  background-color: #5f7d95;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  font-weight: 500;
+  box-shadow: 0 4px 6px rgba(95, 125, 149, 0.1);
+  transition: all 0.3s ease;
+}
+
+#viewModal .btn-secondary:hover {
+  background-color: #4a6278;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(95, 125, 149, 0.2);
+}
+
+/* Add student photo placeholder and styling */
+#viewModal .student-avatar {
+  position: absolute;
+  top: -3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 10;
+}
+
+#viewModal .student-avatar::before {
+  content: "\f007";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-size: 2.5rem;
+  color: #94a3b8;
+}
+
+/* Add student initials from name */
+#viewModal .student-initials {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  background-color: #0066ff;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Animation for modal open */
+.modal.fade .modal-dialog {
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal.fade.show .modal-dialog {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Status colors */
+#viewModal .status-active {
+  background-color: rgba(46, 213, 115, 0.2);
+  color: #2ed573;
+}
+
+#viewModal .status-inactive {
+  background-color: rgba(255, 71, 87, 0.2);
+  color: #ff4757;
+}
+
+/* Data field separator */
+#viewModal .data-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#viewModal .data-field::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 1px;
   background-color: #f0f4f8;
 }
 
-.custom-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #dee2e6;
-  color: #4a5568;
+#viewModal .row:last-child .data-field::after {
+  display: none;
 }
 
-.table-responsive {
-  padding: 0;
+/* Info field highlights */
+#viewModal .highlight-field {
+  background-color: rgba(0, 102, 255, 0.08);
+  border-radius: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  display: inline-block;
+  font-weight: 500;
+  box-shadow: inset 0 0 0 1px rgba(0, 102, 255, 0.2);
 }
+
+#viewModal #viewCourse,
+#viewModal #viewYear {
+  font-weight: 600;
+  color: #0066ff;
+}
+
+/* Elegant close button */
+#viewModal .modal-footer .btn-secondary {
+  position: relative;
+  overflow: hidden;
+}
+
+#viewModal .modal-footer .btn-secondary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+#viewModal .modal-footer .btn-secondary:hover::before {
+  left: 100%;
+}
+
+/* Add media query for responsive design */
+@media (max-width: 768px) {
+  #viewModal .modal-body {
+    padding: 1.5rem;
+    padding-top: 6rem;
+  }
+  
+  #viewModal .row {
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+  }
+  
+  #viewModal .col-4, 
+  #viewModal .col-8 {
+    font-size: 0.9rem;
+  }
+  
+  #viewModal .modal-header {
+    padding: 1.2rem;
+  }
+  
+  #viewModal .student-avatar {
+    width: 5rem;
+    height: 5rem;
+    top: -2.5rem;
+  }
+  
+  #viewModal .student-initials {
+    font-size: 1.5rem;
+  }
+}
+
+/* Edit and delete modals styling to match view modal */
+#editModal .modal-header,
+#deleteModal .modal-header {
+  background: white;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+#editModal .modal-title,
+#deleteModal .modal-title {
+  color: #222;
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: 0.02rem;
+}
+
+#editModal .btn-close,
+#deleteModal .btn-close {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  padding: 0.5rem;
+  opacity: 0.8;
+  filter
