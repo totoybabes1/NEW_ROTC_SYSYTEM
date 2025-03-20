@@ -14,3 +14,21 @@ document.addEventListener('DOMContentLoaded', function() {
     window.groupNames = {{ group_names|safe }};
     window.groupMembers = {{ group_members }};
 });
+
+// Create global variables for chart data
+window.initializeChartData = function(genderData, groupData) {
+    // Gender data
+    window.genderMale = genderData.male;
+    window.genderFemale = genderData.female;
+    window.genderNonbinary = genderData.nonbinary;
+    window.genderOther = genderData.other;
+    
+    // Group data
+    window.groupNames = groupData.names;
+    window.groupMembers = groupData.members;
+    
+    // If charts are already initialized, update them
+    if (window.updateCharts) {
+        window.updateCharts();
+    }
+};

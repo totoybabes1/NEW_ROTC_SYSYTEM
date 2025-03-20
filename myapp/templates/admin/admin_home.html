@@ -70,6 +70,18 @@
         
 </section>
 
+<!-- Welcome Modal -->
+<div class="welcome-modal" id="welcomeModal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Welcome Back!</h2>
+        <p>Good to see you today, {{ user.username }}!</p>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="closeModal()">Get Started</button>
+        </div>
+    </div>
+</div>
+
 <!-- Include AOS library for animations -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 <script>
@@ -79,6 +91,88 @@
             easing: 'ease-in-out',
             once: true
         });
+
+        // Welcome Modal JavaScript
+        const modal = document.getElementById('welcomeModal');
+        const closeBtn = document.querySelector('.close-btn');
+        
+        // Show modal only if user hasn't seen it today
+        if (!localStorage.getItem('modalShownToday')) {
+            modal.style.display = 'block';
+            // Set flag in localStorage with expiration
+            const now = new Date();
+            localStorage.setItem('modalShownToday', now.toISOString());
+        }
+
+        // Close modal when clicking the close button
+        closeBtn.onclick = function() {
+            closeModal();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
     });
+
+    function closeModal() {
+        document.getElementById('welcomeModal').style.display = 'none';
+    }
 </script>
+
+<style>
+    .welcome-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 10px;
+        width: 80%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        animation: slideIn 0.3s ease-in-out;
+    }
+
+    .close-btn {
+        position: absolute;
+        right: 20px;
+        top: 10px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .close-btn:hover {
+        color: #333;
+    }
+
+    .modal-footer {
+        margin-top: 20px;
+        text-align: right;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateY(-100px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
 {% endblock %}

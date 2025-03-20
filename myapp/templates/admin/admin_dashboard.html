@@ -15,12 +15,16 @@
 {% if user.is_staff %}
     <div class="admin-dashboard">        
         <div class="dashboard-header" data-aos="fade-up" data-aos-delay="100">
-            <div class="header-logo">
-                <img src="{% static 'img/logo.png' %}" alt="University Logo" class="dashboard-logo">
+            <div class="header-content">
+                <div class="header-logo">
+                    <img src="{% static 'img/LOGO.png' %}" alt="Negros Oriental State University Logo" class="dashboard-logo">
+                </div>
+                <div class="header-text">
+                    <h1>Admin Dashboard</h1>
+                    <p class="welcome-text">Welcome, {{ user.username }}!</p>
+                </div>
             </div>
-            <div class="header-text">
-                <h1>Admin Dashboard</h1>
-                <p class="welcome-text">Welcome, {{ user.username }}!</p>
+            <div class="header-info">
                 <div class="datetime-container">
                     <div class="date-display">
                         <i class="fas fa-calendar-alt"></i>
@@ -34,132 +38,379 @@
             </div>
         </div>
 
-        <!-- Statistics Overview -->
-        <div class="stats-overview" data-aos="fade-up" data-aos-delay="200">
-            <div class="stat-card">
-                <div class="stat-info">
-                    <div class="stat-header">
-                        <i class="fas fa-users stat-icon"></i>
-                        <span class="stat-number">{{ stats.total_personnel }}</span>
+        <!-- Stats Overview Section -->
+        <div class="dashboard-container">
+            <div class="dashboard-main-content">
+                <div class="stats-overview">
+                    <div class="stats-grid">
+                        <!-- First row of stat cards -->
+                        <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
+                            <div class="stat-info">
+                                <h3>Total Personnel</h3>
+                                <p class="stat-number">{{ stats.total_personnel }}</p>
+                                <p class="stat-change {% if stats.total_personnel > stats.previous_total_personnel %}positive{% elif stats.total_personnel < stats.previous_total_personnel %}negative{% endif %}">
+                                    {% if stats.total_personnel > stats.previous_total_personnel %}
+                                        <i class="fas fa-arrow-up"></i> +{{ stats.total_personnel|add:"-stats.previous_total_personnel" }}
+                                    {% elif stats.total_personnel < stats.previous_total_personnel %}
+                                        <i class="fas fa-arrow-down"></i> {{ stats.total_personnel|add:"-stats.previous_total_personnel" }}
+                                    {% else %}
+                                        <i class="fas fa-equals"></i> No change
+                                    {% endif %}
+                                    <span>from last week</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" data-aos="fade-up" data-aos-delay="150">
+                            <div class="stat-info">
+                                <h3>Total Students</h3>
+                                <p class="stat-number">{{ stats.total_students }}</p>
+                                <p class="stat-change {% if stats.total_students > stats.previous_total_students %}positive{% elif stats.total_students < stats.previous_total_students %}negative{% endif %}">
+                                    {% if stats.total_students > stats.previous_total_students %}
+                                        <i class="fas fa-arrow-up"></i> +{{ stats.total_students|add:"-stats.previous_total_students" }}
+                                    {% elif stats.total_students < stats.previous_total_students %}
+                                        <i class="fas fa-arrow-down"></i> {{ stats.total_students|add:"-stats.previous_total_students" }}
+                                    {% else %}
+                                        <i class="fas fa-equals"></i> No change
+                                    {% endif %}
+                                    <span>from last week</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
+                            <div class="stat-info">
+                                <h3>Flight Groups</h3>
+                                <p class="stat-number">{{ stats.total_groups }}</p>
+                                <p class="stat-change {% if stats.total_groups > stats.previous_total_groups %}positive{% elif stats.total_groups < stats.previous_total_groups %}negative{% endif %}">
+                                    {% if stats.total_groups > stats.previous_total_groups %}
+                                        <i class="fas fa-arrow-up"></i> +{{ stats.total_groups|add:"-stats.previous_total_groups" }}
+                                    {% elif stats.total_groups < stats.previous_total_groups %}
+                                        <i class="fas fa-arrow-down"></i> {{ stats.total_groups|add:"-stats.previous_total_groups" }}
+                                    {% else %}
+                                        <i class="fas fa-equals"></i> No change
+                                    {% endif %}
+                                    <span>from last week</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" data-aos="fade-up" data-aos-delay="250">
+                            <div class="stat-info">
+                                <h3>Upcoming Events</h3>
+                                <p class="stat-number">{{ stats.upcoming_events }}</p>
+                                <p class="stat-change {% if stats.upcoming_events > stats.previous_upcoming_events %}positive{% elif stats.upcoming_events < stats.previous_upcoming_events %}negative{% endif %}">
+                                    {% if stats.upcoming_events > stats.previous_upcoming_events %}
+                                        <i class="fas fa-arrow-up"></i> +{{ stats.upcoming_events|add:"-stats.previous_upcoming_events" }}
+                                    {% elif stats.upcoming_events < stats.previous_upcoming_events %}
+                                        <i class="fas fa-arrow-down"></i> {{ stats.upcoming_events|add:"-stats.previous_upcoming_events" }}
+                                    {% else %}
+                                        <i class="fas fa-equals"></i> No change
+                                    {% endif %}
+                                    <span>from last week</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Second row of stat cards -->
+                        <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
+                            <div class="stat-info">
+                                <h3>Assigned Students</h3>
+                                <p class="stat-number">{{ stats.assigned_students }}</p>
+                                <p class="stat-change {% if stats.assigned_students > stats.previous_assigned_students %}positive{% elif stats.assigned_students < stats.previous_assigned_students %}negative{% endif %}">
+                                    {% if stats.assigned_students > stats.previous_assigned_students %}
+                                        <i class="fas fa-arrow-up"></i> +{{ stats.assigned_students|add:"-stats.previous_assigned_students" }}
+                                    {% elif stats.assigned_students < stats.previous_assigned_students %}
+                                        <i class="fas fa-arrow-down"></i> {{ stats.assigned_students|add:"-stats.previous_assigned_students" }}
+                                    {% else %}
+                                        <i class="fas fa-equals"></i> No change
+                                    {% endif %}
+                                    <span>from last week</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" data-aos="fade-up" data-aos-delay="350">
+                            <div class="stat-info">
+                                <h3>Unassigned Students</h3>
+                                <p class="stat-number">{{ stats.unassigned_students }}</p>
+                                <p class="stat-change {% if stats.unassigned_students > stats.previous_unassigned_students %}positive{% elif stats.unassigned_students < stats.previous_unassigned_students %}negative{% endif %}">
+                                    {% if stats.unassigned_students > stats.previous_unassigned_students %}
+                                        <i class="fas fa-arrow-up"></i> +{{ stats.unassigned_students|add:"-stats.previous_unassigned_students" }}
+                                    {% elif stats.unassigned_students < stats.previous_unassigned_students %}
+                                        <i class="fas fa-arrow-down"></i> {{ stats.unassigned_students|add:"-stats.previous_unassigned_students" }}
+                                    {% else %}
+                                        <i class="fas fa-equals"></i> No change
+                                    {% endif %}
+                                    <span>from last week</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-user-times"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" data-aos="fade-up" data-aos-delay="400">
+                            <div class="stat-info">
+                                <h3>Active Users</h3>
+                                <p class="stat-number">{{ stats.active_users }}</p>
+                                <p class="stat-change {% if stats.active_users > stats.previous_active_users %}positive{% elif stats.active_users < stats.previous_active_users %}negative{% endif %}">
+                                    {% if stats.active_users > stats.previous_active_users %}
+                                        <i class="fas fa-arrow-up"></i> +{{ stats.active_users|add:"-stats.previous_active_users" }}
+                                    {% elif stats.active_users < stats.previous_active_users %}
+                                        <i class="fas fa-arrow-down"></i> {{ stats.active_users|add:"-stats.previous_active_users" }}
+                                    {% else %}
+                                        <i class="fas fa-equals"></i> No change
+                                    {% endif %}
+                                    <span>from last week</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" data-aos="fade-up" data-aos-delay="450">
+                            <div class="stat-info">
+                                <h3>System Uptime</h3>
+                                <p class="stat-number">99.9%</p>
+                                <p class="stat-change">
+                                    <i class="fas fa-equals"></i> Stable
+                                    <span>this month</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-server"></i>
+                            </div>
+                        </div>
                     </div>
-                    <h3>Users</h3>
+                </div>
+                
+                <!-- DETAILED STATISTICS - Moved to be next to stat cards -->
+                <div class="detailed-statistics" data-aos="fade-up" data-aos-delay="150">
+                    <h2 class="detailed-statistics-title">DETAILED STATISTICS</h2>
+                    <div class="charts-grid">
+                        <!-- Year Distribution Chart -->
+                        <div class="stats-card">
+                            <div class="card-header">
+                                <h3>STUDENT YEAR DISTRIBUTION</h3>
+                                <div class="chart-controls">
+                                    <button class="chart-toggle active" data-chart="bar"><i class="fas fa-chart-bar"></i></button>
+                                    <button class="chart-toggle" data-chart="pie"><i class="fas fa-chart-pie"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="yearDistributionChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Activity Timeline Chart -->
+                        <div class="stats-card">
+                            <div class="card-header">
+                                <h3>USER ACTIVITY (LAST 7 DAYS)</h3>
+                                <div class="chart-controls">
+                                    <button class="chart-toggle active" data-chart="line"><i class="fas fa-chart-line"></i></button>
+                                    <button class="chart-toggle" data-chart="bar"><i class="fas fa-chart-bar"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="activityTimelineChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Flight Group Comparison -->
+                        <div class="stats-card">
+                            <div class="card-header">
+                                <h3>FLIGHT GROUP COMPARISON</h3>
+                                <div class="chart-controls">
+                                    <button class="chart-toggle active" data-chart="bar"><i class="fas fa-chart-bar"></i></button>
+                                    <button class="chart-toggle" data-chart="radar"><i class="fas fa-spider-web"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="flightGroupComparisonChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Student Assignment Status -->
+                        <div class="stats-card">
+                            <div class="card-header">
+                                <h3>STUDENT ASSIGNMENT STATUS</h3>
+                                <div class="chart-controls">
+                                    <button class="chart-toggle active" data-chart="doughnut"><i class="fas fa-circle-notch"></i></button>
+                                    <button class="chart-toggle" data-chart="pie"><i class="fas fa-chart-pie"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="assignmentStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-info">
-                    <div class="stat-header">
-                        <i class="fas fa-plane stat-icon"></i>
-                        <span class="stat-number">{{ stats.total_groups }}</span>
+            
+            <div class="dashboard-sidebar">
+                <!-- Quick Actions and Calendar in a flex container -->
+                <div class="quick-actions-panel" data-aos="fade-up" data-aos-delay="200">
+                    <h2 class="panel-title">QUICK ACTIONS</h2>
+                    <div class="action-buttons">
+                        <a href="{% url 'admin_dashboard' %}" class="action-btn">
+                            <div class="action-content">
+                                <div class="action-icon">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                </div>
+                                <div class="action-text">
+                                    <span class="action-title">Dashboard</span>
+                                    <span class="action-desc">View overall statistics</span>
+                                </div>
+                            </div>
+                            <div class="hover-indicator"></div>
+                        </a>
+                        <a href="{% url 'admin_personnel_list' %}" class="action-btn">
+                            <div class="action-content">
+                                <div class="action-icon">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="action-text">
+                                    <span class="action-title">Add Personnel</span>
+                                    <span class="action-desc">Create new personnel records</span>
+                                </div>
+                            </div>
+                            <div class="hover-indicator"></div>
+                        </a>
+                        <a href="{% url 'admin_flight_groups' %}" class="action-btn">
+                            <div class="action-content">
+                                <div class="action-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="action-text">
+                                    <span class="action-title">Manage Groups</span>
+                                    <span class="action-desc">Organize flight groups</span>
+                                </div>
+                            </div>
+                            <div class="hover-indicator"></div>
+                        </a>
+                        <a href="{% url 'assign_gender' %}" class="action-btn">
+                            <div class="action-content">
+                                <div class="action-icon">
+                                    <i class="fas fa-venus-mars"></i>
+                                </div>
+                                <div class="action-text">
+                                    <span class="action-title">Assign Gender</span>
+                                    <span class="action-desc">Update gender information</span>
+                                </div>
+                            </div>
+                            <div class="hover-indicator"></div>
+                        </a>
+                        <a href="{% url 'upload_excel' %}" class="action-btn">
+                            <div class="action-content">
+                                <div class="action-icon">
+                                    <i class="fas fa-file-upload"></i>
+                                </div>
+                                <div class="action-text">
+                                    <span class="action-title">Upload Excel</span>
+                                    <span class="action-desc">Import student data</span>
+                                </div>
+                            </div>
+                            <div class="hover-indicator"></div>
+                        </a>
+                        <a href="{% url 'assigned_personnel_list' %}" class="action-btn">
+                            <div class="action-content">
+                                <div class="action-icon">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                                <div class="action-text">
+                                    <span class="action-title">Assigned Personnel</span>
+                                    <span class="action-desc">View personnel with students</span>
+                                </div>
+                            </div>
+                            <div class="hover-indicator"></div>
+                        </a>
+                        <a href="{% url 'admin_event_calendar' %}" class="action-btn">
+                            <div class="action-content">
+                                <div class="action-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="action-text">
+                                    <span class="action-title">Event Calendar</span>
+                                    <span class="action-desc">Manage events and schedules</span>
+                                </div>
+                            </div>
+                            <div class="hover-indicator"></div>
+                        </a>
+                        <a href="{% url 'display_uploaded_tables' %}" class="action-btn">
+                            <div class="action-content">
+                                <div class="action-icon">
+                                    <i class="fas fa-table"></i>
+                                </div>
+                                <div class="action-text">
+                                    <span class="action-title">Uploaded Records</span>
+                                    <span class="action-desc">View student records</span>
+                                </div>
+                            </div>
+                            <div class="hover-indicator"></div>
+                        </a>
+                        <a href="{% url 'admin_profile' %}" class="action-btn">
+                            <div class="action-content">
+                                <div class="action-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="action-text">
+                                    <span class="action-title">Profile</span>
+                                    <span class="action-desc">Manage your profile settings</span>
+                                </div>
+                            </div>
+                            <div class="hover-indicator"></div>
+                        </a>
                     </div>
-                    <h3>Flight Groups</h3>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-info">
-                    <div class="stat-header">
-                        <i class="fas fa-file-alt stat-icon"></i>
-                        <span class="stat-number">{{ stats.total_files }}</span>
-                    </div>
-                    <h3>Uploaded Files</h3>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-info">
-                    <div class="stat-header">
-                        <i class="fas fa-cloud-upload-alt stat-icon"></i>
-                        <span class="stat-number">{{ stats.recent_uploads }}</span>
-                    </div>
-                    <h3>Recent Uploads</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="quick-actions-panel" data-aos="fade-up" data-aos-delay="200">
-            <h2 class="panel-title"><i class="fas fa-bolt"></i> Quick Actions</h2>
-            <div class="action-buttons">
-                <a href="{% url 'add_personnel' %}" class="action-btn">
-                    <div class="action-content">
-                        <div class="action-icon">
-                            <i class="fas fa-user-plus"></i>
+                
+                <!-- Calendar Card -->
+                <div class="calendar-card" data-aos="fade-up" data-aos-delay="250">
+                    <h2 class="panel-title">CALENDAR</h2>
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <button id="prevMonth" class="month-nav-btn"><i class="fas fa-chevron-left"></i></button>
+                            <h3 id="currentMonth">Month Year</h3>
+                            <button id="nextMonth" class="month-nav-btn"><i class="fas fa-chevron-right"></i></button>
                         </div>
-                        <div class="action-text">
-                            <span class="action-title">Add Personnel</span>
-                            <span class="action-desc">Create new personnel records</span>
+                        <div class="weekdays">
+                            <div>Su</div>
+                            <div>Mo</div>
+                            <div>Tu</div>
+                            <div>We</div>
+                            <div>Th</div>
+                            <div>Fr</div>
+                            <div>Sa</div>
+                        </div>
+                        <div class="calendar-days" id="calendarDays">
+                            <!-- Days will be filled by JavaScript -->
+                        </div>
+                        <div class="calendar-events">
+                            <h5 class="events-title">
+                                <i class="fas fa-list"></i> Events for <span id="selectedDate">Today</span>
+                            </h5>
+                            <div id="eventList" class="event-list">
+                                <!-- Events will be dynamically loaded -->
+                                <div class="no-events">No events scheduled for this day</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="hover-indicator"></div>
-                </a>
-                <a href="{% url 'upload_excel' %}" class="action-btn">
-                    <div class="action-content">
-                        <div class="action-icon">
-                            <i class="fas fa-file-upload"></i>
-                        </div>
-                        <div class="action-text">
-                            <span class="action-title">Upload File</span>
-                            <span class="action-desc">Import data from Excel</span>
-                        </div>
-                    </div>
-                    <div class="hover-indicator"></div>
-                </a>
-                <a href="{% url 'admin_flight_groups' %}" class="action-btn">
-                    <div class="action-content">
-                        <div class="action-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="action-text">
-                            <span class="action-title">Manage Groups</span>
-                            <span class="action-desc">Organize flight groups</span>
-                        </div>
-                    </div>
-                    <div class="hover-indicator"></div>
-                </a>
-                <a href="{% url 'assign_gender' %}" class="action-btn">
-                    <div class="action-content">
-                        <div class="action-icon">
-                            <i class="fas fa-venus-mars"></i>
-                        </div>
-                        <div class="action-text">
-                            <span class="action-title">Assign Gender</span>
-                            <span class="action-desc">Update gender information</span>
-                        </div>
-                    </div>
-                    <div class="hover-indicator"></div>
-                </a>
-            </div>
-        </div>
-
-        
-
-        <!-- Charts Section -->
-        <div class="dashboard-row" style="display: flex; gap: 20px;">
-            <div class="dashboard-card" data-aos="fade-up" data-aos-delay="900" style="flex: 1;">
-                <div class="card-header">
-                    <h2><i class="fas fa-chart-pie"></i> Gender Distribution</h2>
-                    <div class="chart-controls">
-                        <button class="chart-toggle" data-chart="pie"><i class="fas fa-chart-pie"></i></button>
-                        <button class="chart-toggle" data-chart="doughnut"><i class="fas fa-circle-notch"></i></button>
-                    </div>
-                </div>
-                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
-                    <canvas id="genderChart"></canvas>
-                    <div class="chart-legend" id="genderLegend"></div>
-                </div>
-            </div>
-
-            <div class="dashboard-card" data-aos="fade-up" data-aos-delay="1000" style="flex: 1;">
-                <div class="card-header">
-                    <h2><i class="fas fa-chart-bar"></i> Flight Group Members</h2>
-                    <div class="chart-controls">
-                        <select id="groupChartView" class="chart-select">
-                            <option value="bar">Bar Chart</option>
-                            <option value="line">Line Chart</option>
-                            <option value="radar">Radar Chart</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
-                    <canvas id="groupChart"></canvas>
                 </div>
             </div>
         </div>
@@ -170,7 +421,7 @@
                 <!-- Recent Activity -->
                 <div class="activity-card">
                     <div class="activity-header">
-                        <h2><i class="fas fa-history"></i> Recent Activity</h2>
+                        <h2>RECENT ACTIVITY</h2>
                         <input type="text" id="activitySearch" placeholder="Search activities...">
                     </div>
                     <div class="activity-content">
@@ -195,7 +446,7 @@
                 <!-- Login/Logout History -->
                 <div class="activity-card">
                     <div class="activity-header">
-                        <h2><i class="fas fa-sign-in-alt"></i> Login/Logout History</h2>
+                        <h2>LOGIN/LOGOUT HISTORY</h2>
                     </div>
                     <div class="activity-content">
                         {% if recent_activities %}
@@ -219,7 +470,7 @@
                 <!-- Admin Profile Activities -->
                 <div class="activity-card">
                     <div class="activity-header">
-                        <h2><i class="fas fa-user-shield"></i> Admin Activities</h2>
+                        <h2>ADMIN ACTIVITIES</h2>
                     </div>
                     <div class="activity-content">
                         {% if profile_activities %}
@@ -242,16 +493,40 @@
             </div>
         </div>
 
-        <!-- Data initialization script must come before chart scripts -->
+        <!-- Initialize chart data -->
         <script>
-            // Gender data
-            window.genderMale = "{{ stats.gender_male }}";
-            window.genderFemale = "{{ stats.gender_female }}";
-            window.genderNonbinary = "{{ stats.gender_nonbinary }}";
-            window.genderOther = "{{ stats.gender_other }}";
-            // Group data
-            window.groupNames = "{{ group_names|safe }}";
-            window.groupMembers = "{{ group_members }}";
+            // Prepare data for charts
+            const genderData = {
+                male: {{ stats.gender_male }},
+                female: {{ stats.gender_female }},
+                nonbinary: {{ stats.gender_nonbinary }},
+                other: {{ stats.gender_other }}
+            };
+            
+            const groupData = {
+                names: {{ group_names|safe }},
+                members: {{ group_members }}
+            };
+            
+            // Initialize chart data
+            if (typeof window.initializeChartData === 'function') {
+                window.initializeChartData(genderData, groupData);
+            } else {
+                // If the function isn't available yet, set up the data as global variables
+                window.genderMale = genderData.male;
+                window.genderFemale = genderData.female;
+                window.genderNonbinary = genderData.nonbinary;
+                window.genderOther = genderData.other;
+                window.groupNames = groupData.names;
+                window.groupMembers = groupData.members;
+                
+                // Set up a callback for when the initialization function becomes available
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (typeof window.updateCharts === 'function') {
+                        window.updateCharts();
+                    }
+                });
+            }
         </script>
 
         <!-- Then include your JavaScript files -->
@@ -263,7 +538,169 @@
         <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
         <!-- Add this script before the closing </div> of admin-dashboard -->
-      
+        <script src="{% static 'js/admin_calendar.js' %}"></script>
+
+        <!-- Add JavaScript to fetch and display the detailed statistics -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Fetch detailed statistics from the API
+                fetch('/api/detailed-stats/')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Initialize charts with the data
+                        initializeDetailedCharts(data);
+                    })
+                    .catch(error => console.error('Error fetching detailed stats:', error));
+                    
+                // Function to initialize the detailed charts
+                function initializeDetailedCharts(data) {
+                    // Year Distribution Chart
+                    const yearCtx = document.getElementById('yearDistributionChart').getContext('2d');
+                    const yearChart = new Chart(yearCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.year_distribution.labels,
+                            datasets: [{
+                                label: 'Students',
+                                data: data.year_distribution.data,
+                                backgroundColor: [
+                                    'rgba(54, 162, 235, 0.7)',
+                                    'rgba(75, 192, 192, 0.7)',
+                                    'rgba(153, 102, 255, 0.7)',
+                                    'rgba(255, 159, 64, 0.7)',
+                                    'rgba(255, 99, 132, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Activity Timeline Chart
+                    const activityCtx = document.getElementById('activityTimelineChart').getContext('2d');
+                    const activityChart = new Chart(activityCtx, {
+                        type: 'line',
+                        data: {
+                            labels: data.activity_over_time.map(item => item.date),
+                            datasets: [{
+                                label: 'Logins',
+                                data: data.activity_over_time.map(item => item.logins),
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 2,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Flight Group Comparison Chart
+                    const groupCtx = document.getElementById('flightGroupComparisonChart').getContext('2d');
+                    const groupChart = new Chart(groupCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.flight_groups.map(group => group.name),
+                            datasets: [
+                                {
+                                    label: 'Personnel',
+                                    data: data.flight_groups.map(group => group.personnel_count),
+                                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'Events',
+                                    data: data.flight_groups.map(group => group.event_count),
+                                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Assignment Status Chart
+                    const assignmentCtx = document.getElementById('assignmentStatusChart').getContext('2d');
+                    const assignmentChart = new Chart(assignmentCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Assigned', 'Unassigned'],
+                            datasets: [{
+                                data: [
+                                    {{ stats.assigned_students }},
+                                    {{ stats.unassigned_students }}
+                                ],
+                                backgroundColor: [
+                                    'rgba(75, 192, 192, 0.7)',
+                                    'rgba(255, 99, 132, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(255, 99, 132, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                    
+                    // Add event listeners for chart toggle buttons
+                    document.querySelectorAll('.chart-toggle').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const chartType = this.getAttribute('data-chart');
+                            const chartContainer = this.closest('.stats-card');
+                            const chartId = chartContainer.querySelector('canvas').id;
+                            const chartInstance = Chart.getChart(chartId);
+                            
+                            // Update active button
+                            chartContainer.querySelectorAll('.chart-toggle').forEach(btn => {
+                                btn.classList.remove('active');
+                            });
+                            this.classList.add('active');
+                            
+                            // Update chart type
+                            chartInstance.config.type = chartType;
+                            chartInstance.update();
+                        });
+                    });
+                }
+            });
+        </script>
     </div>
 {% else %}
     <p>You do not have permission to access this page.</p>

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-from .models import UploadFiles, StudentRecord, ExcelUpload
+from .models import StudentRecord, ExcelUpload
 from django.contrib import messages
 import pandas as pd
 from django.utils import timezone

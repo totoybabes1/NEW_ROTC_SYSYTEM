@@ -1,5 +1,5 @@
 from django.urls import path
-from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, admin_official_assign_views, personnel_views, personnel_attendance_assign_views
+from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -26,7 +26,6 @@ urlpatterns = [
     # Admin Profile
     path('profile/', admin_profile_views.admin_profile, name='admin_profile'),
 
-
     # Upload URLs
     path('admin-upload/', admin_upload_views.upload_excel, name='upload_excel'),
     path('admin-upload/delete/<int:file_id>/', admin_upload_views.delete_excel, name='delete_excel'),
@@ -41,20 +40,28 @@ urlpatterns = [
 
     path('api/activities/', admin_views.get_activities, name='get_activities'),
 
-    path('admin-assign-official/', admin_official_assign_views.assign_official, name='assign_official'),
-
     # Personnel URLs
     path('personnel/login/', personnel_views.personnel_login, name='personnel_login'),
     path('personnel/logout/', personnel_views.personnel_logout, name='personnel_logout'),
     path('personnel/dashboard/', personnel_views.personnel_dashboard, name='personnel_dashboard'),
     path('personnel/profile/', personnel_views.personnel_profile, name='personnel_profile'),
 
-    # Attendance URLs
-    path('attendance/', personnel_attendance_assign_views.mark_attendance, name='mark_attendance'),
-    path('attendance/view/', personnel_attendance_assign_views.view_attendance, name='view_attendance'),
-    path('attendance/view/<int:upload_id>/', personnel_attendance_assign_views.view_attendance, name='view_attendance_by_upload'),
-    path('attendance/mark/', personnel_attendance_assign_views.mark_attendance, name='mark_attendance'),
-    path('attendance/personnel/<int:personnel_id>/', personnel_attendance_assign_views.personnel_attendance, name='personnel_attendance'),
-
     path('api/quick-stats/', admin_views.get_quick_stats, name='get_quick_stats'),
+    path('api/detailed-stats/', admin_views.get_detailed_stats, name='get_detailed_stats'),
+
+    # Event Calendar URLs
+    path('admin-event-calendar/', admin_event_calendar_views.admin_event_calendar, name='admin_event_calendar'),
+    path('add-event/', admin_event_calendar_views.add_event, name='add_event'),
+    path('edit-event/<int:event_id>/', admin_event_calendar_views.edit_event, name='edit_event'),
+    path('delete-event/<int:event_id>/', admin_event_calendar_views.delete_event, name='delete_event'),
+    path('get-event-details/<int:event_id>/', admin_event_calendar_views.get_event_details, name='get_event_details'),
+    path('export-events-pdf/', admin_event_calendar_views.export_events_pdf, name='export_events_pdf'),
+
+    # Assigned Personnel URLs
+    path('admin-assigned-personnel/', admin_assigned_personnel_views.assigned_personnel_list, name='assigned_personnel_list'),
+    path('auto-assign-students/', admin_assigned_personnel_views.auto_assign_students, name='auto_assign_students'),
+    path('manual-assign-student/', admin_assigned_personnel_views.manual_assign_student, name='manual_assign_student'),
+    path('remove-student-assignment/<int:assignment_id>/', admin_assigned_personnel_views.remove_student_assignment, name='remove_student_assignment'),
+    path('reassign-student/', admin_assigned_personnel_views.reassign_student, name='reassign_student'),
+    path('reset-all-assignments/', admin_assigned_personnel_views.reset_all_assignments, name='reset_all_assignments'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

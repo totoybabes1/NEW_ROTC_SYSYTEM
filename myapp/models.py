@@ -55,13 +55,6 @@ class Personnel(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.position}"
 
-# Model for tracking uploaded files
-class UploadFiles(models.Model):
-    table_name = models.CharField(max_length=255)  # Name of the table/category for uploaded files
-    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp of upload
-
-    def __str__(self):
-        return self.table_name
 
 # Model for tracking user login/logout activity
 class UserActivity(models.Model):
@@ -88,40 +81,6 @@ class Announcement(models.Model):
     def __str__(self):
         return f"{self.title} - {self.flight_group.name}"
 
-class UploadedData(models.Model):
-    """Model to store the copied data from Excel uploads"""
-    upload_file = models.ForeignKey(UploadFiles, on_delete=models.CASCADE)
-    assigned_personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='assigned_data')
-    # Common fields that might be in your Excel
-    date = models.DateField()
-    time = models.TimeField(null=True, blank=True)
-    location = models.CharField(max_length=255, null=True, blank=True)
-    activity = models.CharField(max_length=255, null=True, blank=True)
-    details = models.TextField(null=True, blank=True)
-    # Store any additional Excel columns as JSON
-    extra_data = models.JSONField(default=dict)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.assigned_personnel} - {self.date} - {self.activity}"
-
-class AttendanceRecord(models.Model):
-    """Model to store attendance for each uploaded data entry"""
-    uploaded_data = models.OneToOneField(UploadedData, on_delete=models.CASCADE, related_name='attendance')
-    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE)
-    status_choices = [
-        ('PRESENT', 'Present'),
-        ('ABSENT', 'Absent'),
-        ('LATE', 'Late'),
-        ('EXCUSED', 'Excused')
-    ]
-    status = models.CharField(max_length=20, choices=status_choices)
-    remarks = models.TextField(blank=True, null=True)
-    marked_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.personnel} - {self.uploaded_data.date} - {self.status}"
 
 # Add this new model
 class StudentRecord(models.Model):
@@ -150,3 +109,27 @@ class ExcelUpload(models.Model):
 
     class Meta:
         ordering = ['-upload_date']
+
+# Add this new model for the many-to-many relationship
+class EventFlightGroup(models.Model):
+    event = models.ForeignKey('Announcement', on_delete=models.CASCADE, related_name='event_flight_groups')
+    flight_group = models.ForeignKey('FlightGroup', on_delete=models.CASCADE, related_name='event_groups')
+
+    class Meta:
+        unique_together = ('event', 'flight_group')
+
+    def __str__(self):
+        return f"{self.event.title} - {self.flight_group.name}"
+
+# New model for personnel-student assignments
+class PersonnelStudentAssignment(models.Model):
+    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='assigned_students')
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='assigned_personnel')
+    assigned_date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('student',)  # Each student can only be assigned to one personnel
+        ordering = ['personnel__last_name', 'student__name']
+    
+    def __str__(self):
+        return f"{self.student.name} assigned to {self.personnel.first_name} {self.personnel.last_name}"

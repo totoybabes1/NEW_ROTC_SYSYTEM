@@ -1,637 +1,136 @@
-/* Add this at the top of your CSS file */
-html.sidebar-starts-minimized .sidebar {
-  width: 80px !important; /* Force minimized width immediately */
+/* Dark sidebar styling to match the image */
+.dark-sidebar {
+  background-color: #121212;
+  color: #999;
+  width: 230px !important;
+  border-right: none;
 }
 
-html.sidebar-starts-minimized .content {
-  margin-left: 80px !important; /* Force expanded content immediately */
-  width: calc(100% - 80px) !important; /* Force correct width immediately */
-}
-
-body.sidebar-minimized-body .sidebar {
-  width: 80px;
-}
-
-body.sidebar-minimized-body .content {
-  margin-left: 80px;
-  width: calc(100% - 80px);
-}
-
-/* After page load is complete, we can restore transitions */
-.sidebar, .content {
-  transition: none;
-}
-
-body.transitions-enabled .sidebar,
-body.transitions-enabled .content {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Base Styles */
-body {
-  background-color: #f9fafb;
-  font-family: "Roboto", sans-serif;
-  color: #1a1a1a; /* Dark text for readability */
-  overflow-x: hidden;
-}
-
-/* Wrapper */
-.wrapper {
-  display: flex;
-  width: 100%;
-  min-height: 100vh;
-  position: relative;
-}
-
-/* Sidebar Styles */
-.sidebar {
-  width: 250px;
-  min-height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1030;
-  background-color: #ffffff; /* Sidebar background */
-  border-right: 1px solid rgba(229, 231, 235, 1); /* Border color */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Card shadow */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition */
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar.minimized {
-  width: 80px; /* Minimized sidebar width */
-}
-
-/* Sidebar Header */
 .sidebar-header {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  height: 64px;
-  background: #1a1a1a; /* Navbar background */
-  color: white;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition */
+  padding: 15px;
+  text-align: center;
 }
 
-.sidebar-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 0.5rem; /* Medium radius */
-  padding: 5px;
-  background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
-  backdrop-filter: blur(5px); /* Blur effect */
-  transition: transform 0.3s ease;
+.btn-close-custom {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
 }
 
-.sidebar-logo:hover {
-  transform: scale(1.1); /* Scale effect on hover */
+.sidebar-body {
+  padding: 0;
 }
 
-.sidebar-header h3 {
-  margin: 0 0 0 1rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: opacity 0.3s ease, margin 0.3s ease;
-}
-
-.sidebar.minimized .sidebar-header {
-  justify-content: center;
-  padding: 1rem 0;
-}
-
-.sidebar.minimized .sidebar-header h3 {
-  opacity: 0;
-  width: 0;
-  margin: 0;
-  overflow: hidden;
-}
-
-/* Sidebar Components */
-.components {
-  flex: 1;
-  padding: 1rem 0;
-  overflow-y: auto;
-}
-
-.components ul {
+.sidebar-nav {
+  list-style: none;
   padding: 0;
   margin: 0;
-  list-style: none;
+  text-align: left;
 }
 
-.components li {
-  margin-bottom: 0.25rem;
-  position: relative;
+.sidebar-item {
+  margin: 0;
 }
 
-.components a {
+.sidebar-link {
+  display: block !important;
+  padding: 12px 15px !important;
+  color: #999 !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  transition: color 0.3s !important;
+  font-size: 1.8rem !important;
+  text-align: left !important;
+}
+.sidebar-link:hover,
+.sidebar-link.active {
+  color: #fff !important;
+  background-color: transparent;
+}
+
+/* Logout button styling */
+.sidebar-logout {
+  border: 2px solid rgba(220, 53, 69, 0.5);
+  border-radius: 5px;
+  margin: 0 15px;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.sidebar-logout:hover {
+  background-color: rgba(241, 0, 24, 0.897);
+  border-color: rgba(220, 53, 69, 0.8);
+  color: #fff !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .dark-sidebar {
+    width: 220px;
+  }
+}
+
+.sidebar-header {
   display: flex;
+  justify-content: center; /* Center horizontally */
   align-items: center;
-  padding: 0.75rem 1.25rem;
-  color: #1a1a1a; /* Dark text */
-  text-decoration: none;
-  border-radius: 0.5rem; /* Medium radius */
-  margin: 0 0.5rem;
-  position: relative;
-  transition: all 0.2s ease;
-  z-index: 1031; /* Higher than sidebar's z-index */
+  padding: 15px;
+  background-color: #343a40; /* Dark background */
+  border-bottom: 2px solid #ffc107; /* Accent color */
+  position: relative; /* Needed for absolute positioning */
 }
 
-.components a:hover {
-  background-color: rgba(243, 244, 246, 1); /* Light gray on hover */
-  color: #000000; /* Black text on hover */
+.logo-container img {
+  height: 50px;
+  max-width: 100%;
 }
 
-.components a.active {
-  background-color: rgba(243, 244, 246, 1); /* Light gray for active link */
-  color: #000000; /* Black text for active link */
-  font-weight: 500;
-}
-
-.components a.active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 60%;
-  width: 4px;
-  background-color: #000000; /* Black accent for active link */
-  border-radius: 0 0.375rem 0.375rem 0; /* Small radius */
-  transition: opacity 0.3s ease;
-}
-
-.components a i {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  margin-right: 0.75rem;
-  transition: none; /* Changed from 'all 0.2s ease' */
-}
-
-.components a:hover i {
-  color: #000000; /* Black icon on hover */
-  transform: none; /* Changed from 'translateX(2px)' */
-}
-
-.components a span {
-  transition: opacity 0.3s ease, width 0.3s ease;
-  white-space: nowrap;
-}
-
-.sidebar.minimized .components a {
-  justify-content: center;
-  padding: 0.75rem;
-}
-
-.sidebar.minimized .components a i {
-  margin-right: 0;
-  font-size: 1.25rem;
-}
-
-.sidebar.minimized .components a span {
-  opacity: 0;
-  width: 0;
-  overflow: hidden;
-}
-
-.sidebar.minimized .components a.active::before {
-  opacity: 0;
-}
-
-/* Sidebar Footer */
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(229, 231, 235, 1); /* Border color */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition */
-}
-
-.logout-btn {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  color: #dc3545; /* Danger color */
-  text-decoration: none;
-  border-radius: 0.5rem; /* Medium radius */
-  transition: all 0.2s ease;
-}
-
-.logout-btn:hover {
-  background-color: rgba(254, 226, 226, 0.5); /* Light red on hover */
-  color: #dc3545; /* Danger color */
-}
-
-.logout-btn i {
-  margin-right: 0.75rem;
-  transition: transform 0.2s ease;
-}
-
-.logout-btn:hover i {
-  transform: translateX(2px); /* Slight move on hover */
-}
-
-.sidebar.minimized .sidebar-footer {
-  display: flex;
-  justify-content: center;
-  padding: 1rem 0;
-}
-
-.sidebar.minimized .logout-btn {
-  justify-content: center;
-  padding: 0.75rem;
-  width: 48px;
-  height: 48px;
-}
-
-.sidebar.minimized .logout-btn i {
-  margin-right: 0;
-}
-
-.sidebar.minimized .logout-btn span {
-  display: none;
-}
-
-/* Sidebar Overlay */
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-  backdrop-filter: blur(2px); /* Blur effect */
-  z-index: 1025;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.sidebar-overlay.active {
-  display: block;
-  opacity: 1;
-}
-
-/* Content */
-.content {
-  width: calc(100% - 250px); /* Full width minus sidebar */
-  margin-left: 250px; /* Sidebar width */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition */
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.content.expanded {
-  width: calc(100% - 80px); /* Full width minus minimized sidebar */
-  margin-left: 80px; /* Minimized sidebar width */
-}
-
-.content.no-sidebar {
-  width: 100%;
-  margin-left: 0;
-}
-
-/* Navbar */
-.navbar {
-  background: #1a1a1a; /* Navbar background */
-  border-radius: 0.75rem; /* Large radius */
-  margin: 0.75rem;
-  padding: 0.5rem 1.25rem;
-  transition: all 0.3s ease;
-}
-
-.navbar:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Card shadow */
-}
-
-#sidebarCollapse {
-  background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+.btn-close-custom {
+  background: none;
   border: none;
-  border-radius: 0.5rem; /* Medium radius */
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-#sidebarCollapse:hover {
-  background-color: rgba(255, 255, 255, 0.3); /* Slightly darker on hover */
-  transform: scale(1.05); /* Slight scale on hover */
-}
-
-#sidebarCollapse:active {
-  transform: scale(0.95); /* Slight scale on click */
-}
-
-/* User Dropdown */
-.dropdown-toggle {
-  transition: all 0.2s ease;
-  border-radius: 9999px; /* Full radius */
-}
-
-.dropdown-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
-}
-
-.dropdown-toggle img {
-  border: 2px solid rgba(255, 255, 255, 0.7); /* Semi-transparent border */
-  transition: none; /* Changed from 'all 0.3s ease' */
-}
-
-.dropdown-toggle:hover img {
-  border-color: white; /* White border on hover */
-  transform: none; /* Changed from 'scale(1.05)' */
-}
-
-.dropdown-menu {
-  border: none;
-  border-radius: 0.75rem; /* Large radius */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Card shadow */
-  overflow: hidden;
-}
-
-.animate-dropdown {
-  animation: dropdownFadeIn 0.3s ease forwards;
-}
-
-@keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dropdown-item {
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s ease;
-  border-radius: 0.5rem; /* Medium radius */
-  margin: 0.25rem;
-}
-
-.dropdown-item:hover {
-  background-color: rgba(243, 244, 246, 1); /* Light gray on hover */
-  transform: translateX(3px); /* Slight move on hover */
-}
-
-.dropdown-item.text-danger:hover {
-  background-color: rgba(254, 226, 226, 0.5); /* Light red on hover */
-}
-
-/* Breadcrumb */
-.breadcrumb {
-  padding: 0.75rem 1rem;
-  margin-bottom: 1.5rem;
-  background-color: #ffffff;
-  border-radius: 0.75rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(229, 231, 235, 0.5);
-}
-
-.breadcrumb-item {
-  display: flex;
-  align-items: center;
-}
-
-.breadcrumb-item + .breadcrumb-item::before {
-  content: "›";
-  color: #9ca3af;
-  font-size: 1.2rem;
-  line-height: 1;
-  margin: 0 0.5rem;
-}
-
-.breadcrumb-item a {
-  color: #374151;
-  text-decoration: none;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.breadcrumb-item a i {
-  font-size: 0.875rem;
-  transition: transform 0.2s ease;
-}
-
-.breadcrumb-item a:hover {
-  color: #111827;
-  background-color: rgba(243, 244, 246, 0.8);
-  text-decoration: none;
-}
-
-.breadcrumb-item a:hover i {
-  transform: translateX(-2px);
-}
-
-.breadcrumb-item.active {
-  color: #4b5563;
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-}
-
-/* Main Content */
-.main-content {
-  flex: 1;
-  padding: 1rem;
-}
-
-/* Modal */
-.modal-content {
-  border-radius: 0.75rem; /* Large radius */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Card shadow */
-  overflow: hidden;
-}
-
-.modal.fade .modal-dialog {
-  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-  transform: scale(0.95);
-  opacity: 0;
-}
-
-.modal.show .modal-dialog {
-  transform: scale(1);
-  opacity: 1;
-}
-
-/* Responsive Styles */
-@media (max-width: 991px) {
-  .sidebar {
-    left: -250px; /* Hide sidebar */
-    box-shadow: none;
-  }
-
-  .sidebar.active {
-    left: 0; /* Show sidebar */
-    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1); /* Shadow for active sidebar */
-  }
-
-  .sidebar.minimized {
-    left: -80px; /* Hide minimized sidebar */
-  }
-
-  .content {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .content.expanded {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .navbar {
-    margin: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #1a1a1a; /* Navbar background */
-  }
-
-  .item-tooltip {
-    display: none;
-  }
-}
-
-@media (max-width: 576px) {
-  .navbar {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .dropdown-toggle span {
-    display: none;
-  }
-
-  .breadcrumb {
-    font-size: 0.875rem;
-  }
-}
-
-/* Tooltip Styles */
-.item-tooltip {
-  position: fixed;
-  background-color: rgba(0, 0, 0, 0.9);
+  font-size: 24px;
   color: white;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  z-index: 9999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  pointer-events: none;
-  left: 80px; /* Width of minimized sidebar */
-  transform: translateY(-50%);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Tooltip Arrow */
-.item-tooltip::before {
-  content: "";
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
   position: absolute;
-  left: -4px; /* Changed from right to left */
-  top: 50%;
-  transform: translateY(-50%);
-  border-width: 4px 4px 4px 0;
-  border-style: solid;
-  border-color: transparent rgba(0, 0, 0, 0.9) transparent transparent;
+  right: 15px; /* Position the close button on the right */
 }
 
-/* Show tooltip only when sidebar is minimized */
-.sidebar.minimized .components li {
-  position: relative;
+.btn-close-custom:hover {
+  transform: scale(1.1);
+  color: #ffc107;
 }
 
-.sidebar.minimized .components li:hover .item-tooltip {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(-50%); /* Keep vertical alignment */
-  animation: tooltipFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.btn-close-custom:focus {
+  outline: none;
 }
 
-/* Tooltip Animations */
-@keyframes tooltipFadeIn {
-  from {
-    opacity: 0;
-    transform: translate(10px, -50%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
+.sidebar-link:not(.sidebar-logout) {
+  display: block !important;
+  padding: 12px 15px !important;
+  color: #999 !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  font-size: 1.8rem !important;
+  text-align: left !important;
+  position: relative !important;
+  transition: all 0.3s ease !important;
+  border-left: 4px solid transparent !important;
 }
 
-@keyframes tooltipFadeOut {
-  from {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
-  to {
-    opacity: 0;
-    transform: translate(10px, -50%);
-  }
+.sidebar-link:not(.sidebar-logout):hover {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-left: 4px solid #ffc107 !important;
+  padding-left: 20px !important;
 }
 
-/* Hide the regular span when minimized */
-.sidebar.minimized .components a span {
-  display: none;
-}
-
-/* Mobile adjustments */
-@media (max-width: 991px) {
-  .item-tooltip {
-    display: none;
-  }
-}
-
-/* Custom button styles for personnel actions */
-.btn-group .btn-outline-view {
-  color: #0dcaf0;
-  border-color: #0dcaf0;
-}
-
-.btn-group .btn-outline-view:hover {
-  color: #fff;
-  background-color: #0dcaf0;
-  border-color: #0dcaf0;
-}
-
-.btn-group .btn-outline-edit {
-  color: #198754;
-  border-color: #198754;
-}
-
-.btn-group .btn-outline-edit:hover {
-  color: #fff;
-  background-color: #198754;
-  border-color: #198754;
-}
-
-.btn-group .btn-outline-delete {
-  color: #dc3545;
-  border-color: #dc3545;
-}
-
-.btn-group .btn-outline-delete:hover {
-  color: #fff;
-  background-color: #dc3545;
-  border-color: #dc3545;
+.sidebar-link:not(.sidebar-logout):focus {
+  outline: none !important;
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-left: 4px solid #ff9800 !important;
 }

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Personnel, Profile, UserActivity, Announcement, UploadedData, AttendanceRecord
+from .models import Personnel, Profile, UserActivity
 from django.utils import timezone
 from datetime import timedelta, datetime
 from django.db.models import Count, Avg
@@ -39,31 +39,10 @@ def personnel_dashboard(request):
     recent_activities = UserActivity.objects.filter(user=request.user).order_by('-timestamp')[:5]
     total_logins = UserActivity.objects.filter(user=request.user, activity_type='login').count()
     
-    # Get attendance data using new models
-    recent_attendance = AttendanceRecord.objects.filter(
-        personnel=personnel
-    ).select_related('uploaded_data').order_by('-marked_at')[:5]
-    
-    # Calculate attendance statistics
-    total_records = AttendanceRecord.objects.filter(personnel=personnel).count()
-    present_count = AttendanceRecord.objects.filter(personnel=personnel, status='PRESENT').count()
-    absent_count = AttendanceRecord.objects.filter(personnel=personnel, status='ABSENT').count()
-    late_count = AttendanceRecord.objects.filter(personnel=personnel, status='LATE').count()
-    
-    attendance_rate = (present_count / total_records * 100) if total_records > 0 else 0
-    
     context = {
         'personnel': personnel,
         'recent_activities': recent_activities,
         'total_logins': total_logins,
-        'recent_attendance': recent_attendance,
-        'attendance_stats': {
-            'total': total_records,
-            'present': present_count,
-            'absent': absent_count,
-            'late': late_count,
-            'rate': round(attendance_rate, 2)
-        }
     }
     return render(request, 'personnel/dashboard.html', context)
 
@@ -104,4 +83,4 @@ def personnel_profile(request):
             personnel.save()
             messages.success(request, 'Profile updated successfully.')
         
-    return render(request, 'personnel/profile.html', {'personnel': personnel}) 
+    return render(request, 'personnel/profile.html', {'personnel': personnel})

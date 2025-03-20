@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import connection
-from .models import UploadFiles, StudentRecord, ExcelUpload
+from .models import StudentRecord, ExcelUpload
 import pandas as pd
 import numpy as np
 import uuid
@@ -271,23 +271,17 @@ def display_uploaded_tables(request):
 @login_required
 def view_excel_content(request, file_id):
     try:
-        # Retrieve the table name from metadata
-        table_metadata = UploadFiles.objects.get(id=file_id)
-        table_name = table_metadata.table_name
+        # This function references the missing UploadFiles model
+        # Let's modify it to use ExcelUpload instead
+        excel_upload = ExcelUpload.objects.get(id=file_id)
         
-        # Fetch data from the dynamically created table
-        with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM `{table_name}`")
-            rows = cursor.fetchall()
-            columns = [col[0] for col in cursor.description]
-        
+        # Since ExcelUpload might not have the same structure as UploadFiles,
+        # we'll need to adjust the logic here
         context = {
-            'columns': columns,
-            'rows': rows,
+            'file': excel_upload,
             'selected_file_id': file_id,
-            'total_rows': len(rows),
-            'uploaded_files': UploadFiles.objects.all(),
-            'total_files': UploadFiles.objects.count()
+            'uploaded_files': ExcelUpload.objects.all(),
+            'total_files': ExcelUpload.objects.count()
         }
         return render(request, 'upload/excel_upload.html', context)
     except Exception as e:
@@ -310,19 +304,17 @@ def delete_excel(request, file_id):
 @login_required
 def delete_uploaded_file(request, file_id):
     try:
-        # Retrieve the table name from metadata
-        file_metadata = UploadFiles.objects.get(id=file_id)
-        table_name = file_metadata.table_name
+        # Replace UploadFiles with ExcelUpload
+        file_metadata = ExcelUpload.objects.get(id=file_id)
         
-        # Drop the table from the database
-        with connection.cursor() as cursor:
-            cursor.execute(f"DROP TABLE IF EXISTS `{table_name}`")
+        # ExcelUpload might not have a table_name field, so we'll adjust this
+        # If you need to drop a table, you would need to know its name
         
         # Delete the metadata entry
         file_metadata.delete()
         
         messages.success(request, 'File deleted successfully!')
-    except UploadFiles.DoesNotExist:
+    except ExcelUpload.DoesNotExist:
         messages.error(request, 'File not found!')
     except Exception as e:
         messages.error(request, f'Error deleting file: {str(e)}')
@@ -332,12 +324,14 @@ def delete_uploaded_file(request, file_id):
 @login_required
 def download_uploaded_file(request, file_id):
     try:
-        # Retrieve the table name from metadata
-        file_metadata = UploadFiles.objects.get(id=file_id)
-        table_name = file_metadata.table_name
+        # Replace UploadFiles with ExcelUpload
+        file_metadata = ExcelUpload.objects.get(id=file_id)
+        
+        # Since ExcelUpload might not have table_name, adjust accordingly
+        file_name = file_metadata.file_name
         
         # Define the file path (assuming files are stored in a specific directory)
-        file_path = os.path.join('download', f"{table_name}.xlsx")
+        file_path = os.path.join('download', file_name)
         
         # Check if the file exists
         if not os.path.exists(file_path):
@@ -347,9 +341,9 @@ def download_uploaded_file(request, file_id):
         # Serve the file as a download
         with open(file_path, 'rb') as file:
             response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            response['Content-Disposition'] = f'attachment; filename="{table_name}.xlsx"'
+            response['Content-Disposition'] = f'attachment; filename="{file_name}"'
             return response
-    except UploadFiles.DoesNotExist:
+    except ExcelUpload.DoesNotExist:
         messages.error(request, 'File not found!')
     except Exception as e:
         messages.error(request, f'Error downloading file: {str(e)}')

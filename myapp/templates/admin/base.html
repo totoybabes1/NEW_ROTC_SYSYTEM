@@ -16,225 +16,236 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Add custom style to remove scrollbar -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Include custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/admin_base.css' %}">
+    <!-- Custom sidebar CSS -->
+     <link rel="stylesheet" href="{% static 'css/admin_base.css' %}">
 </head>
 <body>
-    <script>
-        // Apply minimized state immediately before any rendering
-        if (window.innerWidth > 991 && localStorage.getItem('sidebarMinimized') === 'true') {
-            document.documentElement.classList.add('sidebar-starts-minimized');
-            document.body.classList.add('sidebar-minimized-body');
-        }
-    </script>
-    <div class="wrapper">
-        <!-- Sidebar -->
-        {% if user.is_authenticated %}
-        <nav class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" class="sidebar-logo">
-                <h3>ROTC Admin</h3>
-            </div>
-
-            <div class="components">
-                <ul class="list-unstyled">
-                    <li class="menu-item">
-                        <a href="{% url 'admin_dashboard' %}" class="{% if request.path == dashboard_url %}active{% endif %}">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                            <div class="item-tooltip">Dashboard</div>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container-fluid">
+            {% if user.is_authenticated %}
+            
+            <!-- Sidebar Toggle Button -->
+            <button type="button" class="btn btn-dark" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+    
+            <!-- Profile Picture & Username with Dropdown -->
+            <div class="dropdown ms-auto">
+                <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle me-2" width="40" height="40" style="object-fit: cover; border: 2px solid white;">
+                    {% else %}
+                        <i class="fas fa-user-circle me-2" style="font-size: 24px;"></i>
+                    {% endif %}
+                    <span class="fw-bold">{{ user.username }}</span>
+                </a>
+    
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{% url 'admin_profile' %}">
+                            <i class="fas fa-user me-2 text-primary"></i> Profile
                         </a>
                     </li>
-                    <li class="menu-item">
-                        <a href="{% url 'admin_flight_groups' %}" class="{% if request.path == groups_url %}active{% endif %}">
-                            <i class="fas fa-plane"></i>
-                            <span>Flight Groups</span>
-                            <div class="item-tooltip">Flight Groups</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="{% url 'admin_personnel_list' %}" class="{% if request.path == personnel_url %}active{% endif %}">
-                            <i class="fas fa-users"></i>
-                            <span>Personnel</span>
-                            <div class="item-tooltip">Personnel List</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="{% url 'upload_excel' %}" class="{% if request.path == upload_url %}active{% endif %}">
-                            <i class="fas fa-file-excel"></i>
-                            <span>Upload Excel</span>
-                            <div class="item-tooltip">Upload Excel File</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="{% url 'assign_gender' %}" class="{% if request.path == assign_url %}active{% endif %}">
-                            <i class="fas fa-venus-mars"></i>
-                            <span>Assign Personnel</span>
-                            <div class="item-tooltip">Assign Personnel</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="{% url 'display_uploaded_tables' %}" class="{% if request.path == tables_url %}active{% endif %}">
-                            <i class="fas fa-database"></i>
-                            <span>Uploaded Tables</span>
-                            <div class="item-tooltip">View Uploaded Tables</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="{% url 'admin_profile' %}" class="{% if request.path == profile_url %}active{% endif %}">
-                            <i class="fas fa-user"></i>
-                            <span>Profile</span>
-                            <div class="item-tooltip">User Profile</div>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
                         </a>
                     </li>
                 </ul>
             </div>
+    
+            {% else %}
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="30">
+            </a>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-outline-light px-3 rounded-pill" href="{% url 'login' %}">
+                        <i class="fas fa-sign-in-alt me-1"></i> Login
+                    </a>
+                </li>
+            </ul>
+            {% endif %}
+        </div>
+    </nav>
 
-            <div class="sidebar-footer">
-                <a href="#" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
+    <!-- Sidebar using Bootstrap Offcanvas -->
+    {% if user.is_authenticated %}
+    <div class="offcanvas offcanvas-start dark-sidebar" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="50">
+                <span class="logo-name">ROTC System</span>
             </div>
+            <button type="button" class="btn-close-custom" data-bs-dismiss="offcanvas" aria-label="Close">×</button>
+        </div>
+        
+        <div class="sidebar-body">
+            <ul class="sidebar-nav">
+                <li class="sidebar-item">
+                    <a href="{% url 'admin_dashboard' %}" class="sidebar-link {% if request.path == dashboard_url %}active{% endif %}">
+                        Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'admin_flight_groups' %}" class="sidebar-link {% if request.path == groups_url %}active{% endif %}">
+                        Flight Groups
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'admin_personnel_list' %}" class="sidebar-link {% if request.path == personnel_url %}active{% endif %}">
+                        Personnel
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'assigned_personnel_list' %}" class="sidebar-link {% if request.path == assigned_personnel_url %}active{% endif %}">
+                        Assigned Personnel with Students
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'admin_event_calendar' %}" class="sidebar-link {% if request.path == calendar_url %}active{% endif %}">
+                        Event Calendar
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'upload_excel' %}" class="sidebar-link {% if request.path == upload_url %}active{% endif %}">
+                        Upload Excel
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'assign_gender' %}" class="sidebar-link {% if request.path == assign_url %}active{% endif %}">
+                        Assign Gender to Personnel
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'display_uploaded_tables' %}" class="sidebar-link {% if request.path == tables_url %}active{% endif %}">
+                        Uploaded Student Records
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'admin_profile' %}" class="sidebar-link {% if request.path == profile_url %}active{% endif %}">
+                        Profile
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Logout link at the bottom of the sidebar -->
+            <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <a href="#" class="sidebar-link text-danger sidebar-logout" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0">
+                <div class="modal-body text-center p-4">
+                    <i class="fas fa-sign-out-alt fa-2x mb-3 text-muted"></i>
+                    <p class="mb-4">Ready to leave?</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">Stay</button>
+                        <a href="{% url 'logout' %}" class="btn btn-danger px-4">Leave</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="container-fluid py-3">
+        <!-- Breadcrumb -->
+        {% if user.is_authenticated %}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-light p-2 rounded">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                {% url 'admin_dashboard' as dashboard_url %}
+                {% url 'admin_personnel_list' as personnel_url %}
+                {% url 'admin_flight_groups' as groups_url %}
+                {% url 'upload_excel' as upload_url %}
+                {% url 'display_uploaded_tables' as tables_url %}
+                {% url 'assign_gender' as assign_url %}
+                {% url 'admin_profile' as profile_url %}
+                {% url 'admin_event_calendar' as calendar_url %}
+                {% url 'assigned_personnel_list' as assigned_personnel_url %}
+
+                {% if request.path == dashboard_url %}
+                    <li class="breadcrumb-item active">Dashboard</li>
+                {% elif request.path == personnel_url %}
+                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Personnel List</li>
+                {% elif request.path == groups_url %}
+                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Flight Groups</li>
+                {% elif request.path == calendar_url %}
+                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Event Calendar</li>
+                {% elif request.path == upload_url %}
+                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Upload Excel</li>
+                {% elif request.path == tables_url %}
+                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Uploaded Tables</li>
+                {% elif request.path == assign_url %}
+                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ personnel_url }}">Personnel List</a></li>
+                    <li class="breadcrumb-item active">Assign Gender</li>
+                {% elif request.path == profile_url %}
+                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Profile</li>
+                {% elif request.path == assigned_personnel_url %}
+                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Assigned Personnel</li>
+                {% elif 'edit' in request.path %}
+                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                    {% if 'personnel' in request.path %}
+                        <li class="breadcrumb-item"><a href="{{ personnel_url }}">Personnel List</a></li>
+                        <li class="breadcrumb-item active">Edit Personnel</li>
+                    {% elif 'flight-groups' in request.path %}
+                        <li class="breadcrumb-item"><a href="{{ groups_url }}">Flight Groups</a></li>
+                        <li class="breadcrumb-item active">Edit Flight Group</li>
+                    {% endif %}
+                {% endif %}
+            </ol>
         </nav>
         {% endif %}
 
-        <!-- Add this overlay div right after the sidebar -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-        <!-- Logout Confirmation Modal -->
-        <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content border-0">
-                    <div class="modal-body text-center p-4">
-                        <i class="fas fa-sign-out-alt fa-2x mb-3 text-muted"></i>
-                        <p class="mb-4">Ready to leave?</p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">Stay</button>
-                            <a href="{% url 'logout' %}" class="btn btn-danger px-4">Leave</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Page Content -->
-        <div class="content {% if not user.is_authenticated %}no-sidebar{% endif %}" id="content">
-            <!-- Top Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
-                <div class="container-fluid">
-                    {% if user.is_authenticated %}
-                    
-                    <!-- Sidebar Toggle Button -->
-                    <button type="button" id="sidebarCollapse" class="btn text-white">
-                        <i class="fas fa-bars"></i>
-                    </button>
-            
-                    <!-- Profile Picture & Username with Dropdown -->
-                    <div class="dropdown ms-auto">
-                        <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            {% if user.profile.profile_picture %}
-                                <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle me-2" width="40" height="40" style="object-fit: cover; border: 2px solid white;">
-                            {% else %}
-                                <i class="fas fa-user-circle me-2" style="font-size: 24px;"></i>
-                            {% endif %}
-                            <span class="fw-bold">{{ user.username }}</span>
-                        </a>
-            
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm animate-dropdown" aria-labelledby="userDropdown">
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center" href="{% url 'admin_profile' %}">
-                                    <i class="fas fa-user me-2 text-primary"></i> Profile
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-            
-                    {% else %}
-                    <a class="navbar-brand" href="{% url 'home' %}">
-                        <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="30">
-                    </a>
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-outline-light px-3 rounded-pill" href="{% url 'login' %}">
-                                <i class="fas fa-sign-in-alt me-1"></i> Login
-                            </a>
-                        </li>
-                    </ul>
-                    {% endif %}
-                </div>
-            </nav>
-
-            <!-- Breadcrumb -->
-            {% if user.is_authenticated %}
-            <div class="container mt-3">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="{% url 'home' %}"><i class="fas fa-home"></i></a>
-                        </li>
-                        {% url 'admin_dashboard' as dashboard_url %}
-                        {% url 'admin_personnel_list' as personnel_url %}
-                        {% url 'admin_flight_groups' as groups_url %}
-                        {% url 'upload_excel' as upload_url %}
-                        {% url 'display_uploaded_tables' as tables_url %}
-                        {% url 'assign_gender' as assign_url %}
-                        {% url 'admin_profile' as profile_url %}
-
-                        {% if request.path == dashboard_url %}
-                            <li class="breadcrumb-item active">Dashboard</li>
-                        {% elif request.path == personnel_url %}
-                            <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Personnel List</li>
-                        {% elif request.path == groups_url %}
-                            <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Flight Groups</li>
-                        {% elif request.path == upload_url %}
-                            <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Upload Excel</li>
-                        {% elif request.path == tables_url %}
-                            <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Uploaded Tables</li>
-                        {% elif request.path == assign_url %}
-                            <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="{{ personnel_url }}">Personnel List</a></li>
-                            <li class="breadcrumb-item active">Assign Gender</li>
-                        {% elif request.path == profile_url %}
-                            <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Profile</li>
-                        {% elif 'edit' in request.path %}
-                            <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                            {% if 'personnel' in request.path %}
-                                <li class="breadcrumb-item"><a href="{{ personnel_url }}">Personnel List</a></li>
-                                <li class="breadcrumb-item active">Edit Personnel</li>
-                            {% elif 'flight-groups' in request.path %}
-                                <li class="breadcrumb-item"><a href="{{ groups_url }}">Flight Groups</a></li>
-                                <li class="breadcrumb-item active">Edit Flight Group</li>
-                            {% endif %}
-                        {% endif %}
-                    </ol>
-                </nav>
-            </div>
-            {% endif %}
-
-            <div class="main-content">
-                {% block content %}
-                {% endblock %}
-            </div>
-        </div>
+        <!-- Main Content -->
+        {% block content %}
+        {% endblock %}
     </div>
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/admin_base.js' %}"></script>
+    
+    <!-- Simple JavaScript to auto-show sidebar on larger screens -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Close sidebar when clicking a link on mobile
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function () {
+                    if (window.innerWidth < 992) {
+                        const sidebar = document.getElementById('sidebar');
+                        const bsOffcanvas = bootstrap.Offcanvas.getInstance(sidebar);
+                        if (bsOffcanvas) {
+                            bsOffcanvas.hide();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
-

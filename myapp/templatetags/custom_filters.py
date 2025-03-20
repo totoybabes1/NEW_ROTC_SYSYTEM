@@ -2,6 +2,10 @@ from django import template
 
 register = template.Library()
 
-@register.filter(name='get_item')
+@register.filter
 def get_item(dictionary, key):
-    return dictionary.get(key, '') 
+    """
+    Get an item from a dictionary using a key.
+    Usage: {{ my_dict|get_item:key_variable }}
+    """
+    return dictionary.get(key) 

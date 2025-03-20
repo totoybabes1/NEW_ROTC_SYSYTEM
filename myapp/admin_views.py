@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from myapp.models import Personnel, FlightGroup, UploadFiles, Profile
+from myapp.models import Personnel, FlightGroup, Profile, StudentRecord, UserActivity, PersonnelStudentAssignment, EventFlightGroup
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -12,7 +12,6 @@ def home(request):
     stats = {
         'total_personnel': Personnel.objects.count(),
         'total_groups': FlightGroup.objects.count(),
-        'total_files': UploadFiles.objects.count(),
     }
     return render(request, 'admin/admin_home.html', {'stats': stats})
 
@@ -22,10 +21,6 @@ def admin_dashboard(request):
     current_stats = {
         'total_personnel': Personnel.objects.count(),
         'total_groups': FlightGroup.objects.count(),
-        'total_files': UploadFiles.objects.count(),
-        'recent_uploads': UploadFiles.objects.filter(
-            created_at__gte=timezone.now() - timedelta(days=7)
-        ).count(),
         
         # Get previous week's numbers for comparison
         'previous_total_personnel': Personnel.objects.filter(
@@ -34,19 +29,18 @@ def admin_dashboard(request):
         'previous_total_groups': FlightGroup.objects.filter(
             created_at__lt=timezone.now() - timedelta(days=7)
         ).count(),
-        'previous_total_files': UploadFiles.objects.filter(
-            created_at__lt=timezone.now() - timedelta(days=7)
-        ).count(),
-        'previous_recent_uploads': UploadFiles.objects.filter(
-            created_at__lt=timezone.now() - timedelta(days=7),
-            created_at__gte=timezone.now() - timedelta(days=14)
-        ).count(),
         
         # Gender statistics
-        'gender_male': Personnel.objects.filter(gender_assignment='Male').count(),
-        'gender_female': Personnel.objects.filter(gender_assignment='Female').count(),
+        'gender_male': Personnel.objects.filter(gender='Male').count(),
+        'gender_female': Personnel.objects.filter(gender='Female').count(),
         'gender_nonbinary': Personnel.objects.filter(gender_assignment='Non-binary').count(),
         'gender_other': Personnel.objects.filter(gender_assignment='Other').count(),
+        
+        # Student records statistics
+        'total_students': StudentRecord.objects.count(),
+        
+        # User activity statistics
+        'total_activities': UserActivity.objects.count(),
     }
 
     # Get flight group data for chart
@@ -63,15 +57,6 @@ def admin_dashboard(request):
             'type': 'user',
             'description': f'New personnel added: {person.first_name} {person.last_name}',
             'timestamp': person.date_joined.strftime('%Y-%m-%d %H:%M:%S'),
-            'user': 'Admin'
-        })
-
-    # Get recent uploads (last 5)
-    for upload in UploadFiles.objects.order_by('-created_at')[:5]:
-        recent_activities.append({
-            'type': 'upload',
-            'description': f'New file uploaded: {upload.table_name}',
-            'timestamp': upload.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'user': 'Admin'
         })
 
@@ -141,20 +126,6 @@ def get_activities(request):
                 'timestamp': person.date_joined.isoformat(),
             })
 
-    # Add upload activities
-    upload_qs = UploadFiles.objects.order_by('-created_at')
-    if filter_type in ['all', 'upload']:
-        for upload in upload_qs:
-            activities.append({
-                'type': 'upload',
-                'description': f'New file uploaded: {upload.table_name}',
-                'user': request.user.username,
-                'category': 'Upload',
-                'timestamp': upload.created_at.isoformat(),
-                'fileName': upload.table_name,
-                'fileSize': upload.file_size,
-            })
-
     # Add group activities
     group_qs = FlightGroup.objects.order_by('-created_at')
     if filter_type in ['all', 'group']:
@@ -194,4 +165,76 @@ def get_quick_stats(request):
     return JsonResponse({
         'active_percentage': round(active_percentage, 1),
         'assigned_percentage': round(assigned_percentage, 1)
+    })
+
+@login_required
+def get_detailed_stats(request):
+    """
+    API endpoint to get detailed statistics for dashboard charts
+    """
+    # Student gender distribution
+    male_students = StudentRecord.objects.filter(gender='M').count()
+    female_students = StudentRecord.objects.filter(gender='F').count()
+    
+    # Personnel status distribution
+    active_personnel = Personnel.objects.filter(status='Active').count()
+    inactive_personnel = Personnel.objects.filter(status='Inactive').count()
+    
+    # Student year level distribution
+    year_distribution = {}
+    for year in range(1, 6):
+        year_distribution[f'Year {year}'] = StudentRecord.objects.filter(year=year).count()
+    
+    # Student assignment statistics by gender
+    male_personnel_assignments = PersonnelStudentAssignment.objects.filter(
+        personnel__gender='Male'
+    ).count()
+    female_personnel_assignments = PersonnelStudentAssignment.objects.filter(
+        personnel__gender='Female'
+    ).count()
+    
+    # User activity over time (last 7 days)
+    activity_data = []
+    for i in range(7, 0, -1):
+        date = timezone.now().date() - timedelta(days=i)
+        next_date = date + timedelta(days=1)
+        logins = UserActivity.objects.filter(
+            activity_type='login',
+            timestamp__gte=date,
+            timestamp__lt=next_date
+        ).count()
+        activity_data.append({
+            'date': date.strftime('%Y-%m-%d'),
+            'logins': logins
+        })
+    
+    # Flight group size comparison
+    flight_groups = FlightGroup.objects.all()
+    group_data = []
+    for group in flight_groups:
+        group_data.append({
+            'name': group.name,
+            'personnel_count': Personnel.objects.filter(flight_group=group).count(),
+            'event_count': EventFlightGroup.objects.filter(flight_group=group).count()
+        })
+    
+    return JsonResponse({
+        'student_gender': {
+            'labels': ['Male', 'Female'],
+            'data': [male_students, female_students]
+        },
+        'personnel_status': {
+            'labels': ['Active', 'Inactive'],
+            'data': [active_personnel, inactive_personnel]
+        },
+        'year_distribution': {
+            'labels': list(year_distribution.keys()),
+            'data': list(year_distribution.values())
+        },
+        'assignments_by_gender': {
+            'labels': ['Male Personnel', 'Female Personnel'],
+            'data': [male_personnel_assignments, female_personnel_assignments]
+        },
+        'activity_over_time': activity_data,
+        'flight_groups': group_data
     })
