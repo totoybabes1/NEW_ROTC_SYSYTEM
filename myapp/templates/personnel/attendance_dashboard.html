@@ -1,0 +1,457 @@
+{% extends 'personnel/base.html' %}
+{% load static %}
+{% load attendance_tags %}
+
+{% block title %}Attendance Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<style>
+    .stats-card {
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .attendance-form {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Students</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_students }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Present Today</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.present_today }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Late Today</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.late_today }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Absent Today</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.absent_today }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Attendance Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card attendance-form">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Record Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <form id="attendanceForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="student_id" class="form-label">Student</label>
+                                <select class="form-select" id="student_id" name="student_id" required>
+                                    <option value="">Select a student</option>
+                                    {% for assignment in assignments %}
+                                        <option value="{{ assignment.student.id }}">
+                                            {{ assignment.student.name }} ({{ assignment.student.student_no }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select a student.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="date" name="date" 
+                                       value="{{ today|date:'Y-m-d' }}" required>
+                                <div class="invalid-feedback">Please select a date.</div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="PRESENT">Present</option>
+                                    <option value="LATE">Late</option>
+                                    <option value="ABSENT">Absent</option>
+                                    <option value="EXCUSED">Excused</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="time_in" class="form-label">Time In</label>
+                                <input type="time" class="form-control" id="time_in" name="time_in">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="time_out" class="form-label">Time Out</label>
+                                <input type="time" class="form-control" id="time_out" name="time_out">
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <label for="remarks" class="form-label">Remarks</label>
+                                <textarea class="form-control" id="remarks" name="remarks" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Record Attendance
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Attendance Grid -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card attendance-form">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Quick Attendance Grid</h5>
+                    <button type="button" class="btn btn-primary btn-sm" id="saveMultipleAttendance">
+                        <i class="fas fa-save"></i> Save Selected Attendance
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label for="multiDate" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="multiDate" value="{{ today|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="multiStatus" class="form-label">Status</label>
+                            <select class="form-select" id="multiStatus">
+                                <option value="PRESENT">Present</option>
+                                <option value="LATE">Late</option>
+                                <option value="ABSENT">Absent</option>
+                                <option value="EXCUSED">Excused</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="multiTimeIn" class="form-label">Time In</label>
+                            <input type="time" class="form-control" id="multiTimeIn">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="multiTimeOut" class="form-label">Time Out</label>
+                            <input type="time" class="form-control" id="multiTimeOut">
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="studentsTable">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAllStudents">
+                                            <label class="form-check-label" for="selectAllStudents">Select All</label>
+                                        </div>
+                                    </th>
+                                    <th>Student ID</th>
+                                    <th>Name</th>
+                                    <th>Current Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in assigned_students %}
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input student-checkbox" type="checkbox" 
+                                                   value="{{ student.id }}" id="student-{{ student.id }}">
+                                        </div>
+                                    </td>
+                                    <td>{{ student.student_no }}</td>
+                                    <td>{{ student.name }}</td>
+                                    <td>
+                                        <span class="badge {{ student.id|get_attendance_status_class:personnel.id }}">
+                                            {{ student.id|get_attendance_status:personnel.id }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-info alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Today's Attendance Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Today's Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="attendanceTable">
+                            <thead>
+                                <tr>
+                                    <th>Student No.</th>
+                                    <th>Name</th>
+                                    <th>Time In</th>
+                                    <th>Time Out</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in today_attendance %}
+                                <tr>
+                                    <td>{{ record.student.student_no }}</td>
+                                    <td>{{ record.student.name }}</td>
+                                    <td>{{ record.time_in|default:"-" }}</td>
+                                    <td>{{ record.time_out|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge {% if record.status == 'PRESENT' %}bg-success{% elif record.status == 'ABSENT' %}bg-danger{% elif record.status == 'LATE' %}bg-warning{% else %}bg-info{% endif %}">
+                                            {{ record.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ record.remarks|default:"-" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No attendance records for today</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Setup CSRF token for all AJAX requests
+    $.ajaxSetup({
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        beforeSend: function(xhr, settings) {
+            // Only send the token to relative URLs i.e. locally.
+            if (!/^(https?:)?\/\//i.test(settings.url)) {
+                xhr.setRequestHeader("X-CSRFToken", $('input[name="csrfmiddlewaretoken"]').val());
+            }
+        }
+    });
+    
+    // Try-catch block to handle DataTables errors
+    try {
+        // Initialize DataTable with proper configuration
+        $('#attendanceTable').DataTable({
+            responsive: true,
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search records..."
+            },
+            // Add this to fix the DataTables error
+            columnDefs: [
+                { targets: '_all', defaultContent: '' }
+            ],
+            // Disable sorting on action columns
+            "columnDefs": [
+                { "orderable": false, "targets": -1 }
+            ],
+            // Set default ordering
+            "order": [[ 0, "asc" ]]
+        });
+    } catch (e) {
+        console.error("DataTables initialization error:", e);
+        // Fallback to basic table functionality
+        $('#attendanceTable').addClass('table-striped');
+    }
+    
+    // Handle form submission for recording attendance
+    $('#attendanceForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        $.ajax({
+            url: '{% url "record_attendance" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    const alertHtml = `
+                        <div class="alert alert-success alert-dismissible fade show">
+                            ${response.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                    $('.container-fluid').prepend(alertHtml);
+                    
+                    // Reset form
+                    $('#attendanceForm')[0].reset();
+                    
+                    // Reload page after a short delay
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('An error occurred while recording attendance.');
+            }
+        });
+    });
+
+    // Handle select all checkbox
+    $('#selectAllStudents').on('change', function() {
+        $('.student-checkbox').prop('checked', $(this).is(':checked'));
+    });
+    
+    // Handle save multiple attendance
+    $('#saveMultipleAttendance').on('click', function() {
+        const selectedStudents = $('.student-checkbox:checked').map(function() {
+            return $(this).val();
+        }).get();
+        
+        if (selectedStudents.length === 0) {
+            alert('Please select at least one student');
+            return;
+        }
+        
+        const date = $('#multiDate').val();
+        const status = $('#multiStatus').val();
+        const timeIn = $('#multiTimeIn').val();
+        const timeOut = $('#multiTimeOut').val();
+        
+        if (!date) {
+            alert('Please select a date');
+            return;
+        }
+        
+        if (!status) {
+            alert('Please select a status');
+            return;
+        }
+        
+        // Prepare data for batch submission
+        const attendanceRecords = selectedStudents.map(studentId => ({
+            student_id: studentId,
+            date: date,
+            status: status,
+            time_in: timeIn || null,
+            time_out: timeOut || null,
+            remarks: ''
+        }));
+        
+        // Show loading indicator
+        const saveBtn = $('#saveMultipleAttendance');
+        const originalText = saveBtn.html();
+        saveBtn.html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+        saveBtn.prop('disabled', true);
+        
+        // Send batch request
+        $.ajax({
+            url: '{% url "batch_record_attendance" %}',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ attendance_records: attendanceRecords }),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    alert(response.message);
+                    // Reload the page to show updated statuses
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('An error occurred while recording attendance.');
+            },
+            complete: function() {
+                // Restore button state
+                saveBtn.html(originalText);
+                saveBtn.prop('disabled', false);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

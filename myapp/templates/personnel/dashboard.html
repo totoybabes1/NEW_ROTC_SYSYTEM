@@ -5,115 +5,39 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/personnel_dashboard.css' %}">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <!-- Welcome Card -->
-    <div class="card welcome-card mb-4">
-        <div class="welcome-content">
-            <div class="welcome-logo">
-                {% if personnel.profile_picture %}
-                    <img src="{{ personnel.profile_picture.url }}" alt="Profile Picture" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover;">
-                {% else %}
-                    <img src="{% static 'img/default-profile.png' %}" alt="Default Profile Picture" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover;">
-                {% endif %}
-            </div>
-            <div class="welcome-text">
-                <h2>Welcome back, {{ personnel.first_name }}!</h2>
-                <div class="welcome-badges">
-                    <span class="badge">
-                        <i class="fas fa-briefcase"></i> {{ personnel.position }}
-                    </span>
-                    <span class="badge">
-                        <i class="fas fa-check-circle"></i> {{ personnel.status }}
-                    </span>
-                    <span class="badge">
-                        <i class="fas fa-users"></i> {{ personnel.flight_group.name }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Flight Group Information -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-white">
-                    <i class="fas fa-users text-primary me-2"></i> Flight Group Information
-                </div>
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-4">
-                        <i class="fas fa-plane-departure fa-2x text-primary me-3"></i>
-                        <div>
-                            <h5 class="mb-1">{{ personnel.flight_group.name }}</h5>
-                            <p class="text-muted mb-0">{{ personnel.flight_group.description }}</p>
-                        </div>
-                    </div>
-                    
-                    <h6 class="section-title">Group Members</h6>
-                    <div class="member-list">
-                        {% for member in flight_group_members %}
-                        <div class="member-item">
-                            {% if member.profile_picture %}
-                                <img src="{{ member.profile_picture.url }}" alt="Profile">
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="card border-0 bg-white shadow-sm">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            {% if personnel.profile_picture %}
+                                <img src="{{ personnel.profile_picture.url }}" alt="Profile Picture" 
+                                     class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
                             {% else %}
-                                <img src="{% static 'images/default-profile.png' %}" alt="Default">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                    <i class="fas fa-user text-primary fa-2x"></i>
+                                </div>
                             {% endif %}
-                            <div>
-                                <strong>{{ member.first_name }} {{ member.last_name }}</strong>
-                                <div class="text-muted">{{ member.position }}</div>
-                            </div>
                         </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Personal Information -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-white">
-                    <i class="fas fa-info-circle text-info me-2"></i> Personal Information
-                </div>
-                <div class="card-body">
-                    <ul class="personal-info-list">
-                        <li class="personal-info-item">
-                            <i class="fas fa-id-badge"></i>
-                            <span class="personal-info-label">Student ID:</span>
-                            <span class="personal-info-value">{{ personnel.student_id }}</span>
-                        </li>
-                        <li class="personal-info-item">
-                            <i class="fas fa-birthday-cake"></i>
-                            <span class="personal-info-label">Age:</span>
-                            <span class="personal-info-value">{{ personnel.age }}</span>
-                        </li>
-                        <li class="personal-info-item">
-                            <i class="fas fa-venus-mars"></i>
-                            <span class="personal-info-label">Gender:</span>
-                            <span class="personal-info-value">{{ personnel.gender_assignment }}</span>
-                        </li>
-                        <li class="personal-info-item">
-                            <i class="fas fa-phone"></i>
-                            <span class="personal-info-label">Phone:</span>
-                            <span class="personal-info-value">{{ personnel.phone_number }}</span>
-                        </li>
-                    </ul>
-
-                    <h6 class="section-title">Performance Metrics</h6>
-                    <div class="performance-metrics">
-                        <div class="performance-metric">
-                            <div class="metric-value">{{ attendance_rate }}%</div>
-                            <div class="metric-title">
-                                <i class="fas fa-calendar-check me-1"></i> Attendance
-                            </div>
-                        </div>
-                        <div class="performance-metric">
-                            <div class="metric-value">{{ participation_score }}%</div>
-                            <div class="metric-title">
-                                <i class="fas fa-chart-line me-1"></i> Participation
+                        <div class="col">
+                            <h1 class="h3 mb-2">Welcome back, {{ personnel.first_name }}!</h1>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-briefcase me-1"></i> {{ personnel.position }}
+                                </span>
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i> {{ personnel.status }}
+                                </span>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-users me-1"></i> {{ personnel.flight_group.name }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -122,128 +46,146 @@
         </div>
     </div>
 
-    <!-- Add new Attendance Section -->
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <!-- Students Card -->
+        <div class="col-xl-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-users text-primary fa-2x"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Assigned Students</h6>
+                            <h3 class="mb-0">{{ assignments.count }}</h3>
+                            <a href="{% url 'view_assigned_students' %}" class="text-decoration-none">
+                                View Details <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Card -->
+        <div class="col-xl-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-chart-line text-success fa-2x"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Days Active</h6>
+                            <h3 class="mb-0">{{ days_active }}</h3>
+                            <small class="text-muted">Last active: {{ last_active_days }} days ago</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Stats Card -->
+        <div class="col-xl-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-sign-in-alt text-info fa-2x"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Total Logins</h6>
+                            <h3 class="mb-0">{{ total_logins }}</h3>
+                            <small class="text-muted">Since registration</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
     <div class="row">
-        <div class="col-12 mb-4">
-            <div class="card">
-                <div class="card-header bg-white">
-                    <i class="fas fa-calendar-check text-primary me-2"></i> My Attendance
+        <!-- Flight Group Info -->
+        <div class="col-lg-6 mb-4" data-aos="fade-up" data-aos-delay="400">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plane-departure text-primary me-2"></i>
+                        Flight Group Information
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="attendance-quick-links">
-                                <a href="{% url 'personnel_attendance' personnel.id %}" class="btn btn-primary mb-2 w-100">
-                                    <i class="fas fa-history me-2"></i> View My Attendance History
-                                </a>
-                                <a href="{% url 'view_attendance' %}" class="btn btn-outline-primary mb-2 w-100">
-                                    <i class="fas fa-list me-2"></i> View Current Assignments
-                                </a>
-                            </div>
-                            <div class="attendance-stats mt-3">
-                                <h6 class="section-title">Quick Stats</h6>
-                                <div class="stats-grid">
-                                    <div class="stat-item">
-                                        <div class="stat-value text-success">{{ attendance_rate }}%</div>
-                                        <div class="stat-label">Attendance Rate</div>
+                    <h6 class="text-primary mb-3">{{ personnel.flight_group.name }}</h6>
+                    <p class="text-muted">{{ personnel.flight_group.description }}</p>
+                    
+                    <h6 class="mt-4 mb-3">Group Members</h6>
+                    <div class="list-group list-group-flush">
+                        {% for member in flight_group_members %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        {% if member.profile_picture %}
+                                            <img src="{{ member.profile_picture.url }}" class="rounded-circle" 
+                                                 style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-secondary bg-opacity-10 rounded-circle p-2">
+                                                <i class="fas fa-user text-secondary"></i>
+                                            </div>
+                                        {% endif %}
                                     </div>
-                                    <div class="stat-item">
-                                        <div class="stat-value text-warning">{{ stats.late|default:0 }}</div>
-                                        <div class="stat-label">Late Count</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-value text-danger">{{ stats.absent|default:0 }}</div>
-                                        <div class="stat-label">Absences</div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-0">{{ member.first_name }} {{ member.last_name }}</h6>
+                                        <small class="text-muted">{{ member.position }}</small>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-8">
-                            <h6 class="section-title">Recent Attendance Records</h6>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Status</th>
-                                            <th>Assignment</th>
-                                            <th>Remarks</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for record in recent_attendance|slice:":5" %}
-                                        <tr>
-                                            <td>{{ record.date|date:"M d, Y" }}</td>
-                                            <td>
-                                                <span class="badge {% if record.status == 'PRESENT' %}bg-success{% elif record.status == 'ABSENT' %}bg-danger{% elif record.status == 'LATE' %}bg-warning{% else %}bg-info{% endif %}">
-                                                    {{ record.status }}
-                                                </span>
-                                            </td>
-                                            <td>{{ record.upload_file.table_name }}</td>
-                                            <td>{{ record.remarks|default:"-" }}</td>
-                                        </tr>
-                                        {% empty %}
-                                        <tr>
-                                            <td colspan="4" class="text-center text-muted">
-                                                No recent attendance records found
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                        {% empty %}
+                            <p class="text-muted mb-0">No other members in this flight group.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="col-lg-6 mb-4" data-aos="fade-up" data-aos-delay="500">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history text-primary me-2"></i>
+                        Recent Activities
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                            <div class="list-group-item border-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-{{ activity.activity_type|yesno:'success,danger' }} bg-opacity-10 rounded-circle p-2">
+                                            <i class="fas fa-{{ activity.activity_type|yesno:'sign-in-alt,sign-out-alt' }} 
+                                                  text-{{ activity.activity_type|yesno:'success,danger' }}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-0">{{ activity.activity_type|title }}</h6>
+                                        <small class="text-muted">{{ activity.timestamp|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Announcements & Events -->
-        <div class="col-md-8 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-white">
-                    <i class="fas fa-bullhorn text-warning me-2"></i> Announcements & Events
-                </div>
-                <div class="card-body">
-                    {% for announcement in announcements %}
-                    <div class="announcement-item">
-                        <h6 class="announcement-title">{{ announcement.title }}</h6>
-                        <p class="announcement-content">{{ announcement.content }}</p>
-                        <div class="announcement-meta">
-                            <i class="fas fa-calendar-alt me-1"></i> {{ announcement.date|date:"M d, Y" }}
-                            {% if announcement.is_event %}
-                            <span class="badge bg-warning text-dark announcement-badge">
-                                <i class="fas fa-star me-1"></i> Event
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No announcements at this time.</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Attendance Calendar -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-white">
-                    <i class="fas fa-calendar-alt text-success me-2"></i> Attendance Calendar
-                </div>
-                <div class="card-body">
-                    <div class="calendar-wrapper">
-                        {% for day in attendance_calendar %}
-                        <div class="calendar-day {% if day.present %}active{% else %}inactive{% endif %}"
-                             data-bs-toggle="tooltip" 
-                             title="{{ day.date|date:'M d, Y' }}">
-                            {{ day.date|date:"d" }}
-                        </div>
+                        {% empty %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-clock text-muted fa-2x mb-3"></i>
+                                <p class="text-muted mb-0">No recent activities found</p>
+                            </div>
                         {% endfor %}
                     </div>
                 </div>
@@ -251,62 +193,42 @@
         </div>
     </div>
 
-    <!-- Activity History -->
-    <div class="card">
-        <div class="card-header bg-white">
-            <i class="fas fa-history text-success me-2"></i> Activity Summary
-        </div>
-        <div class="card-body">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stats-counter">{{ total_logins }}</div>
-                    <div class="text-muted">
-                        <i class="fas fa-sign-in-alt me-1"></i> Total Logins
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stats-counter">{{ days_active }}</div>
-                    <div class="text-muted">
-                        <i class="fas fa-calendar-day me-1"></i> Days Active
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stats-counter">{{ last_active_days }}</div>
-                    <div class="text-muted">
-                        <i class="fas fa-hourglass-half me-1"></i> Days Since Last Activity
+    <!-- Add this inside your dashboard content -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5><i class="fas fa-clipboard-check text-primary me-2"></i>Attendance Management</h5>
+                    <p class="text-muted">Record and manage student attendance</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'attendance_dashboard' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Record Attendance
+                        </a>
+                        <a href="{% url 'view_attendance_history' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-history me-2"></i>View History
+                        </a>
                     </div>
                 </div>
             </div>
-            
-            <h6 class="section-title">Recent Activities</h6>
-            {% for activity in recent_activities %}
-            <div class="activity-item">
-                <div class="activity-icon {% if activity.activity_type == 'login' %}login-icon{% else %}logout-icon{% endif %}">
-                    <i class="fas {% if activity.activity_type == 'login' %}fa-sign-in-alt{% else %}fa-sign-out-alt{% endif %}"></i>
-                </div>
-                <div class="activity-content">
-                    <div>{{ activity.activity_type|title }}</div>
-                    <div class="activity-timestamp">{{ activity.timestamp|date:"M d, Y H:i" }}</div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="text-center py-4">
-                <i class="fas fa-history fa-3x text-muted mb-3"></i>
-                <p class="text-muted">No recent activities found.</p>
-            </div>
-            {% endfor %}
         </div>
     </div>
 </div>
 
 {% block extra_js %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-    // Initialize tooltips
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
+        });
     });
 </script>
 {% endblock %}

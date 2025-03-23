@@ -5,140 +5,929 @@
 {% block title %}Assigned Personnel{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/admin_assigned_personnel.css' %}">
 <div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-users-cog me-2"></i> Personnel-Student Assignments
-        </h2>
-        <div>
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#autoAssignModal">
-                <i class="fas fa-magic me-1"></i> Auto-Assign Students
-            </button>
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#resetAssignmentsModal">
-                <i class="fas fa-undo-alt me-2"></i>Reset All Assignments
-            </button>
-        </div>
-    </div>
-
-    <!-- Personnel Table -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Personnel Assignments</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" id="personnelTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>Personnel</th>
-                            <th>Gender</th>
-                            <th>Position</th>
-                            <th>Assigned Students</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for personnel in personnel_list %}
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {% if personnel.profile_picture %}
-                                        <img src="{{ personnel.profile_picture.url }}" alt="Profile" class="rounded-circle me-2" width="40" height="40">
-                                    {% else %}
-                                        <i class="fas fa-user-circle me-2" style="font-size: 24px;"></i>
-                                    {% endif %}
-                                    {{ personnel.first_name }} {{ personnel.last_name }}
+    <div class="row">
+        <!-- Main Content Column - Expanded to full width -->
+        <div class="col-12 mb-4">
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                        <i class="fas fa-users text-primary fa-2x"></i>
+                                    </div>
                                 </div>
-                            </td>
-                            <td>{{ personnel.gender }}</td>
-                            <td>{{ personnel.position }}</td>
-                            <td>
-                                {% with assigned_students=personnel_assignments|get_item:personnel.id %}
-                                    {% if assigned_students %}
-                                        <div class="assigned-students">
-                                            {% for student in assigned_students %}
-                                                <div class="student-badge d-flex align-items-center mb-1">
-                                                    <span class="badge bg-primary me-2">{{ student.student_no }}</span>
-                                                    {{ student.name }}
-                                                    <div class="ms-auto">
-                                                        <button type="button" class="btn btn-sm btn-info reassign-btn"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#reassignStudentModal"
-                                                                data-student-id="{{ student.id }}"
-                                                                data-student-name="{{ student.name }}"
-                                                                data-current-personnel-id="{{ personnel.id }}"
-                                                                data-current-personnel-name="{{ personnel.first_name }} {{ personnel.last_name }}">
-                                                            <i class="fas fa-exchange-alt"></i>
-                                                        </button>
-                                                        {% with assignment=student.personnelstudentassignment_set.first %}
-                                                            {% if assignment %}
-                                                                <a href="{% url 'remove_student_assignment' assignment_id=assignment.id %}" 
-                                                                   class="btn btn-sm btn-danger" 
-                                                                   onclick="return confirm('Are you sure you want to remove this assignment?')">
-                                                                    <i class="fas fa-times-circle"></i>
-                                                                </a>
+                                <div class="col">
+                                    <h1 class="h3 mb-2">Personnel Assignment</h1>
+                                    <p class="text-muted mb-0">
+                                        Manage student assignments to personnel, view current assignments, and track distribution of students across personnel.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto-Assign and Reset Buttons Card with Stats -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="row">
+                        <!-- Management Actions Card -->
+                        <div class="col-md-4">
+                            <div class="accordion h-100" id="managementActionsAccordion">
+                                <div class="accordion-item h-100">
+                                    <h1 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#managementActionsContent" aria-expanded="true" aria-controls="managementActionsContent">
+                                            <i class="fas fa-cogs me-2"></i>Management Actions
+                                        </button>
+                                    </h1>
+                                    <div id="managementActionsContent" class="accordion-collapse collapse show" data-bs-parent="#managementActionsAccordion">
+                                        <div class="card-body p-3">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="d-flex flex-column">
+                                                        <div class="mb-2">
+                                                            <p class="text-muted small mb-0">Manage student-personnel assignments, handle special cases, and perform bulk actions</p>
+                                                            <p class="text-muted small mb-2">Use these tools to efficiently organize and maintain student distributions</p>
+                                                        </div>
+                                                        <div class="d-flex flex-column gap-3">
+                                                            <!-- Auto-Assign Button -->
+                                                            <button type="button" class="btn btn-primary shadow-sm w-100" data-bs-toggle="modal" data-bs-target="#autoAssignModal">
+                                                                <i class="fas fa-magic me-2"></i>Auto-Assign
+                                                            </button>
+                                                            
+                                                            <!-- Special Cases Button -->
+                                                            <button type="button" class="btn btn-primary shadow-sm w-100" data-bs-toggle="modal" data-bs-target="#specialAssignmentModal">
+                                                                <i class="fas fa-user-tag me-2"></i>Special Cases
+                                                            </button>
+                                                            
+                                                            <!-- Reset All Button -->
+                                                            <button type="button" class="btn btn-primary shadow-sm w-100" data-bs-toggle="modal" data-bs-target="#resetAssignmentsModal">
+                                                                <i class="fas fa-undo-alt me-2"></i>Reset All
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Critical Message & Stats Cards -->
+                        <div class="col-md-8">
+                            <div class="accordion h-100" id="statsAccordion">
+                                <div class="accordion-item h-100">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#statsContent" aria-expanded="true" aria-controls="statsContent">
+                                            <i class="fas fa-chart-bar me-2"></i>Statistics Overview
+                                        </button>
+                                    </h2>
+                                    <div id="statsContent" class="accordion-collapse collapse show" data-bs-parent="#statsAccordion">
+                                        <div class="accordion-body">
+                                            <!-- Critical Message Alert -->
+                                            <div class="alert alert-secondary mb-3">
+                                                <h6 class="alert-heading mb-1">
+                                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                                    Critical Message:
+                                                </h6>
+                                                <small>
+                                                    Special cases require immediate attention and must be handled before regular assignments. 
+                                                    These include students with specific requirements, medical conditions, or other exceptional circumstances 
+                                                    that need careful consideration during the assignment process.
+                                                </small>
+                                            </div>
+
+                                            <!-- Stats Cards -->
+                                            <div class="row g-3">
+                                                <!-- Total Staff -->
+                                                <div class="col-md-4">
+                                                    <div class="card border-0 rounded-3 shadow-sm h-100">
+                                                        <div class="card-body p-3 bg-success text-white rounded-3">
+                                                            <div class="d-flex align-items-center justify-content-between">
+                                                                <div>
+                                                                    <h6 class="text-uppercase mb-1">Total Staff</h6>
+                                                                    <h3 class="fw-bold mb-0">{{ personnel_list|length }}</h3>
+                                                                </div>
+                                                                <div class="rounded-circle bg-white bg-opacity-25 p-3">
+                                                                    <i class="fas fa-users fa-2x text-white"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Assigned Students -->
+                                                <div class="col-md-4">
+                                                    <div class="card border-0 rounded-3 shadow-sm h-100">
+                                                        <div class="card-body p-3 bg-info text-white rounded-3">
+                                                            <div class="d-flex align-items-center justify-content-between">
+                                                                <div>
+                                                                    <h6 class="text-uppercase mb-1">Assigned</h6>
+                                                                    <h3 class="fw-bold mb-0">{{ total_assignments }}</h3>
+                                                                </div>
+                                                                <div class="rounded-circle bg-white bg-opacity-25 p-3">
+                                                                    <i class="fas fa-user-check fa-2x text-white"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Pending Students -->
+                                                <div class="col-md-4">
+                                                    <div class="card border-0 rounded-3 shadow-sm h-100">
+                                                        <div class="card-body p-3 bg-danger text-white rounded-3">
+                                                            <div class="d-flex align-items-center justify-content-between">
+                                                                <div>
+                                                                    <h6 class="text-uppercase mb-1">Pending</h6>
+                                                                    <h3 class="fw-bold mb-0">{{ unassigned_count }}</h3>
+                                                                </div>
+                                                                <div class="rounded-circle bg-white bg-opacity-25 p-3">
+                                                                    <i class="fas fa-user-times fa-2x text-white"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-info alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Add this after the Quick Actions and Stats cards, before the Messages section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="accordion" id="specialCasesAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#specialCasesContent" aria-expanded="true" aria-controls="specialCasesContent">
+                                    <i class="fas fa-user-tag me-2"></i>Special Cases Overview
+                                </button>
+                            </h2>
+                            <div id="specialCasesContent" class="accordion-collapse collapse show" data-bs-parent="#specialCasesAccordion">
+                                <div class="accordion-body p-0">
+                                    <div class="card shadow-sm border-0">
+                                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <h6 class="m-0 font-weight-bold text-primary">
+                                                    <i class="fas fa-user-tag me-2"></i>Special Cases Overview
+                                                </h6>
+                                                <!-- Bulk Actions Dropdown - Initially Hidden -->
+                                                <div id="bulkActionsDropdown" class="ms-3" style="display: none;">
+                                                    <button class="btn btn-danger btn-sm" id="deleteSelectedCases">
+                                                        <i class="fas fa-trash-alt me-2"></i>Remove Selected Cases
+                                                        <span class="selected-count badge bg-white text-danger ms-1">0</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <!-- Search Input -->
+                                                <div class="input-group shadow-sm" style="width: 450px;">
+                                                    <span class="input-group-text bg-primary text-white border-0" style="font-size: 1.1rem;">
+                                                        <i class="fas fa-search"></i>
+                                                    </span>
+                                                    <input type="text" 
+                                                           id="specialCasesSearchInput" 
+                                                           class="form-control border-0" 
+                                                           placeholder="Search special cases..."
+                                                           style="font-size: 1.1rem; padding: 0.75rem 1rem;">
+                                                </div>
+                                                
+                                                <!-- Personnel Filter Dropdown -->
+                                                <div class="input-group shadow-sm" style="width: 250px;">
+                                                    <span class="input-group-text bg-primary text-white border-0" style="font-size: 1.1rem;">
+                                                        <i class="fas fa-user-check"></i>
+                                                    </span>
+                                                    <select id="specialCasesPersonnelFilter" class="form-select border-0" style="font-size: 1.1rem; padding: 0.75rem 1rem;">
+                                                        <option value="">All Handlers</option>
+                                                        {% for personnel in personnel_list %}
+                                                            <option value="{{ personnel.id }}">{{ personnel.first_name }} {{ personnel.last_name }}</option>
+                                                        {% endfor %}
+                                                        <option value="no-handler">No Handler Assigned</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <!-- Add Special Case button -->
+                                                <button type="button" 
+                                                        class="btn btn-outline-primary" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#specialAssignmentModal">
+                                                    <i class="fas fa-plus me-2"></i>Add Special Case
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover" id="specialCasesTable">
+                                                    <thead>
+                                                        <tr class="align-middle">
+                                                            <th class="py-3">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" id="selectAllCases">
+                                                                </div>
+                                                            </th>
+                                                            <th class="py-3">Student ID</th>
+                                                            <th class="py-3">Name</th>
+                                                            <th class="py-3">Case Type</th>
+                                                            <th class="py-3">Handler</th>
+                                                            <th class="py-3">Gender</th>
+                                                            <th class="py-3">Course</th>
+                                                            <th class="py-3">Notes</th>
+                                                            <th class="py-3">Date Added</th>
+                                                            <th class="py-3">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for case in special_cases %}
+                                                        <tr>
+                                                            <td>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input case-checkbox" 
+                                                                           type="checkbox" 
+                                                                           value="{{ case.id }}"
+                                                                           data-student-name="{{ case.student.name }}">
+                                                                </div>
+                                                            </td>
+                                                            <td>{{ case.student.student_no }}</td>
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                                        {{ case.student.name|first }}
+                                                                    </div>
+                                                                    {{ case.student.name }}
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                {% if case.case_type == 'band' %}
+                                                                    <span class="badge bg-primary">Band Member</span>
+                                                                {% elif case.case_type == 'office' %}
+                                                                    <span class="badge bg-success">Office Worker</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-info">Other Gender</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>
+                                                                {% if case.handler %}
+                                                                    <div class="d-flex align-items-center" data-handler-id="{{ case.handler.id }}">
+                                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                                            {{ case.handler.first_name|first }}{{ case.handler.last_name|first }}
+                                                                        </div>
+                                                                        <div>
+                                                                            <div class="fw-bold">{{ case.handler.first_name }} {{ case.handler.last_name }}</div>
+                                                                            <div class="small text-muted">{{ case.handler.position }}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                {% elif case.handler_name %}
+                                                                    <div class="d-flex align-items-center">
+                                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                                            {{ case.handler_name|first }}
+                                                                        </div>
+                                                                        <div>
+                                                                            <div class="fw-bold">{{ case.handler_name }}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                {% else %}
+                                                                    <span class="text-muted">No handler assigned</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>
+                                                                {% if case.student.gender == 'M' %}
+                                                                    <span class="badge bg-primary">Male</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-danger">Female</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>{{ case.student.course }}</td>
+                                                            <td>
+                                                                {% if case.notes %}
+                                                                    <span class="text-muted" data-bs-toggle="tooltip" title="{{ case.notes }}">
+                                                                        {{ case.notes|truncatechars:30 }}
+                                                                    </span>
+                                                                {% else %}
+                                                                    <span class="text-muted">-</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>{{ case.created_at|date:"M d, Y" }}</td>
+                                                            <td>
+                                                                <div class="btn-group">
+                                                                    <button type="button" 
+                                                                            class="btn btn-outline-primary"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#editSpecialCaseModal"
+                                                                            data-case-id="{{ case.id }}"
+                                                                            data-student-id="{{ case.student.id }}"
+                                                                            data-student-name="{{ case.student.name }}"
+                                                                            data-case-type="{{ case.case_type }}"
+                                                                            data-handler-id="{% if case.handler %}{{ case.handler.id }}{% endif %}"
+                                                                            data-handler-name="{% if case.handler_name %}{{ case.handler_name }}{% endif %}"
+                                                                            data-notes="{{ case.notes }}"
+                                                                            style="padding: 8px 16px;">
+                                                                        <i class="fas fa-edit me-2"></i>Edit
+                                                                    </button>
+                                                                    <a href="{% url 'remove_special_case' case_id=case.id %}" 
+                                                                       class="btn btn-outline-danger"
+                                                                       onclick="return confirm('Are you sure you want to remove this special case?')"
+                                                                       style="padding: 8px 16px;">
+                                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                                    </a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        {% empty %}
+                                                        <tr>
+                                                            <td colspan="10" class="text-center py-4">
+                                                                <div class="text-muted">
+                                                                    <i class="fas fa-info-circle me-2"></i>No special cases recorded yet
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            
+                                            <!-- Add Pagination -->
+                                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                                <div class="small text-muted">
+                                                    Showing <span id="specialCasesStartRecord">1</span> to <span id="specialCasesEndRecord">10</span> of <span id="specialCasesTotalRecords">{{ special_cases|length }}</span> entries
+                                                </div>
+                                                <nav aria-label="Special cases pagination">
+                                                    <ul class="pagination pagination-sm" id="specialCasesPagination">
+                                                        <li class="page-item" id="specialCasesPrevPage">
+                                                            <a class="page-link" href="#" aria-label="Previous">
+                                                                <span aria-hidden="true">&laquo;</span>
+                                                            </a>
+                                                        </li>
+                                                        <div id="specialCasesPageNumbers" class="d-flex">
+                                                            <!-- Page numbers will be inserted here by JavaScript -->
+                                                        </div>
+                                                        <li class="page-item" id="specialCasesNextPage">
+                                                            <a class="page-link" href="#" aria-label="Next">
+                                                                <span aria-hidden="true">&raquo;</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </nav>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+           
+
+            <!-- Nav Tabs -->
+            <ul class="nav nav-tabs mb-4" id="assignmentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                        Overview
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="assignments-tab" data-bs-toggle="tab" data-bs-target="#assignments" type="button" role="tab" aria-controls="assignments" aria-selected="false">
+                        Current Assignments
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="all-assignments-tab" data-bs-toggle="tab" data-bs-target="#all-assignments" type="button" role="tab" aria-controls="all-assignments" aria-selected="false">
+                        All Assigned Students
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="unassigned-tab" data-bs-toggle="tab" data-bs-target="#unassigned" type="button" role="tab" aria-controls="unassigned" aria-selected="false">
+                        Unassigned Students
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="assignmentTabsContent">
+                <!-- Overview Tab -->
+                <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                    <!-- Assignment Distribution Graph -->
+                    <div class="card mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-chart-bar me-2"></i>Assignment Distribution
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div style="height: 300px;">
+                                <canvas id="assignmentDistributionChart"></canvas>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-center">
+                                <div class="d-flex align-items-center me-4">
+                                    <div class="bg-primary rounded-circle me-2" style="width: 15px; height: 15px; opacity: 0.7;"></div>
+                                    <span>Male Students</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-danger rounded-circle me-2" style="width: 15px; height: 15px; opacity: 0.7;"></div>
+                                    <span>Female Students</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignments Tab -->
+                <div class="tab-pane fade" id="assignments" role="tabpanel" aria-labelledby="assignments-tab">
+                    <!-- Personnel Table -->
+                    <div class="card mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-user-tie me-2"></i>Personnel Assignments
+                            </h6>
+                            <div class="d-flex align-items-center gap-3">
+                                <!-- Personnel Selection Dropdown -->
+                                <div class="input-group shadow-sm" style="width: 250px;">
+                                    <span class="input-group-text bg-primary text-white border-0" style="font-size: 1.1rem;">
+                                        <i class="fas fa-user-check"></i>
+                                    </span>
+                                    <select id="personnelFilterSelect" class="form-select border-0" style="font-size: 1.1rem; padding: 0.75rem 1rem;">
+                                        <option value="">All Personnel</option>
+                                        {% for personnel in personnel_list %}
+                                            <option value="{{ personnel.id }}">{{ personnel.first_name }} {{ personnel.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <!-- Search Input -->
+                                <div class="input-group shadow-sm" style="width: 450px;">
+                                    <span class="input-group-text bg-primary text-white border-0" style="font-size: 1.1rem;">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" 
+                                           id="personnelSearchInput" 
+                                           class="form-control border-0" 
+                                           placeholder="Search personnel by name or ID..."
+                                           style="font-size: 1.1rem; padding: 0.75rem 1rem;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="personnelTable" width="100%" cellspacing="0">
+                                    <tbody>
+                                        {% for personnel in personnel_list %}
+                                        <tr class="personnel-row" data-personnel-id="{{ personnel.id }}">
+                                            <td>
+                                                <div class="d-flex">
+                                                    <!-- Personnel Info Column -->
+                                                    <div class="me-4 shadow-sm rounded p-4 bg-white border" style="min-width: 300px;">
+                                                        <!-- Profile Picture/Initials -->
+                                                        <div class="d-flex align-items-center mb-4">
+                                                            {% if personnel.profile_picture and personnel.profile_picture.url %}
+                                                                <img src="{{ personnel.profile_picture.url }}" alt="Profile" class="rounded-circle me-3 shadow" width="80" height="80">
+                                                            {% else %}
+                                                                <div class="rounded-circle bg-gradient text-white d-flex align-items-center justify-content-center me-3 shadow" style="width: 80px; height: 80px; font-size: 1.8rem; background: linear-gradient(45deg, #4e73df, #224abe);">
+                                                                        {{ personnel.first_name|first }}{{ personnel.last_name|first }}
+                                                                </div>
+                                                            {% endif %}
+                                                            <div>
+                                                                <h5 class="mb-2 fw-bold text-dark">{{ personnel.first_name }} {{ personnel.last_name }}</h5>
+                                                                <span class="badge bg-primary bg-gradient px-3 py-2">{{ personnel.position }}</span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Personnel Details -->
+                                                        <div class="ms-2 bg-light rounded p-3">
+                                                            <p class="mb-3 d-flex align-items-center">
+                                                                <span class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                                                    <i class="fas fa-id-card text-primary"></i>
+                                                                </span>
+                                                                <span>
+                                                                    <strong class="d-block text-dark">Student ID</strong>
+                                                                    <span class="text-muted">{{ personnel.student_id }}</span>
+                                                                </span>
+                                                            </p>
+                                                            <p class="mb-3 d-flex align-items-center">
+                                                                <span class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                                                    <i class="fas fa-users text-primary"></i>
+                                                                </span>
+                                                                <span>
+                                                                    <strong class="d-block text-dark">Flight Group</strong>
+                                                                    <span class="text-muted">{{ personnel.flight_group.name|default:"Not Assigned" }}</span>
+                                                                </span>
+                                                            </p>
+                                                            <p class="mb-3 d-flex align-items-center">
+                                                                <span class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                                                    <i class="fas fa-venus-mars text-primary"></i>
+                                                                </span>
+                                                                <span>
+                                                                    <strong class="d-block text-dark">Gender</strong>
+                                                                    {% if personnel.gender == 'Male' %}
+                                                                        <span class="badge bg-primary bg-gradient">Male</span>
+                                                                    {% else %}
+                                                                        <span class="badge bg-danger bg-gradient">Female</span>
+                                                                    {% endif %}
+                                                                </span>
+                                                            </p>
+                                                            <p class="mb-3 d-flex align-items-center">
+                                                                <span class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                                                    <i class="fas fa-phone text-primary"></i>
+                                                                </span>
+                                                                <span>
+                                                                    <strong class="d-block text-dark">Contact</strong>
+                                                                    <span class="text-muted">{{ personnel.phone_number }}</span>
+                                                                </span>
+                                                            </p>
+                                                            <p class="mb-0 d-flex align-items-center">
+                                                                <span class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                                                    <i class="fas fa-calendar text-primary"></i>
+                                                                </span>
+                                                                <span>
+                                                                    <strong class="d-block text-dark">Date Joined</strong>
+                                                                    <span class="text-muted">{{ personnel.date_joined|date:"M d, Y" }}</span>
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Assigned Students Column -->
+                                                    <div class="flex-grow-1">
+                                                        {% with assigned_students=personnel_assignments|get_item:personnel.id %}
+                                                            {% if assigned_students %}
+                                                                <div class="mb-2">
+                                                                    {% for student in assigned_students %}
+                                                                        <div class="border rounded p-2 mb-1 d-flex justify-content-between align-items-center">
+                                                                            <div>
+                                                                                <span class="small text-muted">{{ student.student_no }}</span>
+                                                                                <span class="ms-2">{{ student.name }}</span>
+                                                                            </div>
+                                                                            <div>
+                                                                                <button type="button" class="btn btn-outline-info me-1 new-reassign-btn"
+                                                                                        data-bs-toggle="modal"
+                                                                                        data-bs-target="#newReassignModal"
+                                                                                        data-student-id="{{ student.id }}"
+                                                                                        data-student-name="{{ student.name }}"
+                                                                                        data-student-details="{{ student.student_no }}"
+                                                                                        data-student-gender="{{ student.gender }}"
+                                                                                        data-current-personnel-id="{{ personnel.id }}"
+                                                                                        data-current-personnel-name="{{ personnel.first_name }} {{ personnel.last_name }}"
+                                                                                        data-current-personnel-position="{{ personnel.position }}"
+                                                                                        style="min-width: 120px;">
+                                                                                    <i class="fas fa-exchange-alt me-2"></i>
+                                                                                    Reassign
+                                                                                </button>
+                                                                                {% with assignment=student.personnelstudentassignment_set.first %}
+                                                                                    {% if assignment %}
+                                                                                        <a href="{% url 'remove_student_assignment' assignment_id=assignment.id %}" 
+                                                                                           class="btn btn-outline-danger" 
+                                                                                           style="min-width: 120px;"
+                                                                                           onclick="return confirm('Are you sure you want to remove this assignment?')">
+                                                                                            <i class="fas fa-times me-2"></i>
+                                                                                            Remove
+                                                                                        </a>
+                                                                                    {% endif %}
+                                                                                {% endwith %}
+                                                                            </div>
+                                                                        </div>
+                                                                    {% endfor %}
+                                                                </div>
+                                                                <div>
+                                                                    <span class="badge bg-primary">Total: {{ assigned_students|length }}</span>
+                                                                    <span class="badge bg-info">Male: {{ assigned_students|filter_by_gender:'M'|length }}</span>
+                                                                    <span class="badge bg-danger">Female: {{ assigned_students|filter_by_gender:'F'|length }}</span>
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="text-center text-muted py-2">
+                                                                    <i class="fas fa-user-slash me-2"></i>
+                                                                    <span>No students assigned</span>
+                                                                </div>
                                                             {% endif %}
                                                         {% endwith %}
                                                     </div>
                                                 </div>
-                                            {% endfor %}
-                                        </div>
-                                        <div class="mt-2">
-                                            <span class="badge bg-info">Total: {{ assigned_students|length }}</span>
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">No students assigned</span>
-                                    {% endif %}
-                                {% endwith %}
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-sm btn-primary assign-btn" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#assignStudentModal"
-                                        data-personnel-id="{{ personnel.id }}"
-                                        data-personnel-name="{{ personnel.first_name }} {{ personnel.last_name }}">
-                                    <i class="fas fa-user-plus"></i> Assign
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Unassigned Students Section -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Unassigned Students</h6>
-        </div>
-        <div class="card-body">
-            {% if unassigned_students %}
-                <div class="row">
-                    {% for student in unassigned_students %}
-                        <div class="col-md-4 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ student.name }}</h5>
-                                    <p class="card-text">Student #: {{ student.student_no }}</p>
-                                    <button type="button" class="btn btn-sm btn-primary assign-student-btn"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#assignPersonnelModal"
-                                            data-student-id="{{ student.id }}"
-                                            data-student-name="{{ student.name }}">
-                                        <i class="fas fa-user-plus"></i> Assign to Personnel
-                                    </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                
+                                <!-- Pagination -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="small text-muted">
+                                        Showing <span id="personnelStartRecord">1</span> to <span id="personnelEndRecord">10</span> of <span id="personnelTotalRecords">{{ personnel_list|length }}</span> entries
+                                    </div>
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination pagination-sm">
+                                            <li class="page-item" id="personnelPrevPage">
+                                                <a class="page-link" href="#" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <div id="personnelPageNumbers" class="d-flex">
+                                                <!-- Page numbers will be inserted here by JavaScript -->
+                                            </div>
+                                            <li class="page-item" id="personnelNextPage">
+                                                <a class="page-link" href="#" aria-label="Next">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
                                 </div>
                             </div>
                         </div>
-                    {% endfor %}
+                    </div>
                 </div>
-            {% else %}
-                <p class="text-center">All students have been assigned.</p>
-            {% endif %}
+
+                <!-- All Assignments Tab -->
+                <div class="tab-pane fade" id="all-assignments" role="tabpanel" aria-labelledby="all-assignments-tab">
+                    <!-- All Assigned Students Table -->
+                    <div class="card mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-user-graduate me-2"></i>All Assigned Students
+                            </h6>
+                            <div class="input-group shadow-sm" style="width: 450px;">
+                                <span class="input-group-text bg-primary text-white border-0" style="font-size: 1.1rem;">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" 
+                                       id="studentAssignmentSearchInput" 
+                                       class="form-control border-0" 
+                                       placeholder="Search by name or student ID..."
+                                       style="font-size: 1.1rem; padding: 0.75rem 1rem;">
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="studentAssignmentTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr class="align-middle">
+                                            <th class="py-3">Student</th>
+                                            <th class="py-3">Course/Year</th>
+                                            <th class="py-3">Assigned To</th>
+                                            <th class="py-3">Assignment Date</th>
+                                            <th class="py-3">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for assignment in all_assignments %}
+                                        <tr class="student-assignment-row">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                        {{ assignment.student.name|first }}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold">{{ assignment.student.name }}</div>
+                                                        <div class="small text-muted">{{ assignment.student.student_no }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ assignment.student.course }} ({{ assignment.student.year }})</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if assignment.personnel.profile_picture and assignment.personnel.profile_picture.url %}
+                                                        <img src="{{ assignment.personnel.profile_picture.url }}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+                                                    {% else %}
+                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                            {{ assignment.personnel.first_name|first }}{{ assignment.personnel.last_name|first }}
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="fw-bold">{{ assignment.personnel.first_name }} {{ assignment.personnel.last_name }}</div>
+                                                        <div class="small text-muted">{{ assignment.personnel.position }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="small">
+                                                    <i class="far fa-calendar-alt me-1"></i>
+                                                    {{ assignment.assigned_date|date:"M d, Y" }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-info mb-1 new-reassign-btn"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#newReassignModal"
+                                                        data-student-id="{{ assignment.student.id }}"
+                                                        data-student-name="{{ assignment.student.name }}"
+                                                        data-student-details="{{ assignment.student.student_no }}"
+                                                        data-student-gender="{{ assignment.student.gender }}"
+                                                        data-current-personnel-id="{{ assignment.personnel.id }}"
+                                                        data-current-personnel-name="{{ assignment.personnel.first_name }} {{ assignment.personnel.last_name }}"
+                                                        data-current-personnel-position="{{ assignment.personnel.position }}">
+                                                    <i class="fas fa-exchange-alt me-1"></i> Reassign
+                                                </button>
+                                                <a href="{% url 'remove_student_assignment' assignment_id=assignment.id %}" 
+                                                   class="btn btn-sm btn-outline-danger" 
+                                                   onclick="return confirm('Are you sure you want to remove this assignment?')">
+                                                    <i class="fas fa-unlink me-1"></i> Remove
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                
+                                <!-- Pagination for Student Assignment Table -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="small text-muted">
+                                        Showing <span id="studentAssignmentStartRecord">1</span> to <span id="studentAssignmentEndRecord">10</span> of <span id="studentAssignmentTotalRecords">{{ all_assignments|length }}</span> entries
+                                    </div>
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination pagination-sm">
+                                            <li class="page-item" id="studentAssignmentPrevPage">
+                                                <a class="page-link" href="#" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <div id="studentAssignmentPageNumbers" class="d-flex">
+                                                <!-- Page numbers will be inserted here by JavaScript -->
+                                            </div>
+                                            <li class="page-item" id="studentAssignmentNextPage">
+                                                <a class="page-link" href="#" aria-label="Next">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unassigned Tab -->
+                <div class="tab-pane fade" id="unassigned" role="tabpanel" aria-labelledby="unassigned-tab">
+                    <div class="card mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-user-slash me-2"></i>Unassigned Students
+                            </h6>
+                            <div class="input-group shadow-sm" style="width: 450px;">
+                                <span class="input-group-text bg-primary text-white border-0" style="font-size: 1.1rem;">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" 
+                                       id="unassignedSearchInput" 
+                                       class="form-control border-0" 
+                                       placeholder="Search by name or student ID..."
+                                       style="font-size: 1.1rem; padding: 0.75rem 1rem;">
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="unassignedTable">
+                                    <thead>
+                                        <tr class="align-middle">
+                                            <th class="py-3">Student ID</th>
+                                            <th class="py-3">Name</th>
+                                            <th class="py-3">Gender</th>
+                                            <th class="py-3">Course</th>
+                                            <th class="py-3">Year</th>
+                                            <th class="py-3">Status</th>
+                                            <th class="py-3">Upload Date</th>
+                                            <th class="py-3">Special Case</th>
+                                            <th class="py-3">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for student in unassigned_students %}
+                                        <tr>
+                                            <td>{{ student.student_no }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                        {{ student.name|first }}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold">{{ student.name }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if student.gender == 'M' %}
+                                                    <span class="badge bg-primary">Male</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Female</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ student.course }}</td>
+                                            <td>
+                                                <span class="badge bg-info">{{ student.year }} Year</span>
+                                            </td>
+                                            <td>
+                                                {% if student.status == 'ACTIVE' %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ student.upload_date|date:"M d, Y" }}</td>
+                                            <td>
+                                                {% if student.special_case %}
+                                                    <span class="badge bg-warning">
+                                                        {{ student.special_case.get_case_type_display }}
+                                                        {% if student.special_case.handler_name %}
+                                                            <br>Handler: {{ student.special_case.handler_name }}
+                                                        {% endif %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">None</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button type="button" 
+                                                            class="btn btn-outline-primary unassigned-assign-btn"
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#unassignedAssignModal"
+                                                            data-student-id="{{ student.id }}"
+                                                            data-student-name="{{ student.name }}"
+                                                            data-student-gender="{{ student.gender }}"
+                                                            data-student-course="{{ student.course }}"
+                                                            data-student-year="{{ student.year }}"
+                                                            style="padding: 8px 16px;">
+                                                        <i class="fas fa-user-plus me-2"></i>Assign
+                                                    </button>
+                                                    <button type="button" 
+                                                            class="btn btn-outline-warning"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#specialAssignmentModal"
+                                                            data-student-id="{{ student.id }}"
+                                                            data-student-name="{{ student.name }}"
+                                                            style="padding: 8px 16px;">
+                                                        <i class="fas fa-user-tag me-2"></i>Special Case
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="9" class="text-center py-4">
+                                                <div class="text-muted">
+                                                    <i class="fas fa-info-circle me-2"></i>No unassigned students found
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+
+                                <!-- Pagination for Unassigned Students -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="small text-muted">
+                                        Showing <span id="unassignedStartRecord">1</span> to 
+                                        <span id="unassignedEndRecord">10</span> of 
+                                        <span id="unassignedTotalRecords">{{ unassigned_students|length }}</span> entries
+                                    </div>
+                                    <nav aria-label="Unassigned students pagination">
+                                        <ul class="pagination pagination-sm" id="unassignedPagination">
+                                            <li class="page-item" id="unassignedPrevPage">
+                                                <a class="page-link" href="#" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <div id="unassignedPageNumbers" class="d-flex">
+                                                <!-- Page numbers will be inserted here by JavaScript -->
+                                            </div>
+                                            <li class="page-item" id="unassignedNextPage">
+                                                <a class="page-link" href="#" aria-label="Next">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -153,12 +942,17 @@
                 <form action="{% url 'auto_assign_students' %}" method="post">
                     {% csrf_token %}
                     <div class="modal-body">
-                        <p>This will automatically assign unassigned students to personnel based on gender matching.</p>
-                        <p>Currently <strong>{{ unassigned_count }}</strong> unassigned students.</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This will automatically assign unassigned students to personnel based on gender matching.
+                        </div>
+                        <p class="mb-0">Currently <strong>{{ unassigned_count }}</strong> unassigned students.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">Auto-Assign</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-magic me-1"></i> Auto-Assign
+                        </button>
                     </div>
                 </form>
             </div>
@@ -167,37 +961,85 @@
 
     <!-- Assign Student Modal -->
     <div class="modal fade" id="assignStudentModal" tabindex="-1" aria-labelledby="assignStudentModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="assignStudentModalLabel">Assign Student to Personnel</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{% url 'manual_assign_student' %}" method="post">
+                <form action="{% url 'manual_assign_student' %}" method="post" id="assignStudentForm">
                     {% csrf_token %}
                     <div class="modal-body">
-                        <input type="hidden" id="personnelId" name="personnel_id">
+                        <!-- Hidden input for personnel ID -->
+                        <input type="hidden" id="personnelId" name="personnel_id" required>
                         
-                        <div class="mb-3">
-                            <label class="form-label">Personnel:</label>
-                            <div class="form-control" id="personnelName" readonly></div>
+                        <!-- Personnel Details Section -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Selected Personnel:</label>
+                            <div class="d-flex align-items-center p-3 bg-light rounded">
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 48px; height: 48px;" 
+                                     id="personnelInitials">
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-5" id="personnelNameDisplay"></div>
+                                    <div class="text-muted small" id="personnelPositionDisplay"></div>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="mb-3">
+                        <!-- Student Selection Section -->
+                        <div class="mb-4">
+                            <label for="studentSearchInput" class="form-label fw-bold">Search Students:</label>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text bg-primary text-white">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="studentSearchInput" 
+                                       placeholder="Search by name or ID...">
+                            </div>
+                            
                             <label for="studentSelect" class="form-label">Select Student:</label>
-                            <select class="form-select" id="studentSelect" name="student_id" required>
-                                <option value="" selected disabled>-- Select student --</option>
+                            <select class="form-select" 
+                                    id="studentSelect" 
+                                    name="student_id" 
+                                    size="8"
+                                    required>
+                                <option value="">-- Select a student --</option>
                                 {% for student in unassigned_students %}
-                                <option value="{{ student.id }}">
-                                    {{ student.name }} ({{ student.student_no }})
-                                </option>
+                                    <option value="{{ student.id }}" 
+                                            data-student-no="{{ student.student_no }}"
+                                            data-gender="{{ student.gender }}"
+                                            data-course="{{ student.course }}"
+                                            data-year="{{ student.year }}">
+                                        {{ student.name }} ({{ student.student_no }})
+                                    </option>
                                 {% endfor %}
                             </select>
+                        </div>
+
+                        <!-- Student Details Section -->
+                        <div id="selectedStudentDetails" class="border rounded p-3 bg-light" style="display: none;">
+                            <h6 class="mb-3">Selected Student Details:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>Student ID:</strong> <span id="detailStudentId"></span></p>
+                                    <p class="mb-2"><strong>Name:</strong> <span id="detailName"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>Course:</strong> <span id="detailCourse"></span></p>
+                                    <p class="mb-2"><strong>Gender:</strong> <span id="detailGender"></span></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Assign</button>
+                        <button type="submit" class="btn btn-primary" id="assignStudentBtn">
+                            <i class="fas fa-user-plus me-1"></i> Assign Student
+                        </button>
                     </div>
                 </form>
             </div>
@@ -215,16 +1057,16 @@
                 <form action="{% url 'manual_assign_student' %}" method="post">
                     {% csrf_token %}
                     <div class="modal-body">
-                        <input type="hidden" id="studentId" name="student_id">
+                        <input type="hidden" id="modalStudentId" name="student_id">
                         
                         <div class="mb-3">
                             <label class="form-label">Student:</label>
-                            <div class="form-control" id="studentName" readonly></div>
+                            <div class="form-control bg-light" id="modalStudentName" readonly></div>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="personnelSelect" class="form-label">Select Personnel:</label>
-                            <select class="form-select" id="personnelSelect" name="personnel_id" required>
+                            <label for="modalPersonnelSelect" class="form-label">Select Personnel:</label>
+                            <select class="form-select" id="modalPersonnelSelect" name="personnel_id" required>
                                 <option value="" selected disabled>-- Select personnel --</option>
                                 {% for personnel in personnel_list %}
                                 <option value="{{ personnel.id }}">
@@ -236,51 +1078,96 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Assign</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-1"></i> Assign
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Reassign Student Modal -->
-    <div class="modal fade" id="reassignStudentModal" tabindex="-1" aria-labelledby="reassignStudentModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <!-- New Reassign Modal -->
+    <div class="modal fade" id="newReassignModal" tabindex="-1" aria-labelledby="newReassignModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="reassignStudentModalLabel">Reassign Student</h5>
+                    <h5 class="modal-title" id="newReassignModalLabel">Reassign Student</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{% url 'reassign_student' %}" method="post">
+                <form action="{% url 'reassign_student' %}" method="post" id="newReassignForm">
                     {% csrf_token %}
                     <div class="modal-body">
-                        <input type="hidden" id="reassignStudentId" name="student_id">
+                        <input type="hidden" id="newReassignStudentId" name="student_id">
                         
-                        <div class="mb-3">
-                            <label class="form-label">Student:</label>
-                            <div class="form-control" id="reassignStudentName" readonly></div>
+                        <!-- Current Assignment Info -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Current Assignment:</label>
+                            <div class="d-flex align-items-center p-3 bg-light rounded mb-3">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 48px; height: 48px;" 
+                                     id="currentPersonnelInitials">
+                                </div>
+                                <div>
+                                    <div class="fw-bold" id="currentPersonnelDisplay"></div>
+                                    <div class="small text-muted">Current Personnel</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center p-3 bg-light rounded">
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 48px; height: 48px;" 
+                                     id="reassignStudentInitials">
+                                </div>
+                                <div>
+                                    <div class="fw-bold" id="reassignStudentDisplay"></div>
+                                    <div class="small text-muted" id="reassignStudentDetails"></div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Current Personnel:</label>
-                            <div class="form-control" id="currentPersonnelName" readonly></div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="newPersonnelSelect" class="form-label">Select New Personnel:</label>
-                            <select class="form-select" id="newPersonnelSelect" name="new_personnel_id" required>
+
+                        <!-- New Personnel Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Search New Personnel:</label>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text bg-primary text-white">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" 
+                                       id="newReassignSearch" 
+                                       class="form-control" 
+                                       placeholder="Search personnel by name or position...">
+                            </div>
+
+                            <label for="newReassignSelect" class="form-label">Select New Personnel:</label>
+                            <select class="form-select" 
+                                    id="newReassignSelect" 
+                                    name="new_personnel_id" 
+                                    required>
                                 <option value="" selected disabled>-- Select new personnel --</option>
                                 {% for personnel in personnel_list %}
-                                <option value="{{ personnel.id }}">
-                                    {{ personnel.first_name }} {{ personnel.last_name }} ({{ personnel.gender }})
-                                </option>
+                                    <option value="{{ personnel.id }}"
+                                            data-search-text="{{ personnel.first_name|lower }} {{ personnel.last_name|lower }} {{ personnel.position|lower }}"
+                                            data-gender="{{ personnel.gender }}"
+                                            data-name="{{ personnel.first_name }} {{ personnel.last_name }}"
+                                            data-position="{{ personnel.position }}">
+                                        {{ personnel.first_name }} {{ personnel.last_name }} ({{ personnel.position }})
+                                    </option>
                                 {% endfor %}
                             </select>
+                        </div>
+
+                        <!-- Gender Match Warning -->
+                        <div id="newReassignGenderMismatch" class="alert alert-warning d-none">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Warning: New personnel and student genders do not match
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Reassign</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-exchange-alt me-1"></i> Reassign
+                        </button>
                     </div>
                 </form>
             </div>
@@ -319,170 +1206,1124 @@
             </div>
         </div>
     </div>
+
+    <!-- Special Assignment Modal -->
+    <div class="modal fade" id="specialAssignmentModal" tabindex="-1" aria-labelledby="specialAssignmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="specialAssignmentModalLabel">Special Case Assignments</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{% url 'handle_special_cases' %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Manage students with special assignments (band members, office workers) or gender preferences.
+                            These students will be excluded from automatic assignment.
+                        </div>
+
+                        <!-- Modified Search Bar -->
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-primary text-white">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" 
+                                       id="modalSpecialCaseSearch" 
+                                       class="form-control" 
+                                       placeholder="Search students by name or ID...">
+                            </div>
+                        </div>
+
+                        <!-- Student Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Select Students:</label>
+                            <select class="form-select" id="specialCaseStudents" name="student_ids" multiple size="6">
+                                {% for student in unassigned_students %}
+                                    <option value="{{ student.id }}" 
+                                            data-search-text="{{ student.name|lower }} {{ student.student_no|lower }}"
+                                            data-gender="{{ student.gender }}"
+                                            {% if student.special_assignment %}selected{% endif %}>
+                                        {{ student.name }} ({{ student.student_no }})
+                                    </option>
+                                {% endfor %}
+                                {% for assignment in all_assignments %}
+                                    <option value="{{ assignment.student.id }}"
+                                            data-search-text="{{ assignment.student.name|lower }} {{ assignment.student.student_no|lower }}"
+                                            data-gender="{{ assignment.student.gender }}"
+                                            {% if assignment.student.special_assignment %}selected{% endif %}>
+                                        {{ assignment.student.name }} ({{ assignment.student.student_no }}) - Currently Assigned
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Hold Ctrl/Cmd to select multiple students</div>
+                        </div>
+
+                        <!-- Special Case Type -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Special Case Type:</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="special_case_type" id="bandMember" value="band">
+                                <label class="form-check-label" for="bandMember">
+                                    Band Member
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="special_case_type" id="officeWorker" value="office">
+                                <label class="form-check-label" for="officeWorker">
+                                    Office Worker
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="special_case_type" id="otherGender" value="other_gender">
+                                <label class="form-check-label" for="otherGender">
+                                    Other Gender Preference
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Handler Selection Dropdown (replacing the text input) -->
+                        <div class="mb-4">
+                            <label for="specialCaseHandler" class="form-label fw-bold">Select Handler:</label>
+                            <select class="form-select" id="specialCaseHandler" name="handler_id">
+                                <option value="">-- No handler (optional) --</option>
+                                {% for personnel in personnel_list %}
+                                    <option value="{{ personnel.id }}">
+                                        {{ personnel.first_name }} {{ personnel.last_name }} ({{ personnel.position }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select the personnel who will handle this special case</div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-3">
+                            <label for="specialCaseNotes" class="form-label fw-bold">Notes:</label>
+                            <textarea class="form-control" id="specialCaseNotes" name="notes" rows="3" 
+                                      placeholder="Add any relevant notes about this special case..."></textarea>
+                        </div>
+
+                        <!-- Current Special Cases Table -->
+                        <div class="mt-4">
+                            <h6 class="mb-3">Current Special Cases:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Type</th>
+                                            <th>Handler</th>
+                                            <th>Notes</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for case in special_cases %}
+                                        <tr>
+                                            <td>{{ case.student.name }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if case.case_type == 'band' %}primary{% elif case.case_type == 'office' %}success{% else %}info{% endif %}">
+                                                    {{ case.get_case_type_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if case.handler %}
+                                                    <div class="d-flex align-items-center" data-handler-id="{{ case.handler.id }}">
+                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                            {{ case.handler.first_name|first }}{{ case.handler.last_name|first }}
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold">{{ case.handler.first_name }} {{ case.handler.last_name }}</div>
+                                                            <div class="small text-muted">{{ case.handler.position }}</div>
+                                                        </div>
+                                                    </div>
+                                                {% elif case.handler_name %}
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                            {{ case.handler_name|first }}
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold">{{ case.handler_name }}</div>
+                                                        </div>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted">No handler assigned</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="small">{{ case.notes|truncatechars:50 }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-danger remove-special-case" 
+                                                        data-case-id="{{ case.id }}">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                No special cases recorded
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save Special Cases
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bulk Delete Confirmation Modal -->
+    <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="bulkDeleteModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Remove Special Cases
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Warning:</strong> This action will remove the special case status for the selected students.
+                    </div>
+                    <p>Are you sure you want to remove the special case status for the following students?</p>
+                    <ul id="selectedCasesList" class="list-group mt-3">
+                        <!-- Selected cases will be listed here -->
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <form id="bulkDeleteForm" action="{% url 'bulk_remove_special_cases' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="case_ids" id="caseIdsInput">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-2"></i>Remove Selected Cases
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Modal for Unassigned Students Assignment -->
+    <div class="modal fade" id="unassignedAssignModal" tabindex="-1" aria-labelledby="unassignedAssignModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="unassignedAssignModalLabel">Assign Personnel to Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{% url 'manual_assign_student' %}" method="post" id="unassignedAssignForm">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" id="unassignedStudentId" name="student_id">
+                        
+                        <!-- Student Details Section -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Student Information:</label>
+                            <div class="d-flex align-items-center p-3 bg-light rounded">
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 48px; height: 48px;" 
+                                     id="unassignedStudentInitials">
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-5" id="unassignedStudentName"></div>
+                                    <div class="text-muted small" id="unassignedStudentDetails"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Personnel Selection Section -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Search Personnel:</label>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text bg-primary text-white">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" 
+                                       id="unassignedPersonnelSearch" 
+                                       class="form-control" 
+                                       placeholder="Search personnel by name or position...">
+                            </div>
+                            
+                            <label for="unassignedPersonnelSelect" class="form-label">Select Personnel:</label>
+                            <select class="form-select" 
+                                    id="unassignedPersonnelSelect" 
+                                    name="personnel_id" 
+                                    required>
+                                <option value="" selected disabled>-- Select personnel --</option>
+                                {% for personnel in personnel_list %}
+                                    <option value="{{ personnel.id }}"
+                                            data-search-text="{{ personnel.first_name|lower }} {{ personnel.last_name|lower }} {{ personnel.position|lower }}"
+                                            data-gender="{{ personnel.gender }}"
+                                            data-name="{{ personnel.first_name }} {{ personnel.last_name }}"
+                                            data-position="{{ personnel.position }}">
+                                        {{ personnel.first_name }} {{ personnel.last_name }} ({{ personnel.position }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Gender Match Warning -->
+                        <div id="unassignedGenderMismatch" class="alert alert-warning d-none">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Warning: Personnel and student genders do not match
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-1"></i> Assign
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this modal for editing special cases -->
+    <div class="modal fade" id="editSpecialCaseModal" tabindex="-1" aria-labelledby="editSpecialCaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editSpecialCaseModalLabel">Edit Special Case</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{% url 'handle_special_cases' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" id="editCaseId" name="case_id">
+                    <div class="modal-body">
+                        <!-- Student Info (Read-only) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Student:</label>
+                            <input type="hidden" id="editStudentId" name="student_ids">
+                            <div class="form-control bg-light" id="editStudentName" readonly></div>
+                        </div>
+                        
+                        <!-- Special Case Type -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Special Case Type:</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="special_case_type" id="editBandMember" value="band">
+                                <label class="form-check-label" for="editBandMember">
+                                    Band Member
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="special_case_type" id="editOfficeWorker" value="office">
+                                <label class="form-check-label" for="editOfficeWorker">
+                                    Office Worker
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="special_case_type" id="editOtherGender" value="other_gender">
+                                <label class="form-check-label" for="editOtherGender">
+                                    Other Gender Preference
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Handler Selection -->
+                        <div class="mb-3">
+                            <label for="editHandler" class="form-label fw-bold">Handler:</label>
+                            <select class="form-select" id="editHandler" name="handler_id">
+                                <option value="">-- No handler (optional) --</option>
+                                {% for personnel in personnel_list %}
+                                    <option value="{{ personnel.id }}">
+                                        {{ personnel.first_name }} {{ personnel.last_name }} ({{ personnel.position }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Notes -->
+                        <div class="mb-3">
+                            <label for="editNotes" class="form-label fw-bold">Notes:</label>
+                            <textarea class="form-control" id="editNotes" name="notes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Update Special Case
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle assign student button clicks
-        const assignBtns = document.querySelectorAll('.assign-btn');
-        assignBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const personnelId = this.getAttribute('data-personnel-id');
-                const personnelName = this.getAttribute('data-personnel-name');
-                
-                document.getElementById('personnelId').value = personnelId;
-                document.getElementById('personnelName').textContent = personnelName;
-            });
-        });
-        
-        // Handle assign personnel button clicks
-        const assignStudentBtns = document.querySelectorAll('.assign-student-btn');
-        assignStudentBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const studentId = this.getAttribute('data-student-id');
-                const studentName = this.getAttribute('data-student-name');
-                
-                document.getElementById('studentId').value = studentId;
-                document.getElementById('studentName').textContent = studentName;
-            });
-        });
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        // Handle reassign student button clicks
-        const reassignBtns = document.querySelectorAll('.reassign-btn');
-        reassignBtns.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation(); // Prevent triggering the student details modal
-                const studentId = this.getAttribute('data-student-id');
-                const studentName = this.getAttribute('data-student-name');
-                const currentPersonnelId = this.getAttribute('data-current-personnel-id');
-                const currentPersonnelName = this.getAttribute('data-current-personnel-name');
-                
-                document.getElementById('reassignStudentId').value = studentId;
-                document.getElementById('reassignStudentName').textContent = studentName;
-                document.getElementById('currentPersonnelName').textContent = currentPersonnelName;
-                
-                // Disable the current personnel in the dropdown
-                const newPersonnelSelect = document.getElementById('newPersonnelSelect');
-                for (let i = 0; i < newPersonnelSelect.options.length; i++) {
-                    if (newPersonnelSelect.options[i].value === currentPersonnelId) {
-                        newPersonnelSelect.options[i].disabled = true;
-                    } else {
-                        newPersonnelSelect.options[i].disabled = false;
-                    }
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Utility function for pagination
+    function setupPagination(tableId, searchInputId, itemsPerPage = 10) {
+        const table = document.getElementById(tableId);
+        const searchInput = document.getElementById(searchInputId);
+        const tbody = table.querySelector('tbody');
+        const rows = tbody.getElementsByTagName('tr');
+        let currentPage = 1;
+        
+        // Get pagination elements based on table ID
+        const prefix = tableId.replace('Table', '');
+        const startRecord = document.getElementById(`${prefix}StartRecord`);
+        const endRecord = document.getElementById(`${prefix}EndRecord`);
+        const totalRecords = document.getElementById(`${prefix}TotalRecords`);
+        const prevPageBtn = document.getElementById(`${prefix}PrevPage`);
+        const nextPageBtn = document.getElementById(`${prefix}NextPage`);
+        const pageNumbers = document.getElementById(`${prefix}PageNumbers`);
+        
+        function showPage(page) {
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            let visibleCount = 0;
+            
+            Array.from(rows).forEach((row, index) => {
+                if (!row.classList.contains('d-none')) {
+                    visibleCount++;
+                    row.style.display = (visibleCount > start && visibleCount <= end) ? '' : 'none';
                 }
             });
+            
+            // Update pagination info
+            const totalVisible = Array.from(rows).filter(row => !row.classList.contains('d-none')).length;
+            const actualEnd = Math.min(end, totalVisible);
+            
+            if (startRecord) startRecord.textContent = totalVisible ? start + 1 : 0;
+            if (endRecord) endRecord.textContent = actualEnd;
+            if (totalRecords) totalRecords.textContent = totalVisible;
+            
+            // Update pagination buttons
+            updatePaginationButtons(page, Math.ceil(totalVisible / itemsPerPage));
+        }
+        
+        function updatePaginationButtons(currentPage, totalPages) {
+            if (prevPageBtn) prevPageBtn.classList.toggle('disabled', currentPage === 1);
+            if (nextPageBtn) nextPageBtn.classList.toggle('disabled', currentPage === totalPages || totalPages === 0);
+            
+            if (pageNumbers) {
+                pageNumbers.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    li.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentPage = i;
+                        showPage(currentPage);
+                    });
+                    pageNumbers.appendChild(li);
+                }
+            }
+        }
+        
+        function filterTable(searchTerm) {
+            searchTerm = searchTerm.toLowerCase();
+            Array.from(rows).forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.classList.toggle('d-none', !text.includes(searchTerm));
+            });
+            currentPage = 1;
+            showPage(currentPage);
+        }
+        
+        // Event Listeners
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => filterTable(e.target.value));
+        }
+        
+        if (prevPageBtn) {
+            prevPageBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+        }
+        
+        if (nextPageBtn) {
+            nextPageBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const totalVisible = Array.from(rows).filter(row => !row.classList.contains('d-none')).length;
+                const totalPages = Math.ceil(totalVisible / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+        }
+        
+        // Initial setup
+        showPage(1);
+    }
+    
+    // Setup pagination for all tables
+    setupPagination('personnelTable', 'personnelSearchInput');
+    setupPagination('studentAssignmentTable', 'studentAssignmentSearchInput');
+    setupPagination('unassignedTable', 'unassignedSearchInput');
+    setupPagination('specialCasesTable', 'specialCasesSearchInput');
+    
+    // Special Cases Table Search Enhancement
+    const specialCasesSearchInput = document.getElementById('specialCasesSearchInput');
+    if (specialCasesSearchInput) {
+        specialCasesSearchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const checkboxes = document.querySelectorAll('.case-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const studentName = checkbox.getAttribute('data-student-name').toLowerCase();
+                const rowText = row.textContent.toLowerCase();
+                
+                row.style.display = (studentName.includes(searchTerm) || rowText.includes(searchTerm)) ? '' : 'none';
+            });
         });
+    }
+    
+    // Handle Select All Functionality for Special Cases
+    const selectAllSpecialCases = document.getElementById('selectAllSpecialCases');
+    if (selectAllSpecialCases) {
+        selectAllSpecialCases.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.case-checkbox:not([style*="display: none"])');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateSelectedCount();
+        });
+    }
+    
+    // Update selected count for special cases
+    function updateSelectedCount() {
+        const selectedCount = document.querySelectorAll('.case-checkbox:checked').length;
+        const countDisplay = document.getElementById('selectedCasesCount');
+        if (countDisplay) {
+            countDisplay.textContent = selectedCount;
+            document.getElementById('bulkActionsDropdown').disabled = selectedCount === 0;
+        }
+    }
+    
+    // Add event listeners to all case checkboxes
+    document.querySelectorAll('.case-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 
-        // Handle student details modal
-        const studentDetailsModal = document.getElementById('studentDetailsModal');
-        studentDetailsModal.addEventListener('show.bs.modal', function(event) {
+    // Add new function for Special Case modal search
+    const modalSearchInput = document.getElementById('modalSpecialCaseSearch');
+    const specialCaseSelect = document.getElementById('specialCaseStudents');
+    
+    if (modalSearchInput && specialCaseSelect) {
+        modalSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const options = specialCaseSelect.options;
+            
+            for (let option of options) {
+                const searchText = option.getAttribute('data-search-text') || '';
+                const matchesSearch = searchText.includes(searchTerm);
+                option.style.display = matchesSearch ? '' : 'none';
+            }
+        });
+        
+        // Clear search when modal is hidden
+        const specialAssignmentModal = document.getElementById('specialAssignmentModal');
+        specialAssignmentModal.addEventListener('hidden.bs.modal', function () {
+            modalSearchInput.value = '';
+            const options = specialCaseSelect.options;
+            for (let option of options) {
+                option.style.display = '';
+            }
+        });
+    }
+
+    // Initialize variables for Unassigned Students Assignment Modal
+    const unassignedModal = document.getElementById('unassignedAssignModal');
+    const unassignedStudentId = document.getElementById('unassignedStudentId');
+    const unassignedStudentName = document.getElementById('unassignedStudentName');
+    const unassignedStudentDetails = document.getElementById('unassignedStudentDetails');
+    const unassignedStudentInitials = document.getElementById('unassignedStudentInitials');
+    const unassignedPersonnelSearch = document.getElementById('unassignedPersonnelSearch');
+    const unassignedPersonnelSelect = document.getElementById('unassignedPersonnelSelect');
+    const unassignedGenderMismatch = document.getElementById('unassignedGenderMismatch');
+
+    // Handle modal opening
+    if (unassignedModal) {
+        unassignedModal.addEventListener('show.bs.modal', function(event) {
             const button = event.relatedTarget;
+            
+            // Get student data from button attributes
             const studentId = button.getAttribute('data-student-id');
             const studentName = button.getAttribute('data-student-name');
-            const studentNo = button.getAttribute('data-student-no');
             const studentGender = button.getAttribute('data-student-gender');
             const studentCourse = button.getAttribute('data-student-course');
             const studentYear = button.getAttribute('data-student-year');
-            
+
             // Update modal content
-            document.getElementById('modalStudentName').textContent = studentName;
-            document.getElementById('modalStudentNo').textContent = studentNo;
-            document.getElementById('modalStudentGender').textContent = studentGender === 'M' ? 'Male' : 'Female';
-            document.getElementById('modalStudentCourse').textContent = studentCourse || 'Not specified';
-            document.getElementById('modalStudentYear').textContent = studentYear || 'Not specified';
+            unassignedStudentId.value = studentId;
+            unassignedStudentName.textContent = studentName;
+            unassignedStudentDetails.textContent = `${studentCourse} - ${studentYear} Year`;
+            unassignedStudentInitials.textContent = studentName.split(' ').map(n => n[0]).join('');
+
+            // Reset personnel selection
+            unassignedPersonnelSelect.value = '';
+            unassignedPersonnelSearch.value = '';
+            unassignedGenderMismatch.classList.add('d-none');
+
+            // Show all personnel options
+            Array.from(unassignedPersonnelSelect.options).forEach(option => {
+                option.style.display = '';
+            });
+        });
+    }
+
+    // Handle personnel search
+    if (unassignedPersonnelSearch && unassignedPersonnelSelect) {
+        unassignedPersonnelSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
             
-            // Check if student is assigned to personnel
-            const assignedPersonnelInfo = document.getElementById('assignedPersonnelInfo');
-            const unassignedInfo = document.getElementById('unassignedInfo');
-            
-            // This is a simplified check - in a real app, you'd fetch this data via AJAX
-            // or pass it through data attributes
-            const isAssigned = !button.closest('.col-md-4'); // If not in unassigned section
-            
-            if (isAssigned) {
-                assignedPersonnelInfo.classList.remove('d-none');
-                unassignedInfo.classList.add('d-none');
+            Array.from(unassignedPersonnelSelect.options).forEach(option => {
+                if (option.value === '') return; // Skip placeholder option
                 
-                // Get personnel info from the closest row
-                const row = button.closest('tr');
-                const personnelName = row.querySelector('td:first-child').textContent.trim();
-                const personnelPosition = row.querySelector('td:nth-child(3)').textContent.trim();
-                
-                document.getElementById('modalPersonnelName').textContent = personnelName;
-                document.getElementById('modalPersonnelPosition').textContent = personnelPosition;
-                document.getElementById('modalAssignmentStatus').textContent = 'Assigned';
-            } else {
-                assignedPersonnelInfo.classList.add('d-none');
-                unassignedInfo.classList.remove('d-none');
-                document.getElementById('modalAssignmentStatus').textContent = 'Unassigned';
-                
-                // Set up the assign button in the modal
-                const assignFromModalBtn = document.getElementById('assignFromModalBtn');
-                assignFromModalBtn.addEventListener('click', function() {
-                    // Close current modal
-                    const currentModal = bootstrap.Modal.getInstance(studentDetailsModal);
-                    currentModal.hide();
-                    
-                    // Open assign modal with pre-filled data
-                    document.getElementById('studentId').value = studentId;
-                    document.getElementById('studentName').textContent = studentName;
-                    
-                    // Show the assign modal
-                    const assignModal = new bootstrap.Modal(document.getElementById('assignPersonnelModal'));
-                    assignModal.show();
-                });
+                const searchText = option.getAttribute('data-search-text') || '';
+                const matchesSearch = searchText.includes(searchTerm);
+                option.style.display = matchesSearch ? '' : 'none';
+            });
+        });
+    }
+
+    // Handle personnel selection and gender matching
+    if (unassignedPersonnelSelect) {
+        unassignedPersonnelSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value === '') return;
+
+            const personnelGender = selectedOption.getAttribute('data-gender');
+            const studentGender = document.querySelector(`button[data-student-id="${unassignedStudentId.value}"]`)
+                                        .getAttribute('data-student-gender');
+
+            // Show/hide gender mismatch warning
+            if (personnelGender && studentGender) {
+                const genderMatch = (personnelGender === 'Male' && studentGender === 'M') || 
+                                  (personnelGender === 'Female' && studentGender === 'F');
+                unassignedGenderMismatch.classList.toggle('d-none', genderMatch);
             }
         });
+    }
 
-        // Add click event to student badges for details modal
-        const studentBadges = document.querySelectorAll('.student-badge');
-        studentBadges.forEach(badge => {
-            badge.addEventListener('click', function(e) {
-                // Only trigger if not clicking on a button inside the badge
-                if (!e.target.closest('button') && !e.target.closest('a')) {
-                    // The modal will be triggered by data-bs-toggle and data-bs-target attributes
-                }
+    // Initialize variables for new reassign modal
+    const newReassignModal = document.getElementById('newReassignModal');
+    const newReassignStudentId = document.getElementById('newReassignStudentId');
+    const currentPersonnelDisplay = document.getElementById('currentPersonnelDisplay');
+    const currentPersonnelInitials = document.getElementById('currentPersonnelInitials');
+    const reassignStudentDisplay = document.getElementById('reassignStudentDisplay');
+    const reassignStudentDetails = document.getElementById('reassignStudentDetails');
+    const reassignStudentInitials = document.getElementById('reassignStudentInitials');
+    const newReassignSearch = document.getElementById('newReassignSearch');
+    const newReassignSelect = document.getElementById('newReassignSelect');
+    const newReassignGenderMismatch = document.getElementById('newReassignGenderMismatch');
+
+    // Handle modal opening
+    if (newReassignModal) {
+        newReassignModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            
+            // Get data from button attributes
+            const studentId = button.getAttribute('data-student-id');
+            const studentName = button.getAttribute('data-student-name');
+            const studentDetails = button.getAttribute('data-student-details');
+            const studentGender = button.getAttribute('data-student-gender');
+            const currentPersonnelName = button.getAttribute('data-current-personnel-name');
+            const currentPersonnelPosition = button.getAttribute('data-current-personnel-position');
+
+            // Update modal content
+            newReassignStudentId.value = studentId;
+            currentPersonnelDisplay.textContent = `${currentPersonnelName} - ${currentPersonnelPosition}`;
+            currentPersonnelInitials.textContent = currentPersonnelName.split(' ').map(n => n[0]).join('');
+            reassignStudentDisplay.textContent = studentName;
+            reassignStudentDetails.textContent = studentDetails;
+            reassignStudentInitials.textContent = studentName.split(' ').map(n => n[0]).join('');
+
+            // Reset personnel selection
+            newReassignSelect.value = '';
+            newReassignSearch.value = '';
+            newReassignGenderMismatch.classList.add('d-none');
+
+            // Show all personnel options
+            Array.from(newReassignSelect.options).forEach(option => {
+                option.style.display = '';
             });
         });
+    }
 
-        // Add animation when the reset button is clicked
-        const resetButton = document.querySelector('[data-bs-target="#resetAssignmentsModal"]');
-        if (resetButton) {
-            resetButton.addEventListener('click', function() {
-                this.classList.add('btn-pulse');
-                setTimeout(() => {
-                    this.classList.remove('btn-pulse');
-                }, 500);
+    // Handle personnel search
+    if (newReassignSearch && newReassignSelect) {
+        newReassignSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            Array.from(newReassignSelect.options).forEach(option => {
+                if (option.value === '') return; // Skip placeholder option
+                
+                const searchText = option.getAttribute('data-search-text') || '';
+                const matchesSearch = searchText.includes(searchTerm);
+                option.style.display = matchesSearch ? '' : 'none';
             });
+        });
+    }
+
+    // Handle personnel selection and gender matching
+    if (newReassignSelect) {
+        newReassignSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value === '') return;
+
+            const personnelGender = selectedOption.getAttribute('data-gender');
+            const studentGender = document.querySelector(`button[data-student-id="${newReassignStudentId.value}"]`)
+                                        .getAttribute('data-student-gender');
+
+            // Show/hide gender mismatch warning
+            if (personnelGender && studentGender) {
+                const genderMatch = (personnelGender === 'Male' && studentGender === 'M') || 
+                                  (personnelGender === 'Female' && studentGender === 'F');
+                newReassignGenderMismatch.classList.toggle('d-none', genderMatch);
+            }
+        });
+    }
+
+    // Initialize variables for edit special case modal
+    const editSpecialCaseModal = document.getElementById('editSpecialCaseModal');
+    const editStudentId = document.getElementById('editStudentId');
+    const editStudentName = document.getElementById('editStudentName');
+    const editStudentDetails = document.getElementById('editStudentDetails');
+    const editStudentInitials = document.getElementById('editStudentInitials');
+    const editCaseType = document.getElementById('editCaseType');
+    const editHandlerName = document.getElementById('editHandlerName');
+    const editNotes = document.getElementById('editNotes');
+
+    // Handle edit button clicks in the Special Cases Overview table
+    const editSpecialCaseButtons = document.querySelectorAll('[data-bs-target="#editSpecialCaseModal"]');
+    editSpecialCaseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Get data from button attributes
+            const studentId = this.getAttribute('data-student-id');
+            const studentName = this.getAttribute('data-student-name');
+            const caseType = this.getAttribute('data-case-type');
+            const handlerName = this.getAttribute('data-handler-name') || '';
+            const notes = this.getAttribute('data-notes') || '';
+            const studentNo = this.closest('tr').querySelector('td:first-child').textContent;
+
+            // Update modal content
+            editStudentId.value = studentId;
+            editStudentName.textContent = studentName;
+            editStudentDetails.textContent = `ID: ${studentNo}`;
+            editStudentInitials.textContent = studentName.split(' ').map(n => n[0]).join('');
+            editCaseType.value = caseType;
+            editHandlerName.value = handlerName;
+            editNotes.value = notes;
+        });
+    });
+
+    // Form submission handling
+    const editSpecialCaseForm = document.getElementById('editSpecialCaseForm');
+    if (editSpecialCaseForm) {
+        editSpecialCaseForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Create array with single student ID for consistency with backend
+            const studentIds = [editStudentId.value];
+            this.elements['student_ids'].value = studentIds;
+            
+            this.submit();
+        });
+    }
+
+    // Reset form when modal is hidden
+    if (editSpecialCaseModal) {
+        editSpecialCaseModal.addEventListener('hidden.bs.modal', function() {
+            editSpecialCaseForm.reset();
+            editStudentName.textContent = '';
+            editStudentDetails.textContent = '';
+            editStudentInitials.textContent = '';
+        });
+    }
+
+    // Personnel filter functionality
+    const personnelFilterSelect = document.getElementById('personnelFilterSelect');
+    const personnelSearchInput = document.getElementById('personnelSearchInput');
+    const personnelRows = document.querySelectorAll('.personnel-row');
+    
+    // Function to filter personnel based on both dropdown and search input
+    function filterPersonnel() {
+        const selectedPersonnelId = personnelFilterSelect.value;
+        const searchText = personnelSearchInput.value.toLowerCase();
+        
+        personnelRows.forEach(row => {
+            const personnelId = row.getAttribute('data-personnel-id');
+            const personnelName = row.querySelector('h5.fw-bold').textContent.toLowerCase();
+            const personnelPosition = row.querySelector('.badge.bg-primary').textContent.toLowerCase();
+            const personnelStudentId = row.querySelector('.text-muted:nth-of-type(1)').textContent.toLowerCase();
+            
+            const matchesDropdown = !selectedPersonnelId || personnelId === selectedPersonnelId;
+            const matchesSearch = !searchText || 
+                                 personnelName.includes(searchText) || 
+                                 personnelPosition.includes(searchText) || 
+                                 personnelStudentId.includes(searchText);
+            
+            if (matchesDropdown && matchesSearch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Update pagination after filtering
+        updatePersonnelPagination();
+    }
+    
+    // Add event listeners
+    if (personnelFilterSelect) {
+        personnelFilterSelect.addEventListener('change', filterPersonnel);
+    }
+    
+    if (personnelSearchInput) {
+        personnelSearchInput.addEventListener('input', filterPersonnel);
+    }
+    
+    // Add data-personnel-id attribute to each row for filtering
+    personnelRows.forEach(row => {
+        const personnelInfoDiv = row.querySelector('.me-4.shadow-sm');
+        if (personnelInfoDiv) {
+            const personnelNameElement = personnelInfoDiv.querySelector('h5.fw-bold');
+            if (personnelNameElement) {
+                const personnelName = personnelNameElement.textContent.trim();
+                // Find the personnel ID from the list
+                {% for personnel in personnel_list %}
+                if (personnelName === "{{ personnel.first_name }} {{ personnel.last_name }}") {
+                    row.setAttribute('data-personnel-id', "{{ personnel.id }}");
+                }
+                {% endfor %}
+            }
+        }
+    });
+
+    // Add Assignment Distribution Chart initialization
+    const assignmentDistributionChart = document.getElementById('assignmentDistributionChart');
+    if (assignmentDistributionChart) {
+        // Get personnel data from the backend
+        const personnelLabels = [
+            {% for personnel in personnel_list %}
+                "{{ personnel.first_name }} {{ personnel.last_name }}",
+            {% endfor %}
+        ];
+        
+        // Get assignment counts by gender
+        const maleAssignments = [
+            {% for personnel in personnel_list %}
+                {% with assigned_students=personnel_assignments|get_item:personnel.id %}
+                    {{ assigned_students|filter_by_gender:'M'|length }},
+                {% endwith %}
+            {% endfor %}
+        ];
+        
+        const femaleAssignments = [
+            {% for personnel in personnel_list %}
+                {% with assigned_students=personnel_assignments|get_item:personnel.id %}
+                    {{ assigned_students|filter_by_gender:'F'|length }},
+                {% endwith %}
+            {% endfor %}
+        ];
+        
+        // Create the chart
+        new Chart(assignmentDistributionChart, {
+            type: 'bar',
+            data: {
+                labels: personnelLabels,
+                datasets: [
+                    {
+                        label: 'Male Students',
+                        data: maleAssignments,
+                        backgroundColor: 'rgba(78, 115, 223, 0.7)',
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Female Students',
+                        data: femaleAssignments,
+                        backgroundColor: 'rgba(231, 74, 59, 0.7)',
+                        borderColor: 'rgba(231, 74, 59, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                return tooltipItems[0].label;
+                            },
+                            label: function(context) {
+                                const label = context.dataset.label || '';
+                                const value = context.parsed.y || 0;
+                                return `${label}: ${value} students`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Add this function to your JavaScript code
+    function updatePersonnelPagination() {
+        // Get all visible rows
+        const visibleRows = Array.from(document.querySelectorAll('.personnel-row'))
+            .filter(row => row.style.display !== 'none');
+        
+        const totalVisible = visibleRows.length;
+        const itemsPerPage = 10; // Adjust if needed
+        const totalPages = Math.ceil(totalVisible / itemsPerPage);
+        
+        // Update pagination info
+        document.getElementById('personnelTotalRecords').textContent = totalVisible;
+        
+        // Update page numbers
+        const pageNumbers = document.getElementById('personnelPageNumbers');
+        pageNumbers.innerHTML = '';
+        
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === 1 ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            li.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPersonnelPage(i);
+            });
+            pageNumbers.appendChild(li);
         }
         
-        // Add confirmation feedback when the form is submitted
-        const resetForm = document.querySelector('#resetAssignmentsModal form');
-        if (resetForm) {
-            resetForm.addEventListener('submit', function() {
-                const submitButton = this.querySelector('button[type="submit"]');
-                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Resetting...';
-                submitButton.disabled = true;
+        // Show first page
+        showPersonnelPage(1);
+    }
+
+    function showPersonnelPage(page) {
+        const itemsPerPage = 10; // Adjust if needed
+        const start = (page - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        
+        // Get all visible rows
+        const visibleRows = Array.from(document.querySelectorAll('.personnel-row'))
+            .filter(row => row.style.display !== 'none');
+        
+        // Hide all rows first
+        visibleRows.forEach(row => row.style.display = 'none');
+        
+        // Show only rows for current page
+        visibleRows.slice(start, end).forEach(row => row.style.display = '');
+        
+        // Update pagination info
+        document.getElementById('personnelStartRecord').textContent = visibleRows.length ? start + 1 : 0;
+        document.getElementById('personnelEndRecord').textContent = Math.min(end, visibleRows.length);
+        
+        // Update active page button
+        const pageButtons = document.querySelectorAll('#personnelPageNumbers .page-item');
+        pageButtons.forEach((btn, i) => {
+            btn.classList.toggle('active', i + 1 === page);
+        });
+        
+        // Update prev/next buttons
+        document.getElementById('personnelPrevPage').classList.toggle('disabled', page === 1);
+        document.getElementById('personnelNextPage').classList.toggle('disabled', page === Math.ceil(visibleRows.length / itemsPerPage));
+    }
+
+    // Special Cases Personnel Filter
+    const specialCasesPersonnelFilter = document.getElementById('specialCasesPersonnelFilter');
+    if (specialCasesPersonnelFilter) {
+        specialCasesPersonnelFilter.addEventListener('change', function() {
+            const selectedPersonnelId = this.value;
+            const specialCasesTable = document.getElementById('specialCasesTable');
+            const rows = specialCasesTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                // Skip the "no special cases" row if it exists
+                if (row.querySelector('td[colspan]')) {
+                    // Only show this row if there are no visible rows after filtering
+                    return;
+                }
+                
+                // Get handler information from the row
+                const handlerCell = row.querySelector('td:nth-child(5)');
+                const handlerInfo = handlerCell ? handlerCell.textContent.trim() : '';
+                
+                if (selectedPersonnelId === '') {
+                    // Show all rows when "All Handlers" is selected
+                    row.style.display = '';
+                } else if (selectedPersonnelId === 'no-handler') {
+                    // Show only rows with no handler assigned
+                    row.style.display = handlerInfo.includes('No handler assigned') ? '' : 'none';
+                } else {
+                    // Check if the handler ID is in the row's data attributes
+                    const handlerLink = row.querySelector('td:nth-child(5) [data-handler-id]');
+                    const rowHandlerId = handlerLink ? handlerLink.getAttribute('data-handler-id') : '';
+                    
+                    row.style.display = rowHandlerId === selectedPersonnelId ? '' : 'none';
+                }
+            });
+            
+            // Update the "no special cases" row visibility
+            const visibleRows = Array.from(rows).filter(row => !row.querySelector('td[colspan]') && row.style.display !== 'none');
+            const noSpecialCasesRow = Array.from(rows).find(row => row.querySelector('td[colspan]'));
+            
+            if (noSpecialCasesRow) {
+                noSpecialCasesRow.style.display = visibleRows.length === 0 ? '' : 'none';
+            }
+            
+            // Reset pagination to first page and update counts
+            updateSpecialCasesPagination();
+        });
+    }
+
+    // Function to update special cases pagination after filtering
+    function updateSpecialCasesPagination() {
+        const specialCasesTable = document.getElementById('specialCasesTable');
+        const rows = specialCasesTable.querySelectorAll('tbody tr');
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+        
+        // Update the counts
+        const startRecord = document.getElementById('specialCasesStartRecord');
+        const endRecord = document.getElementById('specialCasesEndRecord');
+        const totalRecords = document.getElementById('specialCasesTotalRecords');
+        
+        if (startRecord && endRecord && totalRecords) {
+            const visibleCount = visibleRows.length;
+            startRecord.textContent = visibleCount > 0 ? '1' : '0';
+            endRecord.textContent = Math.min(10, visibleCount);
+            totalRecords.textContent = visibleCount;
+        }
+        
+        // Update pagination buttons
+        const pageNumbers = document.getElementById('specialCasesPageNumbers');
+        const prevPage = document.getElementById('specialCasesPrevPage');
+        const nextPage = document.getElementById('specialCasesNextPage');
+        
+        if (pageNumbers) {
+            pageNumbers.innerHTML = '';
+            const totalPages = Math.ceil(visibleRows.length / 10);
+            
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === 1 ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showSpecialCasesPage(i);
+                });
+                pageNumbers.appendChild(li);
+            }
+        }
+        
+        if (prevPage) prevPage.classList.toggle('disabled', true);
+        if (nextPage) nextPage.classList.toggle('disabled', visibleRows.length <= 10);
+        
+        // Show first page
+        showSpecialCasesPage(1);
+    }
+
+    // Function to show a specific page of special cases
+    function showSpecialCasesPage(page) {
+        const table = document.getElementById('specialCasesTable');
+        const tbody = table.querySelector('tbody');
+        const rows = tbody.querySelectorAll('tr:not([style*="display: none"])');
+        const itemsPerPage = 10;
+        const start = (page - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        
+        Array.from(rows).forEach((row, index) => {
+            row.style.display = (index >= start && index < end) ? '' : 'none';
+        });
+        
+        // Update active page button
+        const pageButtons = document.querySelectorAll('#specialCasesPageNumbers .page-item');
+        pageButtons.forEach((btn, idx) => {
+            btn.classList.toggle('active', idx + 1 === page);
+        });
+        
+        // Update pagination info
+        const startRecord = document.getElementById('specialCasesStartRecord');
+        const endRecord = document.getElementById('specialCasesEndRecord');
+        
+        if (startRecord && endRecord) {
+            startRecord.textContent = rows.length > 0 ? start + 1 : 0;
+            endRecord.textContent = Math.min(end, rows.length);
+        }
+        
+        // Update prev/next buttons
+        const prevPage = document.getElementById('specialCasesPrevPage');
+        const nextPage = document.getElementById('specialCasesNextPage');
+        
+        if (prevPage) prevPage.classList.toggle('disabled', page === 1);
+        if (nextPage) nextPage.classList.toggle('disabled', page >= Math.ceil(rows.length / itemsPerPage));
+    }
+
+    // Add data-handler-id attributes to handler cells for easier filtering
+    document.addEventListener('DOMContentLoaded', function() {
+        const specialCasesTable = document.getElementById('specialCasesTable');
+        if (specialCasesTable) {
+            const rows = specialCasesTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const handlerCell = row.querySelector('td:nth-child(5)');
+                if (handlerCell) {
+                    const handlerDiv = handlerCell.querySelector('.d-flex');
+                    if (handlerDiv) {
+                        // Extract handler ID from any existing data attributes or links
+                        const handlerId = handlerDiv.getAttribute('data-handler-id') || '';
+                        handlerDiv.setAttribute('data-handler-id', handlerId);
+                    }
+                }
             });
         }
     });
+});
 </script>
-
-<style>
-    .btn-pulse {
-        animation: pulse 0.5s;
-    }
-    
-    @keyframes pulse {
-        0% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.1);
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-</style>
 {% endblock %} 

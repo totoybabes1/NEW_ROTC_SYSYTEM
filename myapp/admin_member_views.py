@@ -16,12 +16,16 @@ def personnel_list(request):
     male_count = Personnel.objects.filter(gender='Male').count()
     female_count = Personnel.objects.filter(gender='Female').count()
     
+    # Add flight group statistics
+    total_groups = flight_groups.count()
+    
     return render(request, 'admin/admin_personnel_list.html', {
         'personnel': personnel,
         'flight_groups': flight_groups,
         'active_count': active_count,
         'male_count': male_count,
-        'female_count': female_count
+        'female_count': female_count,
+        'total_groups': total_groups
     })
 
 def add_personnel(request):
@@ -129,3 +133,46 @@ def bulk_delete_personnel(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+# Add flight group management functions
+def add_flight_group(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        
+        try:
+            FlightGroup.objects.create(name=name, description=description)
+            messages.success(request, f'Flight group "{name}" created successfully.')
+        except Exception as e:
+            messages.error(request, f'Error creating flight group: {str(e)}')
+    
+    return redirect('admin_personnel_list')
+
+def edit_flight_group(request, group_id):
+    group = get_object_or_404(FlightGroup, id=group_id)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        
+        try:
+            group.name = name
+            group.description = description
+            group.save()
+            messages.success(request, f'Flight group "{name}" updated successfully.')
+        except Exception as e:
+            messages.error(request, f'Error updating flight group: {str(e)}')
+    
+    return redirect('admin_personnel_list')
+
+def delete_flight_group(request, group_id):
+    group = get_object_or_404(FlightGroup, id=group_id)
+    
+    try:
+        group_name = group.name
+        group.delete()
+        messages.success(request, f'Flight group "{group_name}" deleted successfully.')
+    except Exception as e:
+        messages.error(request, f'Error deleting flight group: {str(e)}')
+    
+    return redirect('admin_personnel_list')

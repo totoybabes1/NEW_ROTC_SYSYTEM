@@ -107,18 +107,58 @@ def edit_student_record(request):
         student_id = request.POST.get('student_id')
         try:
             student = StudentRecord.objects.get(id=student_id)
-            student.student_no = request.POST.get('student_no')
-            student.name = request.POST.get('name')
-            student.gender = request.POST.get('gender')
-            student.course = request.POST.get('course')
-            student.year = request.POST.get('year')
-            student.status = request.POST.get('status', 'ACTIVE')
+            
+            # Get form data
+            student_no = request.POST.get('student_no', '').strip()
+            name = request.POST.get('name', '').strip()
+            gender = request.POST.get('gender', '').strip()
+            course = request.POST.get('course', '').strip()
+            year_value = request.POST.get('year', '4')
+            status = request.POST.get('status', 'ACTIVE')
+            
+            # Validate student number
+            if not student_no:
+                messages.error(request, 'Student number cannot be empty')
+                return redirect('display_uploaded_tables')
+            
+            # Validate name
+            if not name:
+                messages.error(request, 'Student name cannot be empty')
+                return redirect('display_uploaded_tables')
+            
+            # Validate gender
+            if gender not in ['M', 'F']:
+                messages.error(request, 'Gender must be M or F')
+                return redirect('display_uploaded_tables')
+            
+            # Validate course
+            if not course:
+                course = 'BSCRM'  # Default course
+            
+            # Validate year
+            try:
+                year = int(float(year_value))
+                if year < 1 or year > 5:
+                    year = 2  # Default to year 2 if outside valid range
+            except (ValueError, TypeError):
+                year = 2  # Default to year 2 if conversion fails
+            
+            # Update student record
+            student.student_no = student_no
+            student.name = name
+            student.gender = gender
+            student.course = course
+            student.year = year
+            student.status = status
             student.save()
-            messages.success(request, 'Student record updated successfully!')
+            
+            messages.success(request, f'Student record for {name} updated successfully!')
+            
         except StudentRecord.DoesNotExist:
             messages.error(request, 'Student record not found!')
         except Exception as e:
             messages.error(request, f'Error updating record: {str(e)}')
+    
     return redirect('display_uploaded_tables')
 
 @login_required

@@ -1,15 +1,14 @@
 {% extends 'admin/base.html' %}
 {% load static %}
 
+{% block title %}Student Records{% endblock %}
+
 {% block content %}
-
-<!-- Add this line below your existing static loads -->
-<link rel="stylesheet" href="{% static 'css/admin_display_uploaded_tables.css' %}">
-
-<div class="container">
-    <div class="row mb-4" data-aos="fade-up">
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 bg-white shadow-sm">
+            <div class="card shadow-sm">
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-auto">
@@ -18,7 +17,7 @@
                             </div>
                         </div>
                         <div class="col">
-                            <h1 class="h3 mb-2">Uploaded Student Records</h1>
+                            <h1 class="h3 mb-2"> Student Records</h1>
                             <p class="text-muted mb-0">
                                 View and manage student information including student numbers, names, gender, courses and year levels.
                             </p>
@@ -28,48 +27,61 @@
             </div>
         </div>
     </div>
+
     <!-- Search Card -->
-    <div class="card mb-4" data-aos="fade-up">
-        <div class="card-body p-4">
-            <div class="row align-items-center">
-                <div class="col-auto">
-                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                        <i class="fa-solid fa-search text-primary fa-2x"></i>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="alert alert-light border mb-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-search text-primary me-3"></i>
+                    <div>
+                        <h6 class="mb-1">Search Students</h6>
+                        <p class="mb-0">Enter a student number, name, or course to filter the records below. The search will update results as you type.</p>
                     </div>
                 </div>
-                <div class="col">
-                    <div class="input-group">
-                        <input type="text" id="searchInput" class="form-control form-control-lg border-0 bg-light" 
-                               placeholder="Search by student number, name, or course...">
-                        <button class="btn btn-primary" type="button">
-                            <i class="fa-solid fa-search"></i> Search
-                        </button>
-                    </div>
-                </div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="searchInput" class="form-control" 
+                    placeholder="Search by student number, name, or course...">
+                <button class="btn btn-primary" type="button" id="searchButton">
+                    Search
+                </button>
             </div>
         </div>
     </div>
-    <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-info alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Student Records</h5>
-            <div>
-                <a href="{% url 'upload_excel' %}" class="btn btn-primary btn-sm">Upload New File</a>
-            </div>
+
+            <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+    <!-- Student Records Card -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-center align-items-center p-4">
+            <h3 class="mb-0 me-4"><i class="fas fa-history me-3 fa-lg"></i>Student Records</h3>
+            <a href="{% url 'upload_excel' %}" class="btn btn-outline-primary btn-lg"><i class="fas fa-table me-2"></i>Go Back to Upload Excel</a>
         </div>
         <div class="card-body">
+            <!-- Description section -->
+            <div class="alert alert-light border mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle text-primary me-3 fa-lg"></i>
+                    <div>
+                        <h6 class="mb-1">About Student Records</h6>
+                        <p class="mb-0">This table displays comprehensive student information including student numbers, names, gender, courses, and year levels. You can view, edit, or delete records using the action buttons. Use the search bar above to quickly find specific students.</p>
+                    </div>
+                </div>
+            </div>
+
             {% if students %}
                 <div class="table-responsive">
                     <table class="table table-hover" id="studentTable">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
                                 <th>Student No.</th>
                                 <th>Name</th>
@@ -83,17 +95,23 @@
                         </thead>
                         <tbody>
                             {% for student in students %}
-                            <tr>
+                            <tr class="student-row">
                                 <td>{{ student.student_no }}</td>
                                 <td>{{ student.name }}</td>
                                 <td>{{ student.get_gender_display }}</td>
                                 <td>{{ student.course }}</td>
                                 <td>{{ student.year }}</td>
-                                <td>{{ student.status }}</td>
+                                <td>
+                                    {% if student.status == 'ACTIVE' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ student.upload_date|date:"d M Y H:i" }}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-info view-btn" 
+                                        <button class="btn btn-sm btn-outline-info view-btn" 
                                                 data-id="{{ student.id }}"
                                                 data-student-no="{{ student.student_no }}"
                                                 data-name="{{ student.name }}"
@@ -101,23 +119,29 @@
                                                 data-course="{{ student.course }}"
                                                 data-year="{{ student.year }}"
                                                 data-status="{{ student.status }}"
-                                                data-upload-date="{{ student.upload_date|date:'d M Y H:i' }}">
+                                                data-upload-date="{{ student.upload_date|date:'d M Y H:i' }}"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#viewModal">
                                             <i class="fa-solid fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-primary edit-btn" 
+                                        <button class="btn btn-sm btn-outline-primary edit-btn" 
                                                 data-id="{{ student.id }}"
                                                 data-student-no="{{ student.student_no }}"
                                                 data-name="{{ student.name }}"
                                                 data-gender="{{ student.gender }}"
                                                 data-course="{{ student.course }}"
                                                 data-year="{{ student.year }}"
-                                                data-status="{{ student.status }}">
-                                            Edit
+                                                data-status="{{ student.status }}"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editModal">
+                                            <i class="fa-solid fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-danger delete-btn" 
+                                        <button class="btn btn-sm btn-outline-danger delete-btn"
                                                 data-id="{{ student.id }}"
-                                                data-name="{{ student.name }}">
-                                            Delete
+                                                data-name="{{ student.name }}"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal">
+                                            <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -126,8 +150,33 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div>
+                        <p class="text-muted mb-0">Showing <span id="startRecord">1</span> to <span id="endRecord">10</span> of <span id="totalRecords">0</span> records</p>
+                    </div>
+                    <nav aria-label="Student records pagination">
+                        <ul class="pagination mb-0">
+                            <li class="page-item disabled" id="prevPage">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#" data-page="1">1</a></li>
+                            <li class="page-item" id="nextPage">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
             {% else %}
-                <p class="text-muted mb-0">No student records found.</p>
+                <div class="alert alert-info">
+                    <i class="fa-solid fa-info-circle me-2"></i>
+                    <p class="text-muted mb-0">No student records found.</p>
+                </div>
             {% endif %}
         </div>
     </div>
@@ -155,7 +204,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="gender" class="form-label">Gender</label>
-                        <select class="form-control" id="gender" name="gender" required>
+                        <select class="form-select" id="gender" name="gender" required>
                             <option value="M">Male</option>
                             <option value="F">Female</option>
                         </select>
@@ -170,7 +219,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
-                        <select class="form-control" id="status" name="status" required>
+                        <select class="form-select" id="status" name="status" required>
                             <option value="ACTIVE">Active</option>
                             <option value="INACTIVE">Inactive</option>
                         </select>
@@ -185,36 +234,37 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Delete Student Record</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete the record for <span id="deleteStudentName"></span>?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" action="{% url 'delete_student_record' %}">
-                    {% csrf_token %}
+            <form action="{% url 'delete_student_record' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
                     <input type="hidden" id="deleteStudentId" name="student_id">
+                    <p>Are you sure you want to delete the record for <strong id="deleteStudentName"></strong>?</p>
+                    <p class="text-danger"><i class="fa-solid fa-exclamation-triangle me-2"></i>This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Add View Modal -->
+<!-- View Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-info text-white">
                 <h5 class="modal-title">Student Information</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="row mb-3">
@@ -258,11 +308,8 @@
         // Handle edit button clicks
         document.querySelectorAll('.edit-btn').forEach(button => {
             button.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('editModal'));
                 const data = this.dataset;
-    
-                console.log(data); // Debug: Check if data is being captured correctly
-    
+                
                 // Set form values
                 document.getElementById('studentId').value = data.id;
                 document.getElementById('studentNo').value = data.studentNo;
@@ -271,51 +318,201 @@
                 document.getElementById('course').value = data.course;
                 document.getElementById('year').value = data.year;
                 document.getElementById('status').value = data.status;
-    
-                modal.show();
             });
         });
-
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        const studentTable = document.getElementById('studentTable');
         
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = studentTable.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        // Pagination functionality
+        const rowsPerPage = 10;
+        let currentPage = 1;
+        const rows = document.querySelectorAll('.student-row');
+        const totalRows = rows.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+        
+        // Update pagination display
+        function updatePagination() {
+            // Update record count display
+            const startRecord = (currentPage - 1) * rowsPerPage + 1;
+            const endRecord = Math.min(currentPage * rowsPerPage, totalRows);
+            document.getElementById('startRecord').textContent = totalRows > 0 ? startRecord : 0;
+            document.getElementById('endRecord').textContent = endRecord;
+            document.getElementById('totalRecords').textContent = totalRows;
             
-            for (let row of rows) {
-                const studentNo = row.cells[0].textContent.toLowerCase();
-                const name = row.cells[1].textContent.toLowerCase();
-                const course = row.cells[3].textContent.toLowerCase();
+            // Update pagination buttons
+            const paginationList = document.querySelector('.pagination');
+            paginationList.innerHTML = '';
+            
+            // Previous button
+            const prevItem = document.createElement('li');
+            prevItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevItem.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>`;
+            prevItem.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    goToPage(currentPage - 1);
+                }
+            });
+            paginationList.appendChild(prevItem);
+            
+            // Page numbers
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            if (startPage > 1) {
+                const firstItem = document.createElement('li');
+                firstItem.className = 'page-item';
+                firstItem.innerHTML = `<a class="page-link" href="#" data-page="1">1</a>`;
+                firstItem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    goToPage(1);
+                });
+                paginationList.appendChild(firstItem);
                 
-                if (studentNo.includes(searchTerm) || 
-                    name.includes(searchTerm) || 
-                    course.includes(searchTerm)) {
+                if (startPage > 2) {
+                    const ellipsisItem = document.createElement('li');
+                    ellipsisItem.className = 'page-item disabled';
+                    ellipsisItem.innerHTML = `<a class="page-link" href="#">...</a>`;
+                    paginationList.appendChild(ellipsisItem);
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageItem = document.createElement('li');
+                pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageItem.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                pageItem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    goToPage(i);
+                });
+                paginationList.appendChild(pageItem);
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsisItem = document.createElement('li');
+                    ellipsisItem.className = 'page-item disabled';
+                    ellipsisItem.innerHTML = `<a class="page-link" href="#">...</a>`;
+                    paginationList.appendChild(ellipsisItem);
+                }
+                
+                const lastItem = document.createElement('li');
+                lastItem.className = 'page-item';
+                lastItem.innerHTML = `<a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>`;
+                lastItem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    goToPage(totalPages);
+                });
+                paginationList.appendChild(lastItem);
+            }
+            
+            // Next button
+            const nextItem = document.createElement('li');
+            nextItem.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextItem.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>`;
+            nextItem.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    goToPage(currentPage + 1);
+                }
+            });
+            paginationList.appendChild(nextItem);
+        }
+        
+        // Show rows for current page
+        function displayRows() {
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            
+            rows.forEach((row, index) => {
+                if (index >= start && index < end) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
                 }
+            });
+        }
+        
+        // Go to specific page
+        function goToPage(page) {
+            currentPage = page;
+            displayRows();
+            updatePagination();
+        }
+        
+        // Initialize pagination
+        if (totalRows > 0) {
+            updatePagination();
+            displayRows();
+        }
+        
+        // Handle search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        
+        function performSearch() {
+            const searchTerm = searchInput.value.toUpperCase();
+            let visibleRows = 0;
+            
+            rows.forEach(row => {
+                const studentNo = row.cells[0].textContent.toUpperCase();
+                const name = row.cells[1].textContent.toUpperCase();
+                const course = row.cells[3].textContent.toUpperCase();
+                const year = row.cells[4].textContent.toUpperCase();
+                
+                if (studentNo.includes(searchTerm) || 
+                    name.includes(searchTerm) || 
+                    course.includes(searchTerm) ||
+                    year.includes(searchTerm)) {
+                    row.classList.add('search-match');
+                    visibleRows++;
+                } else {
+                    row.classList.remove('search-match');
+                    row.style.display = 'none';
+                }
+            });
+            
+            // If search is active, show only matching rows and hide pagination
+            if (searchTerm) {
+                document.querySelectorAll('.search-match').forEach(row => {
+                    row.style.display = '';
+                });
+                document.querySelector('.pagination').closest('div.d-flex').style.display = 'none';
+            } else {
+                // If search is cleared, restore pagination
+                document.querySelector('.pagination').closest('div.d-flex').style.display = 'flex';
+                goToPage(1);
             }
+        }
+        
+        // Search when button is clicked
+        searchButton.addEventListener('click', performSearch);
+        
+        // Search when Enter key is pressed
+        searchInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+            // Also search as you type
+            performSearch();
         });
-
+        
         // Handle delete button clicks
         document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
                 const data = this.dataset;
                 
                 document.getElementById('deleteStudentId').value = data.id;
                 document.getElementById('deleteStudentName').textContent = data.name;
-                
-                modal.show();
             });
         });
-
+        
         // Handle view button clicks
         document.querySelectorAll('.view-btn').forEach(button => {
             button.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('viewModal'));
                 const data = this.dataset;
                 
                 // Set modal content
@@ -326,8 +523,6 @@
                 document.getElementById('viewYear').textContent = data.year;
                 document.getElementById('viewStatus').textContent = data.status;
                 document.getElementById('viewUploadDate').textContent = data.uploadDate;
-                
-                modal.show();
             });
         });
     });

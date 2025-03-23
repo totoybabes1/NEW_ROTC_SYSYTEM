@@ -18,17 +18,26 @@ def home(request):
 @login_required(login_url='login')
 def admin_dashboard(request):
     # Get current statistics
+    
+    # Get assignment statistics
+    total_students = StudentRecord.objects.count()
+    assigned_students = PersonnelStudentAssignment.objects.count()
+    unassigned_students = total_students - assigned_students
+    
     current_stats = {
         'total_personnel': Personnel.objects.count(),
         'total_groups': FlightGroup.objects.count(),
         
-        # Get previous week's numbers for comparison
+        # Add student assignment statistics
+        'total_students': total_students,
+        'assigned_students': assigned_students,
+        'unassigned_students': unassigned_students,
+        
+        # Previous week's numbers for comparison
         'previous_total_personnel': Personnel.objects.filter(
             date_joined__lt=timezone.now() - timedelta(days=7)
         ).count(),
-        'previous_total_groups': FlightGroup.objects.filter(
-            created_at__lt=timezone.now() - timedelta(days=7)
-        ).count(),
+        'previous_total_groups': FlightGroup.objects.all().count(),
         
         # Gender statistics
         'gender_male': Personnel.objects.filter(gender='Male').count(),

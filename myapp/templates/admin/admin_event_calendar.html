@@ -5,249 +5,304 @@
 {% block title %}Event Calendar{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/admin_event_calendar.css' %}">
+
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/admin_event_calendar.css' %}">
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <div class="container-fluid" data-aos="fade-in">
     
     <div class="row mb-4" data-aos="fade-up">
-        <div class="col-12">
-            <div class="card border-0 bg-white shadow-sm">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                                <i class="fa-solid fa-calendar-days text-white fa-2x"></i>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                    <i class="fas fa-calendar text-primary fa-2x"></i>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col">
-                            <h1 class="h3 mb-2">Event Management</h1>
-                            <p class="text-muted mb-0">
-                                Schedule and organize events, manage calendar activities, and coordinate flight group schedules efficiently.
-                            </p>
+                            <div class="col">
+                                <h1 class="h3 mb-2">Event Calendar</h1>
+                                <p class="text-muted mb-0">
+                                    Manage and track events for your organization. Schedule meetings, training sessions, and other activities. View upcoming events and manage event details all in one place.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        
     </div>
     <div class="row mb-4">
-        <div class="col-md-6 mx-auto">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="mb-3">Event Calendar</h3>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEventModal">
-                        Add Event
+        <div class="col-12">
+            <div class="card border">
+                <div class="card-body p-4">
+                    <div class="accordion" id="eventAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    <h3 class="mb-0">Event Calendar</h3>
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#eventAccordion">
+                                <div class="accordion-body">
+                                    <p class="text-muted mb-4">
+                                        Create and manage events for your flight groups. Schedule training sessions, meetings, and other activities with ease.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary add-event-btn px-4 py-2 mt-3" data-bs-toggle="modal" data-bs-target="#addEventModal">
+                        <i class="fas fa-plus-circle me-2"></i> Add Event
                     </button>
                 </div>
             </div>
         </div>
     </div>
+     <!-- Messages -->
+     {% if messages %}
+     {% for message in messages %}
+         <div class="alert alert-info alert-dismissible fade show">
+             {{ message }}
+             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+         </div>
+     {% endfor %}
+ {% endif %}
     
+
     <div class="row">
         <!-- LEFT SIDE: Event Cards Column -->
         <div class="col-md-5" data-aos="fade-up" data-aos-delay="100">
-            <!-- Upcoming Events Card -->
-            <div class="card shadow-sm border-0 rounded-lg mb-4">
-                <div class="card-header bg-white border-0 pt-4 pb-2">
-                    <h5 class="mb-0 text-primary"><i class="fas fa-calendar-alt me-2"></i> Upcoming Events</h5>
-                </div>
-                <div class="card-body">
-                    <div class="upcoming-events">
-                        {% if events %}
-                            {% for event in events %}
-                                <div class="event-card mb-3">
-                                    <div class="event-date">
-                                        <span class="event-day">{{ event.date|date:"d" }}</span>
-                                        <span class="event-month">{{ event.date|date:"M" }}</span>
-                                    </div>
-                                    <div class="event-content">
-                                        <h5 class="event-title">{{ event.title }}</h5>
-                                        <p class="event-group">
-                                            {% with event_obj=event.id|get_event_object %}
-                                                {% if event_obj %}
-                                                    {% with event_groups=event_obj.event_flight_groups.all %}
-                                                        {% if event_groups.exists %}
-                                                            {% for eg in event_groups %}
-                                                                <span class="badge bg-primary me-1">{{ eg.flight_group.name }}</span>
-                                                            {% endfor %}
-                                                        {% elif event_obj.flight_group %}
-                                                            <span class="badge bg-primary">{{ event_obj.flight_group.name }}</span>
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs mb-3" id="eventTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming-events" 
+                            type="button" role="tab" aria-controls="upcoming-events" aria-selected="true">
+                        <i class="fas fa-calendar-alt me-2"></i> Upcoming Events
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="flight-groups-tab" data-bs-toggle="tab" data-bs-target="#flight-groups-events" 
+                            type="button" role="tab" aria-controls="flight-groups-events" aria-selected="false">
+                        <i class="fas fa-layer-group me-2"></i> Events by Flight Group
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#event-history" 
+                            type="button" role="tab" aria-controls="event-history" aria-selected="false">
+                        <i class="fas fa-history me-2"></i> Event History
+                    </button>
+                </li>
+            </ul>
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="eventTabsContent">
+                <!-- Upcoming Events Tab -->
+                <div class="tab-pane fade show active" id="upcoming-events" role="tabpanel" aria-labelledby="upcoming-tab">
+                    <div class="card border rounded-lg mb-4">
+                        <div class="card-header bg-white border-bottom pt-4 pb-2">
+                            <h5 class="mb-0 text-primary"><i class="fas fa-calendar-alt me-2"></i> Upcoming Events</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="upcoming-events">
+                                {% if events %}
+                                    {% for event in events %}
+                                        <div class="event-card mb-3 border rounded p-3">
+                                          
+                                            <div class="event-content">
+                                                <h5 class="event-title">{{ event.title }}</h5>
+                                                <p class="event-group">
+                                                    {% with event_obj=event.id|get_event_object %}
+                                                        {% if event_obj %}
+                                                            {% with event_groups=event_obj.event_flight_groups.all %}
+                                                                {% if event_groups.exists %}
+                                                                    {% for eg in event_groups %}
+                                                                        <span class="badge bg-primary me-1">{{ eg.flight_group.name }}</span>
+                                                                    {% endfor %}
+                                                                {% elif event_obj.flight_group %}
+                                                                    <span class="badge bg-primary">{{ event_obj.flight_group.name }}</span>
+                                                                {% endif %}
+                                                            {% endwith %}
+                                                        {% else %}
+                                                            {{ event.flight_group }}
                                                         {% endif %}
                                                     {% endwith %}
-                                                {% else %}
-                                                    {{ event.flight_group }}
-                                                {% endif %}
-                                            {% endwith %}
-                                        </p>
-                                        <p class="event-desc">{{ event.content|truncatechars:100 }}</p>
-                                        <div class="event-actions">
-                                            <button class="btn btn-sm btn-outline-primary edit-event-btn" 
-                                                    data-event-id="{{ event.id }}">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger delete-event-btn" 
-                                                    data-event-id="{{ event.id }}"
-                                                    data-event-title="{{ event.title }}">
-                                                <i class="fas fa-trash"></i> Delete
-                                            </button>
+                                                </p>
+                                                <p class="event-desc">{{ event.content|truncatechars:100 }}</p>
+                                                <div class="event-actions">
+                                                    <button class="btn btn-sm btn-outline-primary edit-event-btn" 
+                                                            data-event-id="{{ event.id }}">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger delete-event-btn" 
+                                                            data-event-id="{{ event.id }}"
+                                                            data-event-title="{{ event.title }}">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                                        <p>No events scheduled for this month</p>
                                     </div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="text-center text-muted py-4">
-                                <i class="fas fa-calendar-times fa-3x mb-3"></i>
-                                <p>No events scheduled for this month</p>
+                                {% endif %}
                             </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Events by Flight Group -->
-            <div class="card mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-layer-group me-2 text-primary"></i> Events by Flight Group
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="accordion" id="flightGroupAccordion">
-                        {% for group in flight_groups %}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="heading{{ group.id }}">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                                            data-bs-target="#collapse{{ group.id }}" aria-expanded="false" 
-                                            aria-controls="collapse{{ group.id }}">
-                                        {{ group.name }} 
-                                        <span class="badge bg-primary rounded-pill ms-2">
-                                            {{ events_by_group|get_item:group.id|length }}
-                                        </span>
-                                    </button>
-                                </h2>
-                                <div id="collapse{{ group.id }}" class="accordion-collapse collapse" 
-                                     aria-labelledby="heading{{ group.id }}" data-bs-parent="#flightGroupAccordion">
-                                    <div class="accordion-body p-0">
-                                        <div class="list-group list-group-flush">
-                                            {% with group_events=events_by_group|get_item:group.id %}
-                                                {% if group_events %}
-                                                    {% for event in group_events %}
-                                                        <a href="#" class="list-group-item list-group-item-action" 
-                                                           onclick="openEditEventModal({{ event.id }}); return false;">
-                                                            <div class="d-flex w-100 justify-content-between">
-                                                                <h6 class="mb-1">{{ event.title }}</h6>
-                                                                <small>{{ event.event_date|date:"Y-m-d" }}</small>
-                                                            </div>
-                                                            <small>{{ event.content|truncatechars:50 }}</small>
-                                                        </a>
-                                                    {% endfor %}
-                                                {% else %}
-                                                    <div class="list-group-item text-center text-muted">
-                                                        <i class="fas fa-calendar-times me-2"></i> No events for this group
-                                                    </div>
-                                                {% endif %}
-                                            {% endwith %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Event History Card -->
-            <div class="card shadow-sm border-0 rounded-lg mb-4">
-                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-4 pb-2">
-                    <h5 class="mb-0 text-primary"><i class="fas fa-history me-2"></i> Event History</h5>
-                    <div>
-                        <button class="btn btn-light btn-sm me-2" id="exportEvents">
-                            <i class="fas fa-file-export"></i> Export
-                        </button>
-                        <div class="dropdown d-inline-block">
-                            <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="exportFormatDropdown" data-bs-toggle="dropdown">
-                                Format
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" data-format="csv">CSV</a></li>
-                                <li><a class="dropdown-item" href="#" data-format="excel">Excel</a></li>
-                                <li><a class="dropdown-item" href="#" data-format="pdf">PDF</a></li>
-                            </ul>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-12 mb-2">
-                            <input type="text" class="form-control" id="eventSearch" placeholder="Search events...">
+                
+                <!-- Events by Flight Group Tab -->
+                <div class="tab-pane fade" id="flight-groups-events" role="tabpanel" aria-labelledby="flight-groups-tab">
+                    <div class="card border mb-4">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-layer-group me-2 text-primary"></i> Events by Flight Group
+                            </h5>
                         </div>
-                        <div class="col-md-6 mb-2">
-                            <select class="form-select" id="historyFlightGroupFilter">
-                                <option value="all">All Flight Groups</option>
+                        <div class="card-body">
+                            <div class="accordion" id="flightGroupAccordion">
                                 {% for group in flight_groups %}
-                                    <option value="{{ group.id }}">{{ group.name }}</option>
+                                    <div class="accordion-item border">
+                                        <h2 class="accordion-header" id="heading{{ group.id }}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#collapse{{ group.id }}" aria-expanded="false" 
+                                                    aria-controls="collapse{{ group.id }}">
+                                                {{ group.name }} 
+                                                <span class="badge bg-primary rounded-pill ms-2">
+                                                    {{ events_by_group|get_item:group.id|length }}
+                                                </span>
+                                            </button>
+                                        </h2>
+                                        <div id="collapse{{ group.id }}" class="accordion-collapse collapse" 
+                                             aria-labelledby="heading{{ group.id }}" data-bs-parent="#flightGroupAccordion">
+                                            <div class="accordion-body p-0">
+                                                <div class="list-group list-group-flush">
+                                                    {% with group_events=events_by_group|get_item:group.id %}
+                                                        {% if group_events %}
+                                                            {% for event in group_events %}
+                                                                <a href="#" class="list-group-item list-group-item-action border-top border-bottom" 
+                                                                   onclick="openEditEventModal({{ event.id }}); return false;">
+                                                                    <div class="d-flex w-100 justify-content-between">
+                                                                        <h6 class="mb-1">{{ event.title }}</h6>
+                                                                        <small>{{ event.event_date|date:"Y-m-d" }}</small>
+                                                                    </div>
+                                                                    <small>{{ event.content|truncatechars:50 }}</small>
+                                                                </a>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <div class="list-group-item text-center text-muted">
+                                                                <i class="fas fa-calendar-times me-2"></i> No events for this group
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <input type="month" class="form-control" id="eventDateFilter">
-                        </div>
-                        <div class="col-md-12">
-                            <button class="btn btn-primary btn-sm w-100" id="clearFilters">
-                                Clear Filters
-                            </button>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="eventHistoryTable">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Title</th>
-                                    <th>Flight Group</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for event in all_events %}
-                                <tr>
-                                    <td>{{ event.event_date|date:"Y-m-d" }}</td>
-                                    <td>{{ event.title }}</td>
-                                    <td>
-                                        {% with event_obj=event.id|get_event_object %}
-                                            {% if event_obj %}
-                                                {% with event_groups=event_obj.event_flight_groups.all %}
-                                                    {% if event_groups.exists %}
-                                                        {% for eg in event_groups %}
-                                                            <span class="badge bg-primary me-1">{{ eg.flight_group.name }}</span>
-                                                        {% endfor %}
-                                                    {% elif event_obj.flight_group %}
-                                                        <span class="badge bg-primary">{{ event_obj.flight_group.name }}</span>
+                </div>
+                
+                <!-- Event History Tab -->
+                <div class="tab-pane fade" id="event-history" role="tabpanel" aria-labelledby="history-tab">
+                    <div class="card border rounded-lg mb-4">
+                        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center pt-4 pb-2">
+                            <h5 class="mb-0 text-primary"><i class="fas fa-history me-2"></i> Event History</h5>
+                            <div>
+                                <button class="btn btn-light btn-sm border me-2" id="exportEvents">
+                                    <i class="fas fa-file-export"></i> Export
+                                </button>
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-light btn-sm border dropdown-toggle" type="button" id="exportFormatDropdown" data-bs-toggle="dropdown">
+                                        Format
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" data-format="csv">CSV</a></li>
+                                        <li><a class="dropdown-item" href="#" data-format="excel">Excel</a></li>
+                                        <li><a class="dropdown-item" href="#" data-format="pdf">PDF</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-12 mb-2">
+                                    <input type="text" class="form-control border" id="eventSearch" placeholder="Search events...">
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <select class="form-select border" id="historyFlightGroupFilter">
+                                        <option value="all">All Flight Groups</option>
+                                        {% for group in flight_groups %}
+                                            <option value="{{ group.id }}">{{ group.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <input type="month" class="form-control border" id="eventDateFilter">
+                                </div>
+                                <div class="col-md-12">
+                                    <button class="btn btn-primary btn-sm w-100" id="clearFilters">
+                                        Clear Filters
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover border" id="eventHistoryTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Title</th>
+                                            <th>Flight Group</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for event in all_events %}
+                                        <tr>
+                                            <td>{{ event.event_date|date:"Y-m-d" }}</td>
+                                            <td>{{ event.title }}</td>
+                                            <td>
+                                                {% with event_obj=event.id|get_event_object %}
+                                                    {% if event_obj %}
+                                                        {% with event_groups=event_obj.event_flight_groups.all %}
+                                                            {% if event_groups.exists %}
+                                                                {% for eg in event_groups %}
+                                                                    <span class="badge bg-primary me-1">{{ eg.flight_group.name }}</span>
+                                                                {% endfor %}
+                                                            {% elif event_obj.flight_group %}
+                                                                <span class="badge bg-primary">{{ event_obj.flight_group.name }}</span>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    {% else %}
+                                                        {{ event.flight_group.name }}
                                                     {% endif %}
                                                 {% endwith %}
-                                            {% else %}
-                                                {{ event.flight_group.name }}
-                                            {% endif %}
-                                        {% endwith %}
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary edit-event-btn" 
-                                                data-event-id="{{ event.id }}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger delete-event-btn" 
-                                                data-event-id="{{ event.id }}"
-                                                data-event-title="{{ event.title }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary edit-event-btn" 
+                                                        data-event-id="{{ event.id }}">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger delete-event-btn" 
+                                                        data-event-id="{{ event.id }}"
+                                                        data-event-title="{{ event.title }}">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -255,21 +310,21 @@
         
         <!-- RIGHT SIDE: Calendar Column -->
         <div class="col-md-7" data-aos="fade-up" data-aos-delay="200">
-            <div class="card shadow-sm border-0 rounded-lg">
+            <div class="card border rounded-lg">
                 <div class="card-body p-4">
                     <!-- Calendar Navigation -->
                     <div class="calendar-navigation mb-4 d-flex justify-content-between align-items-center">
-                        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-light rounded-pill">
+                        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-light border rounded-pill">
                             <i class="fas fa-chevron-left me-1"></i> Previous
                         </a>
                         <h2 class="month-title">{{ month_name }} {{ year }}</h2>
-                        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-light rounded-pill">
+                        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-light border rounded-pill">
                             Next <i class="fas fa-chevron-right ms-1"></i>
                         </a>
                     </div>
                     
                     <!-- Calendar -->
-                    <div class="calendar-container shadow-sm rounded">
+                    <div class="calendar-container border rounded">
                         <div class="calendar-header rounded-top">
                             <div class="calendar-day">Sun</div>
                             <div class="calendar-day">Mon</div>
@@ -282,13 +337,16 @@
                         <div class="calendar-body">
                             {% for week in calendar %}
                                 <div class="calendar-week">
-                                    {% for day in week %}
-                                        {% if day == 0 %}
+                                    {% for date in week %}
+                                        {% if date.empty %}
                                             <div class="calendar-date empty"></div>
                                         {% else %}
-                                            <div class="calendar-date" data-date="{{ year }}-{{ month|stringformat:'02d' }}-{{ day|stringformat:'02d' }}">
-                                                <div class="date-number">{{ day }}</div>
+                                            <div class="calendar-date{% if date.weekday == 0 %} sunday{% endif %}" 
+                                                 data-date="{{ date.date }}" data-bs-toggle="popover" data-bs-trigger="hover focus" 
+                                                 data-bs-placement="top" data-bs-html="true" data-bs-title="Events on {{ date.date }}">
+                                                <div class="date-number">{{ date.day }}</div>
                                                 <div class="event-count">0</div>
+                                                <div class="event-indicator-container d-flex flex-wrap mt-1"></div>
                                             </div>
                                         {% endif %}
                                     {% endfor %}
@@ -296,6 +354,107 @@
                             {% endfor %}
                         </div>
                     </div>
+                    
+                    <!-- Event Details Panel -->
+                    <div class="event-details-panel mt-3 border rounded p-3 d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="selected-date mb-0"></h5>
+                            <button type="button" class="btn-close" aria-label="Close" id="closeEventDetails"></button>
+                        </div>
+                        <div class="event-details-content">
+                            <!-- Event details will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Recurring Event Modal -->
+    <div class="modal fade" id="recurringEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Recurring Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="recurringEventForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Title</label>
+                            <input type="text" class="form-control" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Content</label>
+                            <textarea class="form-control" name="content" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label>Start Date</label>
+                                    <input type="date" class="form-control" name="start_date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label>End Date</label>
+                                    <input type="date" class="form-control" name="end_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label>Frequency</label>
+                            <select class="form-select" name="frequency" required>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Flight Groups</label>
+                            <select class="form-select select2-multiple" name="flight_groups[]" multiple required>
+                                {% for group in flight_groups %}
+                                    <option value="{{ group.id }}">{{ group.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Events</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Attendance Tracking Modal -->
+    <div class="modal fade" id="attendanceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Track Attendance</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table" id="attendanceTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Present</th>
+                                    <th>Absent</th>
+                                    <th>Excused</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveAttendance">Save Attendance</button>
                 </div>
             </div>
         </div>
@@ -305,7 +464,7 @@
 <!-- Add Event Modal -->
 <div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content border">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i> Add New Event</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -315,15 +474,15 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="eventTitle" class="form-label">Event Title</label>
-                        <input type="text" class="form-control" id="eventTitle" name="title" required>
+                        <input type="text" class="form-control border" id="eventTitle" name="title" required>
                     </div>
                     <div class="mb-3">
                         <label for="eventDate" class="form-label">Event Date</label>
-                        <input type="date" class="form-control" id="eventDate" name="event_date" required>
+                        <input type="date" class="form-control border" id="eventDate" name="event_date" required>
                     </div>
                     <div class="mb-3">
                         <label for="flightGroups" class="form-label">Flight Groups</label>
-                        <select class="form-select select2-multiple" id="flightGroups" name="flight_groups[]" multiple required>
+                        <select class="form-select border select2-multiple" id="flightGroups" name="flight_groups[]" multiple required>
                             {% for group in flight_groups %}
                                 <option value="{{ group.id }}">{{ group.name }}</option>
                             {% endfor %}
@@ -336,7 +495,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="eventContent" class="form-label">Event Description</label>
-                        <textarea class="form-control" id="eventContent" name="content" rows="3" required></textarea>
+                        <textarea class="form-control border" id="eventContent" name="content" rows="3" required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -351,7 +510,7 @@
 <!-- Edit Event Modal -->
 <div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content border">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title"><i class="fas fa-edit me-2"></i> Edit Event</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -361,15 +520,15 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="editEventTitle" class="form-label">Event Title</label>
-                        <input type="text" class="form-control" id="editEventTitle" name="title" required>
+                        <input type="text" class="form-control border" id="editEventTitle" name="title" required>
                     </div>
                     <div class="mb-3">
                         <label for="editEventDate" class="form-label">Event Date</label>
-                        <input type="date" class="form-control" id="editEventDate" name="event_date" required>
+                        <input type="date" class="form-control border" id="editEventDate" name="event_date" required>
                     </div>
                     <div class="mb-3">
                         <label for="editFlightGroups" class="form-label">Flight Groups</label>
-                        <select class="form-select select2-multiple" id="editFlightGroups" name="flight_groups[]" multiple required>
+                        <select class="form-select border select2-multiple" id="editFlightGroups" name="flight_groups[]" multiple required>
                             {% for group in flight_groups %}
                                 <option value="{{ group.id }}">{{ group.name }}</option>
                             {% endfor %}
@@ -382,7 +541,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="editEventContent" class="form-label">Event Description</label>
-                        <textarea class="form-control" id="editEventContent" name="content" rows="3" required></textarea>
+                        <textarea class="form-control border" id="editEventContent" name="content" rows="3" required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -397,7 +556,7 @@
 <!-- Delete Event Modal -->
 <div class="modal fade" id="deleteEventModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content border">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i> Delete Event</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -435,12 +594,80 @@
             });
         }
         
+        // Store events data from backend
+        let eventsData = [];
+        try {
+            eventsData = {{ events_json|safe }};
+        } catch (error) {
+            console.error('Error parsing events data:', error);
+            eventsData = [];
+        }
+        
+        // Populate calendar with event counts and indicators
+        populateCalendarWithEvents(eventsData);
+        
+        // Initialize popovers with dynamic content
+        const calendarDates = document.querySelectorAll('.calendar-date:not(.empty)');
+        calendarDates.forEach(dateCell => {
+            const dateStr = dateCell.getAttribute('data-date');
+            if (!dateStr) return;
+            
+            // Prepare popover content
+            const dateEvents = eventsData.filter(event => event.date === dateStr);
+            let popoverContent = '';
+            
+            if (dateEvents.length === 0) {
+                popoverContent = '<div class="text-muted">No events scheduled</div>';
+            } else {
+                popoverContent = '<div class="popover-event-list">';
+                dateEvents.forEach(event => {
+                    popoverContent += `
+                        <div class="popover-event mb-1">
+                            <div class="fw-bold">${event.title}</div>
+                            <div class="small text-truncate" style="max-width: 200px;">${event.content || ''}</div>
+                        </div>
+                    `;
+                });
+                popoverContent += '</div>';
+            }
+            
+            // Set the content directly
+            dateCell.setAttribute('data-bs-content', popoverContent);
+            
+            // Handle click event
+            dateCell.addEventListener('click', function(e) {
+                e.preventDefault();
+                showEventDetailsPanel(dateStr, eventsData);
+            });
+        });
+        
+        // Initialize Bootstrap popovers after setting content
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+        [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+            container: 'body',
+            html: true
+        }));
+        
+        // Close event details panel
+        const closeEventDetailsBtn = document.getElementById('closeEventDetails');
+        if (closeEventDetailsBtn) {
+            closeEventDetailsBtn.addEventListener('click', function() {
+                const eventDetailsPanel = document.querySelector('.event-details-panel');
+                if (eventDetailsPanel) {
+                    eventDetailsPanel.classList.add('d-none');
+                }
+            });
+        }
+        
+        // Mark today's date
+        markTodayDate();
+        
         // Handle flight group selection display for Add Event
         const flightGroupsSelect = document.getElementById('flightGroups');
         const selectedGroupsDisplay = document.getElementById('selectedGroupsDisplay');
-        const selectedGroupsBadges = selectedGroupsDisplay.querySelector('.selected-groups-badges');
+        const selectedGroupsBadges = selectedGroupsDisplay ? selectedGroupsDisplay.querySelector('.selected-groups-badges') : null;
         
-        if (flightGroupsSelect) {
+        if (flightGroupsSelect && selectedGroupsDisplay && selectedGroupsBadges) {
             flightGroupsSelect.addEventListener('change', function() {
                 updateSelectedGroupsDisplay(this, selectedGroupsDisplay, selectedGroupsBadges);
             });
@@ -449,58 +676,23 @@
         // Handle flight group selection display for Edit Event
         const editFlightGroupsSelect = document.getElementById('editFlightGroups');
         const editSelectedGroupsDisplay = document.getElementById('editSelectedGroupsDisplay');
-        const editSelectedGroupsBadges = editSelectedGroupsDisplay.querySelector('.selected-groups-badges');
+        const editSelectedGroupsBadges = editSelectedGroupsDisplay ? editSelectedGroupsDisplay.querySelector('.selected-groups-badges') : null;
         
-        if (editFlightGroupsSelect) {
+        if (editFlightGroupsSelect && editSelectedGroupsDisplay && editSelectedGroupsBadges) {
             editFlightGroupsSelect.addEventListener('change', function() {
                 updateSelectedGroupsDisplay(this, editSelectedGroupsDisplay, editSelectedGroupsBadges);
             });
         }
         
-        // Form validation for Add Event
-        const addEventForm = document.getElementById('addEventForm');
-        if (addEventForm) {
-            addEventForm.addEventListener('submit', function(e) {
-                if (!validateEventForm(flightGroupsSelect)) {
-                    e.preventDefault();
-                }
-            });
-        }
-        
-        // Form validation for Edit Event
-        const editEventForm = document.getElementById('editEventForm');
-        if (editEventForm) {
-            editEventForm.addEventListener('submit', function(e) {
-                if (!validateEventForm(editFlightGroupsSelect)) {
-                    e.preventDefault();
-                }
-            });
-        }
-        
-        // Store events data from backend
-        const eventsData = {{ events_json|safe }};
-        
-        // Populate calendar with event counts
-        populateCalendarWithCounts(eventsData);
-        
-        // Handle flight group filter
-        const flightGroupFilter = document.getElementById('flightGroupFilter');
-        if (flightGroupFilter) {
-            flightGroupFilter.addEventListener('change', function() {
-                filterEventsByFlightGroup(this.value);
-            });
-        }
-        
-        // Handle edit event buttons
-        document.querySelectorAll('.edit-event-btn').forEach(button => {
+        // Add event listeners for edit and delete buttons in Upcoming Events tab
+        document.querySelectorAll('.upcoming-events .edit-event-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const eventId = this.getAttribute('data-event-id');
                 openEditEventModal(eventId);
             });
         });
         
-        // Handle delete event buttons
-        document.querySelectorAll('.delete-event-btn').forEach(button => {
+        document.querySelectorAll('.upcoming-events .delete-event-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const eventId = this.getAttribute('data-event-id');
                 const eventTitle = this.getAttribute('data-event-title');
@@ -508,20 +700,178 @@
             });
         });
         
-        // Handle calendar date clicks - Fix for the click issue
-        document.querySelectorAll('.calendar-date:not(.empty)').forEach(dateCell => {
-            dateCell.addEventListener('click', function(e) {
-                e.preventDefault(); // Prevent default behavior
-                const dateStr = this.getAttribute('data-date');
-                if (dateStr) {
-                    showEventsForDate(dateStr);
-                }
+        // Add event listeners for edit and delete buttons in Event History tab
+        document.querySelectorAll('#eventHistoryTable .edit-event-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const eventId = this.getAttribute('data-event-id');
+                openEditEventModal(eventId);
             });
         });
         
-        // Mark today's date
-        markTodayDate();
+        document.querySelectorAll('#eventHistoryTable .delete-event-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const eventId = this.getAttribute('data-event-id');
+                const eventTitle = this.getAttribute('data-event-title');
+                openDeleteEventModal(eventId, eventTitle);
+            });
+        });
+        
+        // Set up delete confirmation button
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', function() {
+                const eventId = this.getAttribute('data-event-id');
+                if (eventId) {
+                    window.location.href = `/delete-event/${eventId}/`;
+                }
+            });
+        }
     });
+    
+    // Show event details panel
+    function showEventDetailsPanel(dateStr, eventsData) {
+        const eventDetailsPanel = document.querySelector('.event-details-panel');
+        const eventDetailsContent = document.querySelector('.event-details-content');
+        const selectedDateTitle = document.querySelector('.selected-date');
+        
+        if (!eventDetailsPanel || !eventDetailsContent || !selectedDateTitle) {
+            return;
+        }
+        
+        // Format the date for display
+        const dateObj = new Date(dateStr);
+        const formattedDate = dateObj.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        selectedDateTitle.innerHTML = `<i class="fas fa-calendar-day me-2"></i> ${formattedDate}`;
+        
+        // Filter events for this date
+        const dateEvents = eventsData.filter(event => event.date === dateStr);
+        
+        // Clear previous content
+        eventDetailsContent.innerHTML = '';
+        
+        if (dateEvents.length === 0) {
+            eventDetailsContent.innerHTML = `
+                <div class="text-center py-3">
+                    <i class="fas fa-calendar-times fa-2x mb-2 text-muted"></i>
+                    <p class="mb-0">No events scheduled for this date.</p>
+                </div>
+            `;
+        } else {
+            // Create event cards
+            dateEvents.forEach(event => {
+                const eventCard = document.createElement('div');
+                eventCard.className = 'card mb-2 border';
+                eventCard.innerHTML = `
+                    <div class="card-body p-3">
+                        <h5 class="card-title">${event.title}</h5>
+                        <p class="card-text small text-muted mb-2">
+                            ${event.flight_group || ''}
+                        </p>
+                        <p class="card-text">${event.content || ''}</p>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary edit-event-btn" 
+                                    data-event-id="${event.id}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-event-btn" 
+                                    data-event-id="${event.id}"
+                                    data-event-title="${event.title}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add event listeners to the new buttons
+                const editBtn = eventCard.querySelector('.edit-event-btn');
+                if (editBtn) {
+                    editBtn.addEventListener('click', function() {
+                        openEditEventModal(event.id);
+                    });
+                }
+                
+                const deleteBtn = eventCard.querySelector('.delete-event-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function() {
+                        openDeleteEventModal(event.id, event.title);
+                    });
+                }
+                
+                eventDetailsContent.appendChild(eventCard);
+            });
+        }
+        
+        // Show the panel
+        eventDetailsPanel.classList.remove('d-none');
+    }
+    
+    // Populate calendar with event counts and indicators
+    function populateCalendarWithEvents(events) {
+        // Reset all counts to zero
+        document.querySelectorAll('.event-count').forEach(counter => {
+            counter.textContent = '0';
+        });
+        
+        // Clear all event indicators
+        document.querySelectorAll('.event-indicator-container').forEach(container => {
+            container.innerHTML = '';
+        });
+        
+        // Count events per date and add indicators
+        const eventsByDate = {};
+        if (events && events.length) {
+            events.forEach(event => {
+                if (!eventsByDate[event.date]) {
+                    eventsByDate[event.date] = [];
+                }
+                eventsByDate[event.date].push(event);
+            });
+            
+            // Update the calendar with counts and indicators
+            for (const date in eventsByDate) {
+                const dateCell = document.querySelector(`.calendar-date[data-date="${date}"]`);
+                if (dateCell) {
+                    const countElement = dateCell.querySelector('.event-count');
+                    const indicatorContainer = dateCell.querySelector('.event-indicator-container');
+                    
+                    if (countElement) {
+                        countElement.textContent = eventsByDate[date].length;
+                        
+                        // Highlight dates with events
+                        if (eventsByDate[date].length > 0) {
+                            dateCell.classList.add('has-events');
+                            // Make event count blue if there are events
+                            countElement.classList.add('text-primary');
+                            
+                            // Add event indicators (max 3)
+                            if (indicatorContainer) {
+                                const maxIndicators = Math.min(eventsByDate[date].length, 3);
+                                for (let i = 0; i < maxIndicators; i++) {
+                                    const indicator = document.createElement('div');
+                                    indicator.className = 'event-indicator bg-primary rounded-circle me-1';
+                                    indicatorContainer.appendChild(indicator);
+                                }
+                                
+                                // Add "more" indicator if needed
+                                if (eventsByDate[date].length > 3) {
+                                    const moreIndicator = document.createElement('div');
+                                    moreIndicator.className = 'event-indicator-more small text-primary';
+                                    moreIndicator.textContent = '+' + (eventsByDate[date].length - 3);
+                                    indicatorContainer.appendChild(moreIndicator);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     
     // Mark today's date
     function markTodayDate() {
@@ -530,318 +880,19 @@
         const todayCell = document.querySelector(`.calendar-date[data-date="${todayStr}"]`);
         if (todayCell) {
             todayCell.classList.add('today');
-        }
-    }
-    
-    // Populate calendar with event counts
-    function populateCalendarWithCounts(events) {
-        // Reset all counts to zero
-        document.querySelectorAll('.event-count').forEach(counter => {
-            counter.textContent = '0';
-        });
-        
-        // Count events per date
-        const eventCounts = {};
-        if (events && events.length) {
-            events.forEach(event => {
-                if (!eventCounts[event.date]) {
-                    eventCounts[event.date] = 0;
-                }
-                eventCounts[event.date]++;
-            });
-            
-            // Update the calendar with counts
-            for (const date in eventCounts) {
-                const dateCell = document.querySelector(`.calendar-date[data-date="${date}"]`);
-                if (dateCell) {
-                    const countElement = dateCell.querySelector('.event-count');
-                    if (countElement) {
-                        countElement.textContent = eventCounts[date];
-                        
-                        // Highlight dates with events
-                        if (eventCounts[date] > 0) {
-                            dateCell.classList.add('has-events');
-                            // Make event count blue if there are events
-                            countElement.style.color = '#0d6efd';
-                        }
-                    }
-                }
+            const dateNumber = todayCell.querySelector('.date-number');
+            if (dateNumber) {
+                dateNumber.classList.add('text-primary', 'fw-bold');
             }
         }
     }
     
-    // Show events for a specific date
-    function showEventsForDate(dateStr) {
-        // Check if events_json exists and is valid
-        let events = [];
-        try {
-            events = {{ events_json|safe }}.filter(event => event.date === dateStr);
-        } catch (error) {
-            console.error('Error filtering events:', error);
-        }
-        
-        // Get the container for filtered events
-        const eventsContainer = document.getElementById('flightGroupEvents');
-        const noEventsMessage = document.getElementById('noFilteredEvents');
-        
-        if (!eventsContainer) {
-            console.error('Events container not found');
-            return;
-        }
-        
-        // Clear current filtered events
-        eventsContainer.innerHTML = '';
-        
-        // Hide the default message if it exists
-        if (noEventsMessage) {
-            noEventsMessage.style.display = 'none';
-        }
-        
-        if (events.length === 0) {
-            // Show no events message
-            const noEvents = document.createElement('div');
-            noEvents.className = 'text-center py-5';
-            noEvents.innerHTML = `
-                <i class="fas fa-calendar-times fa-3x mb-3 text-muted"></i>
-                <p class="mb-0">No events scheduled for this date.</p>
-            `;
-            eventsContainer.appendChild(noEvents);
-        } else {
-            // Add date header
-            const dateHeader = document.createElement('h6');
-            const formattedDate = new Date(dateStr).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-            dateHeader.className = 'mb-3 text-primary';
-            dateHeader.innerHTML = `<i class="fas fa-calendar-day me-2"></i> Events for ${formattedDate}`;
-            eventsContainer.appendChild(dateHeader);
-            
-            // Add events for this date
-            events.forEach(event => {
-                const eventItem = document.createElement('div');
-                eventItem.className = 'event-card mb-3';
-                
-                // Extract day and month from the event date
-                const eventDate = new Date(event.date);
-                const day = eventDate.getDate();
-                const month = eventDate.toLocaleString('en-US', { month: 'short' });
-                
-                eventItem.innerHTML = `
-                    <div class="event-date">
-                        <span class="event-day">${day}</span>
-                        <span class="event-month">${month}</span>
-                    </div>
-                    <div class="event-content">
-                        <h5 class="event-title">${event.title}</h5>
-                        <p class="event-group">${event.flight_group || ''}</p>
-                        <p class="event-desc">${event.content || ''}</p>
-                        <div class="event-actions">
-                            <button class="btn btn-sm btn-outline-primary edit-event-btn" 
-                                    data-event-id="${event.id}">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger delete-event-btn" 
-                                    data-event-id="${event.id}"
-                                    data-event-title="${event.title}">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                // Add event listeners to the new buttons
-                const editBtn = eventItem.querySelector('.edit-event-btn');
-                if (editBtn) {
-                    editBtn.addEventListener('click', function() {
-                        openEditEventModal(event.id);
-                    });
-                }
-                
-                const deleteBtn = eventItem.querySelector('.delete-event-btn');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', function() {
-                        openDeleteEventModal(event.id, event.title);
-                    });
-                }
-                
-                eventsContainer.appendChild(eventItem);
-            });
-        }
-        
-        // Scroll to the events section
-        const filterElement = document.getElementById('flightGroupFilter');
-        if (filterElement) {
-            filterElement.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-    
-    // Filter events by flight group
-    function filterEventsByFlightGroup(flightGroupId) {
-        const eventsContainer = document.getElementById('flightGroupEvents');
-        const noEventsMessage = document.getElementById('noFilteredEvents');
-        
-        // Clear current events
-        eventsContainer.innerHTML = '';
-        
-        if (flightGroupId === 'all') {
-            noEventsMessage.style.display = 'block';
-            return;
-        }
-        
-        // Filter events
-        const filteredEvents = {{ events_json|safe }}.filter(event => 
-            flightGroupId === 'all' || event.flight_group_id.toString() === flightGroupId
-        );
-        
-        if (filteredEvents.length === 0) {
-            // Show no events message
-            const noEvents = document.createElement('div');
-            noEvents.className = 'text-center py-5';
-            noEvents.innerHTML = `
-                <i class="fas fa-calendar-times fa-3x mb-3 text-muted"></i>
-                <p class="mb-0">No events found for this flight group.</p>
-            `;
-            eventsContainer.appendChild(noEvents);
-        } else {
-            // Hide the default message
-            noEventsMessage.style.display = 'none';
-            
-            // Add filtered events
-            filteredEvents.forEach(event => {
-                const eventItem = document.createElement('div');
-                eventItem.className = 'event-card mb-3';
-                eventItem.innerHTML = `
-                    <div class="event-date">
-                        <span class="event-day">${new Date(event.date).getDate()}</span>
-                        <span class="event-month">${new Date(event.date).toLocaleString('default', { month: 'short' })}</span>
-                    </div>
-                    <div class="event-content">
-                        <h5 class="event-title">${event.title}</h5>
-                        <p class="event-desc">${event.content}</p>
-                        <div class="event-actions">
-                            <button class="btn btn-sm btn-outline-primary edit-event-btn" 
-                                    data-event-id="${event.id}">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger delete-event-btn" 
-                                    data-event-id="${event.id}"
-                                    data-event-title="${event.title}">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                // Add event listeners to the new buttons
-                const editBtn = eventItem.querySelector('.edit-event-btn');
-                editBtn.addEventListener('click', function() {
-                    openEditEventModal(event.id);
-                });
-                
-                const deleteBtn = eventItem.querySelector('.delete-event-btn');
-                deleteBtn.addEventListener('click', function() {
-                    openDeleteEventModal(event.id, event.title);
-                });
-                
-                eventsContainer.appendChild(eventItem);
-            });
-        }
-    }
-    
-    // Open edit event modal
-    function openEditEventModal(eventId) {
-        // Show loading indicator
-        const loadingIndicator = document.createElement('div');
-        loadingIndicator.className = 'text-center my-3';
-        loadingIndicator.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Loading event details...</p>';
-        
-        const modalBody = document.querySelector('#editEventModal .modal-body');
-        const modalForm = document.getElementById('editEventForm');
-        const originalContent = modalBody.innerHTML;
-        
-        // Show modal with loading state
-        const editModal = new bootstrap.Modal(document.getElementById('editEventModal'));
-        modalBody.innerHTML = '';
-        modalBody.appendChild(loadingIndicator);
-        editModal.show();
-        
-        // Fetch event details
-        fetch(`/get-event-details/${eventId}/`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch event details');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Restore original form content
-                modalBody.innerHTML = originalContent;
-                
-                // Populate form
-                document.getElementById('editEventTitle').value = data.title;
-                document.getElementById('editEventDate').value = data.date;
-                document.getElementById('editEventContent').value = data.content;
-                
-                // Handle multiple flight groups
-                const selectElement = document.getElementById('editFlightGroups');
-                
-                // Clear previous selections
-                Array.from(selectElement.options).forEach(option => {
-                    option.selected = false;
-                });
-                
-                // Select the flight groups for this event
-                if (data.flight_group_ids && data.flight_group_ids.length) {
-                    data.flight_group_ids.forEach(groupId => {
-                        for (let i = 0; i < selectElement.options.length; i++) {
-                            if (selectElement.options[i].value == groupId) {
-                                selectElement.options[i].selected = true;
-                            }
-                        }
-                    });
-                    
-                    // Update the visual display of selected groups
-                    const editSelectedGroupsDisplay = document.getElementById('editSelectedGroupsDisplay');
-                    const editSelectedGroupsBadges = editSelectedGroupsDisplay.querySelector('.selected-groups-badges');
-                    updateSelectedGroupsDisplay(selectElement, editSelectedGroupsDisplay, editSelectedGroupsBadges);
-                    
-                    // Refresh Select2 if it's being used
-                    if (typeof $.fn.select2 !== 'undefined') {
-                        $(selectElement).trigger('change');
-                    }
-                }
-                
-                // Set form action
-                document.getElementById('editEventForm').action = `/edit-event/${eventId}/`;
-            })
-            .catch(error => {
-                console.error('Error fetching event details:', error);
-                
-                // Show error message in modal
-                modalBody.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        Error loading event details: ${error.message}
-                        <button type="button" class="btn btn-outline-danger mt-3" data-bs-dismiss="modal">Close</button>
-                    </div>
-                `;
-            });
-    }
-    
-    // Open delete event modal
-    function openDeleteEventModal(eventId, eventTitle) {
-        document.getElementById('deleteEventTitle').textContent = eventTitle;
-        document.getElementById('confirmDeleteBtn').href = `/delete-event/${eventId}/`;
-        
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
-        deleteModal.show();
-    }
-    
     // Function to update the selected groups display
     function updateSelectedGroupsDisplay(selectElement, displayElement, badgesContainer) {
+        if (!selectElement || !displayElement || !badgesContainer) {
+            return;
+        }
+        
         const selectedOptions = Array.from(selectElement.selectedOptions);
         
         if (selectedOptions.length > 0) {
@@ -859,87 +910,81 @@
         }
     }
     
-    // Function to validate event form
-    function validateEventForm(flightGroupsSelect) {
-        const selectedGroups = Array.from(flightGroupsSelect.selectedOptions);
+    // Open edit event modal function
+    function openEditEventModal(eventId) {
+        // Fetch event details via AJAX
+        fetch(`/get-event-details/${eventId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Populate the edit form with event data
+                document.getElementById('editEventTitle').value = data.title;
+                document.getElementById('editEventDate').value = data.date;
+                document.getElementById('editEventContent').value = data.content;
+                
+                // Set the form action URL
+                document.getElementById('editEventForm').action = `/edit-event/${eventId}/`;
+                
+                // Handle flight groups (if using Select2)
+                if (typeof $.fn.select2 !== 'undefined') {
+                    // Clear previous selections
+                    $('#editFlightGroups').val(null).trigger('change');
+                    
+                    // If we have flight_group_ids array, select them
+                    if (data.flight_group_ids && Array.isArray(data.flight_group_ids)) {
+                        $('#editFlightGroups').val(data.flight_group_ids).trigger('change');
+                    } 
+                    // Fallback to single flight_group_id if available
+                    else if (data.flight_group_id) {
+                        $('#editFlightGroups').val([data.flight_group_id]).trigger('change');
+                    }
+                }
+                
+                // Show the modal
+                const editModal = new bootstrap.Modal(document.getElementById('editEventModal'));
+                editModal.show();
+            })
+            .catch(error => {
+                console.error('Error fetching event details:', error);
+                alert('Failed to load event details. Please try again.');
+            });
+    }
+    
+    // Open delete event modal function
+    function openDeleteEventModal(eventId, eventTitle) {
+        // Set the event title in the modal
+        document.getElementById('deleteEventTitle').textContent = eventTitle;
         
-        if (selectedGroups.length === 0) {
-            // Create alert message
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-danger mt-2';
-            alertDiv.textContent = 'Please select at least one flight group';
-            
-            // Insert alert after the flight groups select
-            flightGroupsSelect.parentNode.appendChild(alertDiv);
-            
-            // Remove alert after 3 seconds
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 3000);
-            
-            return false;
-        }
+        // Set the delete confirmation link
+        document.getElementById('confirmDeleteBtn').setAttribute('data-event-id', eventId);
         
-        return true;
+        // Show the modal
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
+        deleteModal.show();
     }
 </script>
 
 <script>
-    // Event History Search and Filter
+    // Event History Export Functionality
     document.addEventListener('DOMContentLoaded', function() {
-        const eventSearch = document.getElementById('eventSearch');
-        const historyFlightGroupFilter = document.getElementById('historyFlightGroupFilter');
-        const eventDateFilter = document.getElementById('eventDateFilter');
-        const clearFilters = document.getElementById('clearFilters');
-        const table = document.getElementById('eventHistoryTable');
+        // Elements for export
+        const exportEventsBtn = document.getElementById('exportEvents');
+        const exportFormatItems = document.querySelectorAll('[data-format]');
         
-        if (table) {
-            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-
-            function filterTable() {
-                const searchText = eventSearch.value.toLowerCase();
-                const selectedGroup = historyFlightGroupFilter.value;
-                const selectedDate = eventDateFilter.value;
-
-                Array.from(rows).forEach(row => {
-                    const date = row.cells[0].textContent;
-                    const title = row.cells[1].textContent.toLowerCase();
-                    const group = row.cells[2].textContent.toLowerCase();
-
-                    const matchesSearch = title.includes(searchText) || 
-                                       group.includes(searchText);
-                    const matchesGroup = selectedGroup === 'all' || 
-                                      group.includes(historyFlightGroupFilter.options[historyFlightGroupFilter.selectedIndex].text.toLowerCase());
-                    const matchesDate = !selectedDate || date.startsWith(selectedDate);
-
-                    row.style.display = matchesSearch && matchesGroup && matchesDate ? '' : 'none';
-                });
-            }
-
-            if (eventSearch) eventSearch.addEventListener('input', filterTable);
-            if (historyFlightGroupFilter) historyFlightGroupFilter.addEventListener('change', filterTable);
-            if (eventDateFilter) eventDateFilter.addEventListener('change', filterTable);
-
-            if (clearFilters) {
-                clearFilters.addEventListener('click', function() {
-                    if (eventSearch) eventSearch.value = '';
-                    if (historyFlightGroupFilter) historyFlightGroupFilter.value = 'all';
-                    if (eventDateFilter) eventDateFilter.value = '';
-                    filterTable();
-                });
-            }
-
-            // Export button click handler
-            const exportBtn = document.getElementById('exportEvents');
-            if (exportBtn) {
-                exportBtn.addEventListener('click', function() {
-                    // Default to CSV if no format is selected
-                    exportEvents('csv');
-                });
-            }
-
-            // Export format dropdown handlers
-            document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(item => {
+        // Initialize export functionality
+        if (exportEventsBtn) {
+            exportEventsBtn.addEventListener('click', function() {
+                // Default to CSV if no format selected
+                exportEvents('csv');
+            });
+        }
+        
+        if (exportFormatItems && exportFormatItems.length > 0) {
+            exportFormatItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     const format = this.getAttribute('data-format');
@@ -948,328 +993,538 @@
                     }
                 });
             });
-
-            function exportEvents(format) {
-                // Get visible rows only
-                const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
-                
-                if (visibleRows.length === 0) {
-                    alert('No events to export. Please adjust your filters.');
-                    return;
-                }
-                
-                // Prepare event data for export
-                const eventsData = visibleRows.map(row => ({
-                    date: row.cells[0].textContent.trim(),
-                    title: row.cells[1].textContent.trim(),
-                    group: row.cells[2].textContent.trim(),
-                    // Add empty description and creator fields for PDF export
-                    description: '',
-                    creator: ''
-                }));
-                
-                if (format === 'csv') {
-                    // Create CSV content
-                    let csvContent = 'Date,Title,Flight Group\n';
-                    eventsData.forEach(event => {
-                        csvContent += `"${event.date}","${event.title}","${event.group}"\n`;
-                    });
-                    downloadFile(csvContent, 'event_history.csv', 'text/csv');
-                } 
-                else if (format === 'excel') {
-                    // For Excel, we'll create a simple HTML table and export it
-                    let tableHtml = '<table><tr><th>Date</th><th>Title</th><th>Flight Group</th></tr>';
-                    eventsData.forEach(event => {
-                        tableHtml += `<tr><td>${event.date}</td><td>${event.title}</td><td>${event.group}</td></tr>`;
-                    });
-                    tableHtml += '</table>';
-                    
-                    // Create a hidden iframe to trigger Excel download
-                    const blob = new Blob([tableHtml], {type: 'application/vnd.ms-excel'});
-                    downloadFile(blob, 'event_history.xls', 'application/vnd.ms-excel');
-                } 
-                else if (format === 'pdf') {
-                    // Show loading indicator
-                    const loadingIndicator = document.createElement('div');
-                    loadingIndicator.className = 'position-fixed top-50 start-50 translate-middle bg-white p-3 rounded shadow';
-                    loadingIndicator.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border text-primary me-2" role="status"></div><span>Generating PDF...</span></div>';
-                    document.body.appendChild(loadingIndicator);
-                    
-                    // For PDF, we'll make an AJAX call to the server
-                    fetch('/export-events-pdf/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCookie('csrftoken')
-                        },
-                        body: JSON.stringify({ events: eventsData })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        // Remove loading indicator
-                        document.body.removeChild(loadingIndicator);
-                        downloadFile(blob, 'event_history.pdf', 'application/pdf');
-                    })
-                    .catch(error => {
-                        // Remove loading indicator
-                        document.body.removeChild(loadingIndicator);
-                        console.error('Error exporting to PDF:', error);
-                        alert('Error exporting to PDF. Please try again.');
-                    });
-                }
+        }
+        
+        // Function to safely export events
+        function exportEvents(format) {
+            // Get the event history table
+            const eventHistoryTable = document.getElementById('eventHistoryTable');
+            if (!eventHistoryTable) {
+                console.error('Event history table not found');
+                alert('Cannot export: Event history table not found');
+                return;
             }
-
-            function downloadFile(content, filename, contentType) {
-                const blob = new Blob([content], { type: contentType });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                }, 100);
+            
+            // Get visible rows only (respect current filters)
+            const rows = eventHistoryTable.querySelectorAll('tbody tr:not([style*="display: none"])');
+            if (!rows || rows.length === 0) {
+                alert('No events to export. Please adjust your filters or add events.');
+                return;
             }
-
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
+            
+            const events = [];
+            
+            // Safely extract data from each row
+            rows.forEach(row => {
+                try {
+                    // Safely get cell content with fallbacks
+                    const dateCell = row.querySelector('td:nth-child(1)');
+                    const titleCell = row.querySelector('td:nth-child(2)');
+                    const groupCell = row.querySelector('td:nth-child(3)');
+                    
+                    const date = dateCell ? dateCell.textContent.trim() : 'N/A';
+                    const title = titleCell ? titleCell.textContent.trim() : 'N/A';
+                    
+                    // Get group badges if they exist
+                    let groups = 'N/A';
+                    if (groupCell) {
+                        const groupBadges = groupCell.querySelectorAll('.badge');
+                        if (groupBadges && groupBadges.length > 0) {
+                            groups = Array.from(groupBadges)
+                                .map(badge => badge.textContent.trim())
+                                .join(', ');
+                        } else {
+                            // If no badges, just use the cell text
+                            groups = groupCell.textContent.trim();
                         }
                     }
+                    
+                    events.push({
+                        date: date,
+                        title: title,
+                        group: groups,
+                        description: '', // We don't have this in the table
+                        creator: ''      // We don't have this in the table
+                    });
+                } catch (error) {
+                    console.error('Error processing row:', error);
+                    // Continue with next row
                 }
-                return cookieValue;
+            });
+            
+            if (events.length === 0) {
+                alert('Failed to extract event data. Please try again.');
+                return;
             }
+            
+            // Export based on format
+            try {
+                if (format === 'csv') {
+                    exportToCSV(events);
+                } else if (format === 'excel') {
+                    exportToExcel(events);
+                } else if (format === 'pdf') {
+                    exportToPDF(events);
+                }
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('An error occurred during export. Please try again.');
+            }
+        }
+        
+        // CSV Export
+        function exportToCSV(events) {
+            const headers = ['Date', 'Title', 'Flight Group'];
+            let csvContent = headers.join(',') + '\n';
+            
+            events.forEach(event => {
+                const row = [
+                    `"${event.date.replace(/"/g, '""')}"`,
+                    `"${event.title.replace(/"/g, '""')}"`,
+                    `"${event.group.replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Create and download the file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'event_history.csv');
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Excel Export (simplified)
+        function exportToExcel(events) {
+            // For now, just use CSV which Excel can open
+            exportToCSV(events);
+            
+            // Show a message about the limitation
+            setTimeout(() => {
+                alert('Note: Excel export is currently implemented as CSV. For proper Excel files, a library like SheetJS would be needed.');
+            }, 500);
+        }
+        
+        // PDF Export
+        function exportToPDF(events) {
+            // Get CSRF token
+            const csrfToken = getCsrfToken();
+            if (!csrfToken) {
+                alert('CSRF token not found. Please refresh the page and try again.');
+                return;
+            }
+            
+            // Prepare data for server
+            const data = {
+                events: events
+            };
+            
+            // Show loading indicator
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50';
+            loadingIndicator.style.zIndex = '9999';
+            loadingIndicator.innerHTML = '<div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>';
+            document.body.appendChild(loadingIndicator);
+            
+            // Send request to server
+            fetch('/export-events-pdf/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                // Remove loading indicator
+                document.body.removeChild(loadingIndicator);
+                
+                if (!response.ok) {
+                    throw new Error('Server returned error: ' + response.status);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'event_history.pdf';
+                document.body.appendChild(a);
+                a.click();
+                
+                // Clean up
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                // Remove loading indicator if still present
+                if (document.body.contains(loadingIndicator)) {
+                    document.body.removeChild(loadingIndicator);
+                }
+                
+                console.error('Error exporting to PDF:', error);
+                alert('Failed to export to PDF: ' + error.message);
+            });
+        }
+        
+        // Helper function to get CSRF token
+        function getCsrfToken() {
+            // Try to get from cookie
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+            
+            if (cookieValue) return cookieValue;
+            
+            // Try to get from form
+            const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+            if (csrfInput) return csrfInput.value;
+            
+            // Try to get from meta tag
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            if (csrfMeta) return csrfMeta.getAttribute('content');
+            
+            return '';
         }
     });
 </script>
 
+<script>
+    // Event History Filter Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get filter elements
+        const eventSearch = document.getElementById('eventSearch');
+        const historyFlightGroupFilter = document.getElementById('historyFlightGroupFilter');
+        const eventDateFilter = document.getElementById('eventDateFilter');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+        const eventHistoryTable = document.getElementById('eventHistoryTable');
+        
+        // Check if elements exist before adding event listeners
+        if (eventSearch) {
+            eventSearch.addEventListener('input', applyFilters);
+        }
+        
+        if (historyFlightGroupFilter) {
+            historyFlightGroupFilter.addEventListener('change', applyFilters);
+        }
+        
+        if (eventDateFilter) {
+            eventDateFilter.addEventListener('change', applyFilters);
+        }
+        
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                clearAllFilters();
+            });
+        }
+        
+        // Function to apply all filters
+        function applyFilters() {
+            if (!eventHistoryTable) {
+                console.error('Event history table not found');
+                return;
+            }
+            
+            // Get filter values
+            const searchText = eventSearch ? eventSearch.value.toLowerCase().trim() : '';
+            const groupFilter = historyFlightGroupFilter ? historyFlightGroupFilter.value : 'all';
+            const dateFilter = eventDateFilter ? eventDateFilter.value : '';
+            
+            // Get all rows in the table body
+            const rows = eventHistoryTable.querySelectorAll('tbody tr');
+            if (!rows || rows.length === 0) {
+                console.log('No rows found in event history table');
+                return;
+            }
+            
+            let visibleCount = 0;
+            
+            // Loop through each row and apply filters
+            rows.forEach(row => {
+                try {
+                    // Skip the "no results" row if it exists
+                    if (row.classList.contains('no-results-row')) {
+                        return;
+                    }
+                    
+                    // Get cell values safely
+                    const dateCell = row.querySelector('td:nth-child(1)');
+                    const titleCell = row.querySelector('td:nth-child(2)');
+                    const groupCell = row.querySelector('td:nth-child(3)');
+                    
+                    // Default to empty strings if cells don't exist
+                    const dateText = dateCell ? dateCell.textContent.trim() : '';
+                    const titleText = titleCell ? titleCell.textContent.trim().toLowerCase() : '';
+                    
+                    // Check if row matches search text
+                    const matchesSearch = searchText === '' || titleText.includes(searchText);
+                    
+                    // Check if row matches date filter
+                    const matchesDate = dateFilter === '' || (dateText && dateText.includes(dateFilter));
+                    
+                    // Check if row matches group filter
+                    let matchesGroup = groupFilter === 'all';
+                    
+                    if (!matchesGroup && groupCell) {
+                        // Try to find group badges first
+                        const badges = groupCell.querySelectorAll('.badge');
+                        
+                        if (badges && badges.length > 0) {
+                            // Check each badge to see if it matches the filter
+                            badges.forEach(badge => {
+                                const badgeText = badge.textContent.trim();
+                                // Find the option text that corresponds to the selected value
+                                if (historyFlightGroupFilter) {
+                                    const selectedOption = historyFlightGroupFilter.querySelector(`option[value="${groupFilter}"]`);
+                                    if (selectedOption && badgeText === selectedOption.textContent.trim()) {
+                                        matchesGroup = true;
+                                    }
+                                }
+                            });
+                        } else {
+                            // If no badges, check the cell text directly
+                            const groupText = groupCell.textContent.trim();
+                            if (historyFlightGroupFilter) {
+                                const selectedOption = historyFlightGroupFilter.querySelector(`option[value="${groupFilter}"]`);
+                                if (selectedOption && groupText.includes(selectedOption.textContent.trim())) {
+                                    matchesGroup = true;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Show or hide row based on all filters
+                    if (matchesSearch && matchesDate && matchesGroup) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Error filtering row:', error);
+                    // If there's an error, show the row by default
+                    row.style.display = '';
+                    visibleCount++;
+                }
+            });
+            
+            // Show "no results" message if no rows are visible
+            updateNoResultsMessage(visibleCount);
+        }
+        
+        // Function to show/hide "no results" message
+        function updateNoResultsMessage(visibleCount) {
+            if (!eventHistoryTable) return;
+            
+            // Remove existing "no results" row if it exists
+            const existingNoResults = eventHistoryTable.querySelector('.no-results-row');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+            
+            // Add "no results" row if needed
+            if (visibleCount === 0) {
+                const tbody = eventHistoryTable.querySelector('tbody');
+                if (tbody) {
+                    const noResultsRow = document.createElement('tr');
+                    noResultsRow.className = 'no-results-row';
+                    noResultsRow.innerHTML = `
+                        <td colspan="5" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-search me-2"></i>No events match your filter criteria
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary mt-2" id="inlineResetFilters">
+                                <i class="fas fa-times me-1"></i>Reset Filters
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(noResultsRow);
+                    
+                    // Add event listener to the inline reset button
+                    const inlineResetBtn = noResultsRow.querySelector('#inlineResetFilters');
+                    if (inlineResetBtn) {
+                        inlineResetBtn.addEventListener('click', function() {
+                            clearAllFilters();
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Function to clear all filters
+        function clearAllFilters() {
+            if (eventSearch) eventSearch.value = '';
+            if (historyFlightGroupFilter) historyFlightGroupFilter.value = 'all';
+            if (eventDateFilter) eventDateFilter.value = '';
+            
+            // Apply filters with cleared values
+            applyFilters();
+        }
+        
+        // Initialize filters on page load
+        setTimeout(applyFilters, 100);
+    });
+</script>
+
 <style>
-    /* Calendar styling to match the image */
-    .calendar-container {
-        background-color: #f8f9fa;
-        border: 1px solid #e9ecef;
-    }
-    
-    .calendar-header {
-        background-color: #f1f3f5;
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        text-align: center;
-        font-weight: 600;
-        padding: 10px 0;
-    }
-    
-    .calendar-body {
-        background-color: #fff;
-    }
-    
-    .calendar-week {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        border-bottom: 1px solid #e9ecef;
-    }
-    
+/* Essential calendar styles */
+.calendar-container {
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 10px 0;
+}
+
+.calendar-day {
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+}
+
+.calendar-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.calendar-date {
+    position: relative;
+    min-height: 80px;
+    padding: 8px;
+    border-right: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.calendar-date:hover {
+    background-color: #f8f9fa;
+}
+
+.calendar-date.empty {
+    background-color: #f9f9f9;
+    cursor: default;
+}
+
+.calendar-date.sunday {
+    background-color: #fff8f8;
+}
+
+.date-number {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.event-count {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+/* Event indicator styles */
+.event-indicator-container {
+    display: flex;
+    flex-wrap: wrap;
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
+}
+
+.event-indicator {
+    width: 8px;
+    height: 8px;
+    margin-right: 2px;
+    display: inline-block;
+}
+
+.event-indicator-more {
+    font-size: 0.7rem;
+}
+
+.calendar-date.has-events {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.calendar-date.has-events:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* Popover customization */
+.popover {
+    max-width: 250px;
+}
+
+.popover-event-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.popover-event {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.popover-event:last-child {
+    border-bottom: none;
+}
+
+/* Event details panel */
+.event-details-panel {
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+.event-details-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Calendar navigation */
+.calendar-navigation {
+    margin-bottom: 20px;
+}
+
+.month-title {
+    font-size: 1.5rem;
+    margin: 0;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
     .calendar-date {
-        height: 80px;
+        min-height: 60px;
         padding: 5px;
-        border-right: 1px solid #e9ecef;
-        position: relative;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .calendar-date:hover {
-        background-color: #f8f9fa;
-    }
-    
-    .calendar-date.empty {
-        background-color: #f1f3f5;
-        cursor: default;
     }
     
     .date-number {
-        font-size: 2.5rem;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 5px;
-        padding-top: 5px;
-        width: 100%;
+        font-size: 0.9rem;
     }
     
     .event-count {
-        text-align: left;
-        font-size: 1.2rem;
-        color: #6c757d;
-        font-weight: 500;
-        padding-left: 15px;
-        bottom: 50px;
-        width: 100%;
-        margin-top: -15px;
+        font-size: 0.7rem;
     }
-    
-    .calendar-date.has-events .event-count {
-        color: #0d6efd;
-        font-weight: 600;
-    }
-    
-    .calendar-date.current-date {
-        background-color: #e8f0fe;
-    }
-    
-    .calendar-date.current-date .date-number {
-        color: #0d6efd;
-    }
-    
-    /* Highlight today's date */
-    .calendar-date.current-date {
-        background-color: rgba(13, 110, 253, 0.1);
-    }
-    
-    /* Highlight dates with events */
-    .calendar-date.has-events {
-        background-color: rgba(13, 110, 253, 0.05);
-    }
-    
-    /* Highlight specific dates (like the red date in your image) */
-    .calendar-date.special-date .date-number {
-        color: #dc3545;
-    }
-    
-    /* Today's date styling */
-    .calendar-date.today .date-number {
-        color: #0d6efd;
-    }
-    
-    /* Date with events styling */
-    .calendar-date.has-events .event-count {
-        color: #0d6efd;
-    }
-    
-    /* Styling for selected groups badges */
-    .selected-groups-badges {
-        display: flex;
-        flex-wrap: wrap;
-        margin-top: 0.5rem;
-    }
-    
-    .selected-groups-badges .badge {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.7rem;
-        margin-right: 0.5rem;
-        margin-bottom: 0.5rem;
-        background-color: #0d6efd;
-        border-radius: 50px;
-    }
-    
-    /* Select2 customization if using Select2 */
-    .select2-container--default .select2-selection--multiple {
-        border-color: #ced4da;
-        border-radius: 0.375rem;
-    }
-    
-    .select2-container--default.select2-container--focus .select2-selection--multiple {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    
-    .select2-container--default .select2-selection--multiple .select2-selection__choice {
-        background-color: #0d6efd;
-        border: none;
-        color: white;
-        border-radius: 50px;
-        padding: 0.2rem 0.6rem;
-    }
-    
-    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-        color: white;
-        margin-right: 5px;
-    }
-    
-    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-        color: #f8f9fa;
-    }
-    
-    /* Event card styling with date display */
-    .event-card {
-        display: flex;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        overflow: hidden;
-        transition: transform 0.2s;
-        border: 1px solid #e9ecef;
-    }
-    
-    .event-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .event-date {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background-color: black !important;
-        color: white !important;
-        padding: 10px 15px;
-        min-width: 80px;
-        text-align: center;
-        border-right: 1px solid #e9ecef;
-    }
-    
-    .event-day {
-        font-size: 1.8rem;
-        font-weight: 700;
-        line-height: 1;
-        color: #0d6efd;
-    }
-    
-    .event-month {
-        font-size: 1rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        color: #6c757d;
-    }
-    
-    .event-content {
-        padding: 15px;
-        flex: 1;
-    }
-    
-    .event-title {
-        margin-bottom: 5px;
-        font-weight: 600;
-    }
-    
-    .event-desc {
-        color: #6c757d;
-        margin-bottom: 10px;
-    }
-    
-    .event-actions {
-        display: flex;
-        gap: 8px;
-    }
+}
 </style>
-
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 {% endblock %} 

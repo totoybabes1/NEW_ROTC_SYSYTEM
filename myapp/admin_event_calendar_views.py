@@ -11,6 +11,9 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from django.http import HttpResponse
+from django.db.models import Count
+from django.utils.timezone import make_aware
+from django.utils import timezone
 
 @login_required
 def admin_event_calendar(request):
@@ -24,8 +27,29 @@ def admin_event_calendar(request):
     year = int(request.GET.get('year', datetime.now().year))
     month = int(request.GET.get('month', datetime.now().month))
     
-    # Get the calendar for the current month
-    cal = calendar.monthcalendar(year, month)
+    # Create a calendar object
+    cal = calendar.Calendar(firstweekday=calendar.SUNDAY)
+    
+    # Get all dates for the month (including days from previous/next months)
+    month_dates = []
+    for week in cal.monthdays2calendar(year, month):
+        week_dates = []
+        for day, weekday in week:
+            if day == 0:
+                week_dates.append({
+                    'day': 0,
+                    'weekday': weekday,
+                    'empty': True
+                })
+            else:
+                week_dates.append({
+                    'day': day,
+                    'weekday': weekday,
+                    'empty': False,
+                    'date': f"{year}-{month:02d}-{day:02d}"
+                })
+        month_dates.append(week_dates)
+    
     month_name = calendar.month_name[month]
     
     # Get events for the displayed month
@@ -104,8 +128,25 @@ def admin_event_calendar(request):
             if group_id in events_by_group:
                 events_by_group[group_id].append(event)
     
+    # Add event statistics
+    event_stats = {
+        'total_events': Announcement.objects.filter(is_event=True).count(),
+        'upcoming_events': Announcement.objects.filter(
+            is_event=True, 
+            event_date__gte=timezone.now()
+        ).count(),
+        'events_this_month': Announcement.objects.filter(
+            is_event=True,
+            event_date__year=year,
+            event_date__month=month
+        ).count(),
+        'most_active_group': FlightGroup.objects.annotate(
+            event_count=Count('event_groups')
+        ).order_by('-event_count').first()
+    }
+
     context = {
-        'calendar': cal,
+        'calendar': month_dates,  # Use the new calendar dates
         'month': month,
         'month_name': month_name,
         'year': year,
@@ -118,6 +159,8 @@ def admin_event_calendar(request):
         'next_year': next_year,
         'all_events': all_events,
         'events_by_group': events_by_group,
+        'event_stats': event_stats,
+        'categories': ['Training', 'Meeting', 'Ceremony', 'Social', 'Other']  # Add event categories
     }
     
     return render(request, 'admin/admin_event_calendar.html', context)
@@ -314,4 +357,71 @@ def export_events_pdf(request):
         elements.append(table)
         doc.build(elements)
         
-        return response 
+        return response
+
+# New view for event categories
+@login_required
+def get_events_by_category(request):
+    category = request.GET.get('category')
+    events = Announcement.objects.filter(
+        is_event=True,
+        category=category
+    ).values('id', 'title', 'event_date')
+    return JsonResponse({'events': list(events)})
+
+# New view for recurring events
+@login_required
+def add_recurring_event(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        frequency = request.POST.get('frequency')  # weekly, monthly
+        flight_groups = request.POST.getlist('flight_groups[]')
+        
+        try:
+            start = make_aware(datetime.strptime(start_date, '%Y-%m-%d'))
+            end = make_aware(datetime.strptime(end_date, '%Y-%m-%d'))
+            current = start
+            
+            while current <= end:
+                event = Announcement.objects.create(
+                    title=title,
+                    content=content,
+                    is_event=True,
+                    event_date=current,
+                    created_by=request.user
+                )
+                
+                for group_id in flight_groups:
+                    EventFlightGroup.objects.create(
+                        event=event,
+                        flight_group_id=group_id
+                    )
+                
+                if frequency == 'weekly':
+                    current += timedelta(days=7)
+                else:  # monthly
+                    current = current.replace(month=current.month + 1)
+            
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+# New view for event attendance tracking
+@login_required
+def update_event_attendance(request, event_id):
+    if request.method == 'POST':
+        event = get_object_or_404(Announcement, id=event_id)
+        attendance_data = json.loads(request.body)
+        
+        # Update attendance records
+        event.attendance_data = attendance_data
+        event.save()
+        
+        return JsonResponse({'status': 'success'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}) 

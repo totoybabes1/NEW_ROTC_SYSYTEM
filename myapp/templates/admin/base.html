@@ -12,12 +12,65 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <!-- Include Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
     <!-- Include Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Add custom style to remove scrollbar -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Custom sidebar CSS -->
-     <link rel="stylesheet" href="{% static 'css/admin_base.css' %}">
+    <!-- Custom CSS for sidebar toggle -->
+    <style>
+        /* Sidebar styles */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background-color: #343a40; /* Dark background */
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        .sidebar.collapsed {
+            transform: translateX(-250px); /* Hide sidebar */
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-body {
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100vh - 60px); /* Adjust height */
+        }
+        .sidebar-body .nav-link {
+            color: white;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .sidebar-body .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-body .nav-link.active {
+            background-color: #0d6efd; /* Bootstrap primary color */
+        }
+
+        /* Main content styles */
+        .main-content {
+            margin-left: 250px; /* Match sidebar width */
+            transition: margin-left 0.3s ease;
+        }
+        .main-content.expanded {
+            margin-left: 0; /* Adjust when sidebar is collapsed */
+        }
+
+        /* Navbar styles */
+        .navbar {
+            z-index: 999; /* Ensure navbar is above sidebar */
+        }
+    </style>
 </head>
 <body>
     <!-- Top Navbar -->
@@ -26,7 +79,7 @@
             {% if user.is_authenticated %}
             
             <!-- Sidebar Toggle Button -->
-            <button type="button" class="btn btn-dark" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+            <button type="button" class="btn btn-dark" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
     
@@ -71,70 +124,65 @@
         </div>
     </nav>
 
-    <!-- Sidebar using Bootstrap Offcanvas -->
+    <!-- Sidebar -->
     {% if user.is_authenticated %}
-    <div class="offcanvas offcanvas-start dark-sidebar" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="logo-container">
-                <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="50">
-                <span class="logo-name">ROTC System</span>
+            <div class="d-flex align-items-center">
+                <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="50" class="me-2">
+                <span class="fs-5">ROTC System</span>
             </div>
-            <button type="button" class="btn-close-custom" data-bs-dismiss="offcanvas" aria-label="Close">×</button>
         </div>
         
         <div class="sidebar-body">
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_dashboard' %}" class="sidebar-link {% if request.path == dashboard_url %}active{% endif %}">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.path == dashboard_url %}active{% endif %}">
                         Dashboard
                     </a>
                 </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_flight_groups' %}" class="sidebar-link {% if request.path == groups_url %}active{% endif %}">
-                        Flight Groups
+              
+                <li class="nav-item">
+                    <a href="{% url 'admin_personnel_list' %}" class="nav-link {% if request.path == personnel_url %}active{% endif %}">
+                        Personnel/Flight Groups
                     </a>
                 </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_personnel_list' %}" class="sidebar-link {% if request.path == personnel_url %}active{% endif %}">
-                        Personnel
+                <li class="nav-item">
+                    <a href="{% url 'assigned_personnel_list' %}" class="nav-link {% if request.path == assigned_personnel_url %}active{% endif %}">
+                        Assigned Personnel
                     </a>
                 </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'assigned_personnel_list' %}" class="sidebar-link {% if request.path == assigned_personnel_url %}active{% endif %}">
-                        Assigned Personnel with Students
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_event_calendar' %}" class="sidebar-link {% if request.path == calendar_url %}active{% endif %}">
+                <li class="nav-item">
+                    <a href="{% url 'admin_event_calendar' %}" class="nav-link {% if request.path == calendar_url %}active{% endif %}">
                         Event Calendar
                     </a>
                 </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'upload_excel' %}" class="sidebar-link {% if request.path == upload_url %}active{% endif %}">
+                <li class="nav-item">
+                    <a href="{% url 'upload_excel' %}" class="nav-link {% if request.path == upload_url %}active{% endif %}">
                         Upload Excel
                     </a>
                 </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'assign_gender' %}" class="sidebar-link {% if request.path == assign_url %}active{% endif %}">
-                        Assign Gender to Personnel
+                <li class="nav-item">
+                    <a href="{% url 'assign_gender' %}" class="nav-link {% if request.path == assign_url %}active{% endif %}">
+                        Assigned Gender
                     </a>
                 </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'display_uploaded_tables' %}" class="sidebar-link {% if request.path == tables_url %}active{% endif %}">
+                <li class="nav-item">
+                    <a href="{% url 'display_uploaded_tables' %}" class="nav-link {% if request.path == tables_url %}active{% endif %}">
                         Uploaded Student Records
                     </a>
                 </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'admin_profile' %}" class="sidebar-link {% if request.path == profile_url %}active{% endif %}">
+                <li class="nav-item">
+                    <a href="{% url 'admin_profile' %}" class="nav-link {% if request.path == profile_url %}active{% endif %}">
                         Profile
                     </a>
                 </li>
             </ul>
             
             <!-- Logout link at the bottom of the sidebar -->
-            <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
-                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                    <a href="#" class="sidebar-link text-danger sidebar-logout" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <div class="mt-auto">
+                <div class="border-top border-secondary pt-3">
+                    <a href="#" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
                         Logout
                     </a>
                 </div>
@@ -142,6 +190,73 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container-fluid py-3">
+            <!-- Breadcrumb -->
+            {% if user.is_authenticated %}
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-light p-2 rounded">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'home' %}"><i class="fas fa-home"></i></a>
+                    </li>
+                    {% url 'admin_dashboard' as dashboard_url %}
+                    {% url 'admin_personnel_list' as personnel_url %}
+                    {% url 'admin_flight_groups' as groups_url %}
+                    {% url 'upload_excel' as upload_url %}
+                    {% url 'display_uploaded_tables' as tables_url %}
+                    {% url 'assign_gender' as assign_url %}
+                    {% url 'admin_profile' as profile_url %}
+                    {% url 'admin_event_calendar' as calendar_url %}
+                    {% url 'assigned_personnel_list' as assigned_personnel_url %}
+
+                    {% if request.path == dashboard_url %}
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    {% elif request.path == personnel_url %}
+                        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Personnel List</li>
+                    {% elif request.path == groups_url %}
+                        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Flight Groups</li>
+                    {% elif request.path == calendar_url %}
+                        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Event Calendar</li>
+                    {% elif request.path == upload_url %}
+                        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Upload Excel</li>
+                    {% elif request.path == tables_url %}
+                        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Uploaded Tables</li>
+                    {% elif request.path == assign_url %}
+                        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ personnel_url }}">Personnel List</a></li>
+                        <li class="breadcrumb-item active">Assign Gender</li>
+                    {% elif request.path == profile_url %}
+                        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Profile</li>
+                    {% elif request.path == assigned_personnel_url %}
+                        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Assigned Personnel</li>
+                    {% elif 'edit' in request.path %}
+                        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
+                        {% if 'personnel' in request.path %}
+                            <li class="breadcrumb-item"><a href="{{ personnel_url }}">Personnel List</a></li>
+                            <li class="breadcrumb-item active">Edit Personnel</li>
+                        {% elif 'flight-groups' in request.path %}
+                            <li class="breadcrumb-item"><a href="{{ groups_url }}">Flight Groups</a></li>
+                            <li class="breadcrumb-item active">Edit Flight Group</li>
+                        {% endif %}
+                    {% endif %}
+                </ol>
+            </nav>
+            {% endif %}
+
+            <!-- Main Content -->
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
 
     <!-- Logout Confirmation Modal -->
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
@@ -159,93 +274,25 @@
         </div>
     </div>
 
-    <!-- Page Content -->
-    <div class="container-fluid py-3">
-        <!-- Breadcrumb -->
-        {% if user.is_authenticated %}
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb bg-light p-2 rounded">
-                <li class="breadcrumb-item">
-                    <a href="{% url 'home' %}"><i class="fas fa-home"></i></a>
-                </li>
-                {% url 'admin_dashboard' as dashboard_url %}
-                {% url 'admin_personnel_list' as personnel_url %}
-                {% url 'admin_flight_groups' as groups_url %}
-                {% url 'upload_excel' as upload_url %}
-                {% url 'display_uploaded_tables' as tables_url %}
-                {% url 'assign_gender' as assign_url %}
-                {% url 'admin_profile' as profile_url %}
-                {% url 'admin_event_calendar' as calendar_url %}
-                {% url 'assigned_personnel_list' as assigned_personnel_url %}
-
-                {% if request.path == dashboard_url %}
-                    <li class="breadcrumb-item active">Dashboard</li>
-                {% elif request.path == personnel_url %}
-                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Personnel List</li>
-                {% elif request.path == groups_url %}
-                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Flight Groups</li>
-                {% elif request.path == calendar_url %}
-                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Event Calendar</li>
-                {% elif request.path == upload_url %}
-                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Upload Excel</li>
-                {% elif request.path == tables_url %}
-                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Uploaded Tables</li>
-                {% elif request.path == assign_url %}
-                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ personnel_url }}">Personnel List</a></li>
-                    <li class="breadcrumb-item active">Assign Gender</li>
-                {% elif request.path == profile_url %}
-                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Profile</li>
-                {% elif request.path == assigned_personnel_url %}
-                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Assigned Personnel</li>
-                {% elif 'edit' in request.path %}
-                    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Dashboard</a></li>
-                    {% if 'personnel' in request.path %}
-                        <li class="breadcrumb-item"><a href="{{ personnel_url }}">Personnel List</a></li>
-                        <li class="breadcrumb-item active">Edit Personnel</li>
-                    {% elif 'flight-groups' in request.path %}
-                        <li class="breadcrumb-item"><a href="{{ groups_url }}">Flight Groups</a></li>
-                        <li class="breadcrumb-item active">Edit Flight Group</li>
-                    {% endif %}
-                {% endif %}
-            </ol>
-        </nav>
-        {% endif %}
-
-        <!-- Main Content -->
-        {% block content %}
-        {% endblock %}
-    </div>
-
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Simple JavaScript to auto-show sidebar on larger screens -->
+    <!-- JavaScript for Sidebar Toggle -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Close sidebar when clicking a link on mobile
-            const sidebarLinks = document.querySelectorAll('.sidebar-link');
-            sidebarLinks.forEach(link => {
-                link.addEventListener('click', function () {
-                    if (window.innerWidth < 992) {
-                        const sidebar = document.getElementById('sidebar');
-                        const bsOffcanvas = bootstrap.Offcanvas.getInstance(sidebar);
-                        if (bsOffcanvas) {
-                            bsOffcanvas.hide();
-                        }
-                    }
-                });
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+
+            sidebarToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
             });
         });
     </script>
+
+    {% block extrajs %}{% endblock %}
 </body>
 </html>

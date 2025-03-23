@@ -225,80 +225,162 @@ h6 {
   background-color: #ccefff;
 }
 
-/* Modern Event Card Styles */
+/* Completely redesigned Upcoming Events Section - No black sidebar */
+.upcoming-events {
+  padding: 0.5rem;
+}
+
+/* Simple card design without any black elements */
 .event-card {
-  display: flex;
-  background-color: #fff;
-  border-radius: 4px;
+  display: block; /* Changed from flex to block layout */
+  background-color: #ffffff;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1px solid #eaeaea;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-bottom: 10px;
-  max-width: 100%;
-  border: 1px solid #eee;
+  padding: 16px;
 }
 
 .event-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Remove any date display that might be causing the black sidebar */
 .event-date {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 70px;
-  background-color: #f0f0f0;
-  padding: 12px 10px;
-  text-align: center;
-  border-right: 1px solid #e9ecef;
+  display: none; /* Hide completely */
 }
 
-.event-day {
-  font-size: 1.8rem;
-  font-weight: 700;
-  line-height: 1;
-  color: #0d6efd;
-  margin-bottom: 2px;
-}
-
-.event-month {
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #6c757d;
-}
-
-.event-content {
-  flex: 1;
-  padding: 10px;
-}
-
+/* Event title styling */
 .event-title {
-  margin: 0 0 5px 0;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #333;
-  font-size: 0.9rem;
+  margin: 0 0 10px 0;
 }
 
+/* Flight group badge styling */
 .event-group {
+  margin-bottom: 12px;
+}
+
+.event-group .badge {
+  display: inline-block;
+  padding: 5px 10px;
   font-size: 0.75rem;
-  color: #666;
-  margin-bottom: 5px;
   font-weight: 500;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  margin-right: 5px;
 }
 
+/* Event description */
 .event-desc {
-  font-size: 0.8rem;
   color: #666;
-  margin-bottom: 8px;
-  line-height: 1.3;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 12px;
 }
 
+/* Action buttons */
 .event-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+}
+
+.event-actions .btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: 4px;
+}
+
+.btn-outline-primary {
+  color: #007bff;
+  border-color: #007bff;
+  background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-outline-danger {
+  color: #dc3545;
+  border-color: #dc3545;
+  background-color: transparent;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Section header styling */
+.upcoming-events-header {
+  display: flex;
+  align-items: center;
+  color: #007bff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.upcoming-events-header i {
+  margin-right: 8px;
+}
+
+/* Empty state styling */
+.upcoming-events .text-center {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.upcoming-events .text-center i {
+  color: #ccc;
+  margin-bottom: 0.5rem;
+}
+
+.upcoming-events .text-center p {
+  color: #666;
+  margin: 0;
+}
+
+/* Card header styling */
+.card-header.bg-white {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.card-header h5 {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.card-header h5 i {
+  color: #007bff;
+  margin-right: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .event-actions {
+    flex-direction: column;
+  }
+
+  .event-actions .btn {
+    width: 100%;
+  }
 }
 
 /* Form Controls */
@@ -375,50 +457,6 @@ h6 {
 
 .bg-primary {
   background-color: #1e90ff !important;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .container-fluid {
-    padding: 1rem;
-  }
-
-  .calendar-day {
-    font-size: 0.75rem;
-    padding: 8px 5px;
-  }
-
-  .calendar-date {
-    min-height: 60px;
-    padding: 4px;
-  }
-
-  .date-number {
-    font-size: 0.8rem;
-  }
-
-  .event-card {
-    flex-direction: column;
-  }
-
-  .event-date {
-    min-width: 100%;
-    padding: 5px;
-    flex-direction: row;
-    justify-content: center;
-    gap: 5px;
-    border-right: none;
-    border-bottom: 1px solid #eee;
-  }
-
-  .event-day {
-    font-size: 1.1rem;
-  }
-
-  .event-month {
-    font-size: 0.7rem;
-    margin-top: 0;
-  }
 }
 
 /* Animation Styles */

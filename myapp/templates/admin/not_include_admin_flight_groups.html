@@ -1,0 +1,453 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Flight Groups{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="font-size: 1.2rem;">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-plane text-primary fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="h3 mb-2">Flight Groups</h1>
+                            <p class="text-muted mb-0">
+                                Manage and organize flight groups. Create new groups, edit existing ones, or remove groups when no longer needed.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  
+    <!-- Search & Filter Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="input-group">
+                <input type="text" id="searchInput" class="form-control" 
+                    placeholder="Search by flight group name or description...">
+                <select id="sortSelect" class="form-select" style="max-width: 200px;">
+                    <option value="name_asc">Name (A-Z)</option>
+                    <option value="name_desc">Name (Z-A)</option>
+                    <option value="description_asc">Description (A-Z)</option>
+                    <option value="description_desc">Description (Z-A)</option>
+                </select>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFlightGroupModal">
+                    <i class="fas fa-plus me-2"></i>Add Group
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-info alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Flight Groups Table Card -->
+    <div class="card">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Flight Groups List</h5>
+        </div>
+        <div class="card-body">
+            {% if flight_groups %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="flightGroupsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Group Name</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for group in flight_groups %}
+                                <tr>
+                                    <td><i class="fas fa-tag text-primary me-2"></i>{{ group.name }}</td>
+                                    <td><i class="fas fa-align-left text-secondary me-2"></i>{{ group.description }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary edit-group-btn me-1" 
+                                                data-group-id="{{ group.id }}"
+                                                data-group-name="{{ group.name }}"
+                                                data-group-description="{{ group.description }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger delete-group-btn"
+                                                data-group-id="{{ group.id }}"
+                                                data-group-name="{{ group.name }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div class="text-muted">
+                            Showing <span id="startRange">1</span>-<span id="endRange">10</span> of <span id="totalItems">{{ flight_groups|length }}</span> items
+                        </div>
+                        <nav aria-label="Flight groups pagination">
+                            <ul class="pagination mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <div class="text-center py-5 d-none" id="noResults">
+                        <i class="fas fa-search text-muted fa-3x mb-3"></i>
+                        <p class="text-muted">No matching flight groups found</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-plane-slash text-muted fa-3x mb-3"></i>
+                    <p class="text-muted">No flight groups available</p>
+                    <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addFlightGroupModal">
+                        <i class="fas fa-plus me-2"></i>Create First Group
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Flight Group Modal -->
+<div class="modal fade" id="addFlightGroupModal" tabindex="-1" aria-labelledby="addFlightGroupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addFlightGroupModalLabel">
+                    <i class="fas fa-plus text-primary me-2"></i>Add New Flight Group
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-tag text-secondary me-1"></i>Group Name
+                        </label>
+                        <input type="text" name="name" class="form-control" required/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-align-left text-secondary me-1"></i>Description
+                        </label>
+                        <textarea name="description" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Flight Group
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Flight Group Modal -->
+<div class="modal fade" id="editFlightGroupModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="fas fa-edit text-primary me-2"></i>Edit Flight Group
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="editFlightGroupForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">
+                            <i class="fas fa-tag text-secondary me-1"></i>Group Name
+                        </label>
+                        <input type="text" id="editName" name="name" class="form-control" required/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">
+                            <i class="fas fa-align-left text-secondary me-1"></i>Description
+                        </label>
+                        <textarea id="editDescription" name="description" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Delete Flight Group
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="bg-danger bg-opacity-10 p-3 rounded-circle d-inline-block mb-3">
+                    <i class="fas fa-trash text-danger fa-2x"></i>
+                </div>
+                <h5>You are about to delete this flight group:</h5>
+                <p class="fw-bold" id="deleteGroupName"></p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    This action cannot be undone. All associated data will be permanently removed.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>Delete Permanently
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Initialize Bootstrap components
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        
+        // Table search and sort functionality
+        const searchInput = document.getElementById("searchInput");
+        const sortSelect = document.getElementById("sortSelect");
+        const table = document.getElementById("flightGroupsTable");
+        const noResults = document.getElementById("noResults");
+        
+        if (table) {
+            const tbody = table.getElementsByTagName("tbody")[0];
+            const rows = Array.from(tbody.getElementsByTagName("tr"));
+            
+            // Remove references to non-existent elements
+            const itemsPerPage = 10;
+            let currentPage = 1;
+            
+            function updatePagination() {
+                if (!table) return;
+                
+                const tbody = table.getElementsByTagName("tbody")[0];
+                const rows = Array.from(tbody.getElementsByTagName("tr"));
+                const visibleRows = rows.filter(row => row.style.display !== "none");
+                const totalPages = Math.ceil(visibleRows.length / itemsPerPage);
+                
+                // Update the showing X-Y of Z text
+                const startRange = ((currentPage - 1) * itemsPerPage) + 1;
+                const endRange = Math.min(currentPage * itemsPerPage, visibleRows.length);
+                
+                const startRangeEl = document.getElementById("startRange");
+                const endRangeEl = document.getElementById("endRange");
+                const totalItemsEl = document.getElementById("totalItems");
+                
+                if (startRangeEl) startRangeEl.textContent = visibleRows.length ? startRange : 0;
+                if (endRangeEl) endRangeEl.textContent = endRange;
+                if (totalItemsEl) totalItemsEl.textContent = visibleRows.length;
+                
+                // Show/hide rows based on current page
+                visibleRows.forEach((row, index) => {
+                    if (index >= (currentPage - 1) * itemsPerPage && index < currentPage * itemsPerPage) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+                
+                // Update pagination buttons
+                const pagination = document.querySelector('.pagination');
+                if (!pagination) return;
+                
+                pagination.innerHTML = `
+                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" aria-label="Previous" data-page="${currentPage - 1}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                `;
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    pagination.innerHTML += `
+                        <li class="page-item ${currentPage === i ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>
+                    `;
+                }
+                
+                pagination.innerHTML += `
+                    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" aria-label="Next" data-page="${currentPage + 1}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                `;
+                
+                // Add click handlers to pagination buttons
+                document.querySelectorAll('.page-link').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const newPage = parseInt(e.target.closest('.page-link').dataset.page);
+                        if (!isNaN(newPage) && newPage !== currentPage && newPage > 0 && newPage <= totalPages) {
+                            currentPage = newPage;
+                            updatePagination();
+                        }
+                    });
+                });
+            }
+            
+            // Modify your existing search handler to call updatePagination
+            if (searchInput) {
+                searchInput.addEventListener("input", function () {
+                    const searchTerm = searchInput.value.toLowerCase().trim();
+                    let hasVisibleRows = false;
+
+                    rows.forEach((row) => {
+                        // Get the text content of cells, excluding the icon elements
+                        const nameCell = row.cells[0].querySelector('i').nextSibling.textContent.trim().toLowerCase();
+                        const descriptionCell = row.cells[1].querySelector('i').nextSibling.textContent.trim().toLowerCase();
+                        
+                        if (searchTerm === '' || 
+                            nameCell.includes(searchTerm) || 
+                            descriptionCell.includes(searchTerm)) {
+                            row.style.display = "";
+                            hasVisibleRows = true;
+                        } else {
+                            row.style.display = "none";
+                        }
+                    });
+
+                    // Reset to first page and update pagination
+                    currentPage = 1;
+                    updatePagination();
+
+                    // Toggle visibility of table and no results message
+                    if (hasVisibleRows) {
+                        if (noResults) noResults.classList.add('d-none');
+                        if (table) table.classList.remove('d-none');
+                    } else {
+                        if (noResults) noResults.classList.remove('d-none');
+                        if (table) table.classList.add('d-none');
+                    }
+                });
+            }
+            
+            // Initialize pagination
+            updatePagination();
+
+            // Sort functionality
+            sortSelect.addEventListener("change", function () {
+                const sortValue = sortSelect.value;
+                rows.sort((a, b) => {
+                    const aName = a.cells[0].textContent.toLowerCase();
+                    const bName = b.cells[0].textContent.toLowerCase();
+                    const aDescription = a.cells[1].textContent.toLowerCase();
+                    const bDescription = b.cells[1].textContent.toLowerCase();
+
+                    if (sortValue === "name_asc") return aName.localeCompare(bName);
+                    else if (sortValue === "name_desc") return bName.localeCompare(aName);
+                    else if (sortValue === "description_asc") return aDescription.localeCompare(bDescription);
+                    else if (sortValue === "description_desc") return bDescription.localeCompare(aDescription);
+                });
+
+                // Clear and repopulate the table with sorted rows
+                tbody.innerHTML = "";
+                rows.forEach((row) => tbody.appendChild(row));
+            });
+        }
+
+        // Edit Flight Group Modal functionality
+        const editButtons = document.querySelectorAll('.edit-group-btn');
+        const editFlightGroupForm = document.getElementById('editFlightGroupForm');
+        
+        editButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const groupId = this.dataset.groupId;
+                const groupName = this.dataset.groupName;
+                const groupDescription = this.dataset.groupDescription;
+                
+                // Set form action
+                editFlightGroupForm.action = `/admin-flight-groups/edit/${groupId}/`;
+                
+                // Populate form fields
+                document.getElementById('editName').value = groupName;
+                document.getElementById('editDescription').value = groupDescription;
+                
+                // Show modal
+                const editFlightGroupModal = new bootstrap.Modal(document.getElementById('editFlightGroupModal'));
+                editFlightGroupModal.show();
+            });
+        });
+
+        // Delete modal functionality
+        const deleteButtons = document.querySelectorAll('.delete-group-btn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const deleteGroupNameElement = document.getElementById('deleteGroupName');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const groupId = this.dataset.groupId;
+                const groupName = this.dataset.groupName;
+                
+                // Update modal content
+                deleteGroupNameElement.textContent = groupName;
+                confirmDeleteBtn.href = `/admin-flight-groups/delete/${groupId}/`;
+                
+                // Show modal
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                deleteModal.show();
+            });
+        });
+
+        // Clean up when delete modal is hidden
+        document.getElementById('deleteModal').addEventListener('hidden.bs.modal', function () {
+            confirmDeleteBtn.href = '#';
+            deleteGroupNameElement.textContent = '';
+        });
+    });
+</script>
+{% endblock %}

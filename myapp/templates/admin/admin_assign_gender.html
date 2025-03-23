@@ -4,17 +4,13 @@
 {% block title %}Assign Gender{% endblock %}
 
 {% block content %}
-<!-- Add the custom CSS link -->
-<link rel="stylesheet" href="{% static 'css/assign_gender.css' %}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{% static 'js/assign_gender.js' %}"></script>
 
-<div class="container mt-4">
-    <!-- Header -->
-    <!-- Page Header Card -->
-    <div class="row mb-4" data-aos="fade-up">
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 bg-white shadow-sm">
+            <div class="card shadow-sm">
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-auto">
@@ -27,7 +23,6 @@
                             <p class="text-muted mb-0">
                                 Efficiently assign gender to personnel in the system.
                                 Select multiple personnel at once to streamline the gender assignment process.
-                                Maintain accurate demographic information for reporting and organizational purposes.
                             </p>
                         </div>
                     </div>
@@ -35,81 +30,79 @@
             </div>
         </div>
     </div>
+
     <div class="row">
         <!-- Main content - Personnel list -->
         <div class="col-md-8">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Personnel List</h5>
-                        <span class="badge bg-primary rounded-pill" style="font-size: 1.1rem; padding: 0.8em 1.2em;">{{ personnel_list|length }} Total</span>
-                    </div>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Personnel List</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Quick Stats as modern gradient cards -->
+                    <!-- Stats Cards -->
                     <div class="row mb-4">
                         <div class="col-md-4 mb-3">
-                            <div class="card border-0 rounded-3 shadow-sm h-100 stats-card-with-bg assigned-card" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
-                                <div class="card-body text-white p-3">
+                            <div class="card border-0 rounded-3 shadow-sm h-100 bg-primary text-white">
+                                <div class="card-body p-3">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h6 class="mb-1 text-white-50">Assigned</h6>
-                                            <h3 class="mb-0 fw-bold" id="assignedCount">0</h3>
+                                            <h6 class="mb-1 text-white-50">Total Personnel</h6>
+                                            <h3 class="mb-0 fw-bold" id="totalCount">{{ personnel_list|length }}</h3>
                                         </div>
                                         <div class="rounded-circle bg-white bg-opacity-25 p-3">
-                                            <img src="{% static 'img/users.svg' %}" width="32" height="32" class="text-white" style="filter: brightness(0) invert(1);">
+                                            <i class="fas fa-users text-white"></i>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <div class="card border-0 rounded-3 shadow-sm h-100 stats-card-with-bg unassigned-card" style="background: linear-gradient(135deg, #f09819 0%, #ff5858 100%);">
-                                <div class="card-body text-white p-3">
+                            <div class="card border-0 rounded-3 shadow-sm h-100 bg-warning text-white">
+                                <div class="card-body p-3">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <h6 class="mb-1 text-white-50">Unassigned</h6>
                                             <h3 class="mb-0 fw-bold" id="unassignedCount">0</h3>
                                         </div>
                                         <div class="rounded-circle bg-white bg-opacity-25 p-3">
-                                            <img src="{% static 'img/user-check.svg' %}" width="32" height="32" class="text-white" style="filter: brightness(0) invert(1);">
+                                            <i class="fas fa-user-times text-white"></i>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <div class="card border-0 rounded-3 shadow-sm h-100 stats-card-with-bg selected-card" style="background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);">
-                                <div class="card-body text-white p-3">
+                            <div class="card border-0 rounded-3 shadow-sm h-100 bg-info text-white">
+                                <div class="card-body p-3">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <h6 class="mb-1 text-white-50">Selected</h6>
                                             <h3 class="mb-0 fw-bold" id="selectedCount">0</h3>
                                         </div>
                                         <div class="rounded-circle bg-white bg-opacity-25 p-3">
-                                            <img src="{% static 'img/user3.svg' %}" width="32" height="32" class="text-white" style="filter: brightness(0) invert(1);">
+                                            <i class="fas fa-check-circle text-white"></i>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- Search Box -->
+                    <div class="mb-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control bg-light border-0" id="searchInput" 
+                                placeholder="Search personnel..." onkeyup="filterPersonnel()">
+                        </div>
+                    </div>
+
                     <form method="post" id="genderAssignmentForm">
                         {% csrf_token %}
-                        <input type="hidden" name="gender_to_assign" id="gender_to_assign">
-                        <input type="hidden" name="selected_personnel" id="selected_personnel">
-                        
-                        <!-- Search bar -->
-                        <div class="input-group mb-3 shadow-sm">
-                            <input type="text" class="form-control form-control-lg" id="searchInput" placeholder="Search by name..." onkeyup="filterPersonnel()">
-                            <span class="input-group-text bg-primary text-white"><i class="fas fa-search"></i></span>
-                        </div>
-                        
-                        <!-- Feedback message -->
-                        <div id="feedbackMessage" class="alert alert-success d-none" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>Assignment updated successfully!
-                        </div>
+                        <input type="hidden" id="gender_to_assign" name="gender_to_assign">
+                        <input type="hidden" id="selected_personnel" name="selected_personnel">
                         
                         <!-- Personnel table -->
                         <div class="table-responsive">
@@ -151,34 +144,33 @@
                     </form>
                 </div>
             </div>
-
         </div>
 
         <!-- Sidebar -->
         <div class="col-md-4">
-
             <!-- Quick Actions Card -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
                 </div>
                 <div class="card-body">
                     <p class="text-muted mb-3">Quickly assign gender to selected personnel or select all records at once.</p>
                     <div class="d-flex flex-column gap-3">
-                        <div class="btn-group-compact">
-                            <button type="button" class="btn-compact btn-male" onclick="assignGender('Male')">
+                        <div class="btn-group w-100">
+                            <button type="button" class="btn btn-outline-primary" onclick="assignGender('Male')">
                                 <i class="fas fa-mars"></i> Male
                             </button>
-                            <button type="button" class="btn-compact btn-female" onclick="assignGender('Female')">
+                            <button type="button" class="btn btn-outline-danger" onclick="assignGender('Female')">
                                 <i class="fas fa-venus"></i> Female
                             </button>
-                            <button type="button" class="btn-compact btn-nonbinary" onclick="assignGender('Non-binary')">
+                            <button type="button" class="btn btn-outline-info" onclick="assignGender('Non-binary')">
                                 <i class="fas fa-venus-mars"></i> Non-binary
                             </button>
-                            <button type="button" class="btn-compact btn-select" onclick="toggleSelectAllCheckboxes()">
-                                <i class="fas fa-check-double"></i> Select All
-                            </button>
                         </div>
+                        
+                        <button type="button" class="btn btn-outline-secondary w-100" onclick="toggleSelectAllCheckboxes()">
+                            <i class="fas fa-check-double me-2"></i>Select All
+                        </button>
                         
                         <button type="submit" class="btn btn-success btn-lg w-100 mt-3" form="genderAssignmentForm">
                             <i class="fas fa-save me-2"></i>Save All Changes
@@ -188,18 +180,18 @@
             </div>
             
             <!-- Gender Distribution Card -->
-            <div class="card mb-4 shadow-sm overview-card">
+            <div class="card shadow-sm mb-4">
                 <div class="card-body p-4">
-                    <h5 class="card-title mb-3">Overview</h5>
-                    <div class="chart-container">
+                    <h5 class="card-title mb-3">Gender Distribution</h5>
+                    <div style="height: 250px;">
                         <canvas id="genderChart"></canvas>
                     </div>
-                    <div class="chart-legend mt-3">
-                        <span class="legend-item"><span class="legend-dot active-dot"></span> Active</span>
-                        <span class="legend-item"><span class="legend-dot inactive-dot"></span> Inactive</span>
-                        <span class="legend-item"><span class="legend-dot male-dot"></span> Male</span>
-                        <span class="legend-item"><span class="legend-dot female-dot"></span> Female</span>
-                        <span class="legend-item"><span class="legend-dot other-dot"></span> Other</span>
+                    <div class="d-flex justify-content-center mt-3 flex-wrap">
+                        <span class="badge bg-primary me-2 mb-2">Male</span>
+                        <span class="badge bg-danger me-2 mb-2">Female</span>
+                        <span class="badge bg-info me-2 mb-2">Non-binary</span>
+                        <span class="badge bg-warning me-2 mb-2">Other</span>
+                        <span class="badge bg-secondary mb-2">Not Assigned</span>
                     </div>
                 </div>
             </div>
@@ -219,41 +211,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const otherCount = document.querySelectorAll('select option[value="Other"]:checked').length;
         const notAssignedCount = document.querySelectorAll('select option[value=""]:checked').length;
         
-        // Update quick stats
-        document.getElementById('assignedCount').textContent = maleCount + femaleCount + nonBinaryCount + otherCount;
-        document.getElementById('unassignedCount').textContent = notAssignedCount;
+        // Create or update chart
+        if (window.genderChart) {
+            window.genderChart.destroy();
+        }
         
-        // Only create chart if Chart.js is loaded
-        if (typeof Chart !== 'undefined') {
-            // Check if there's an existing chart and destroy it
-            let existingChart = Chart.getChart("genderChart");
-            if (existingChart) {
-                existingChart.destroy();
-            }
-            
-            const ctx = document.getElementById('genderChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['Male', 'Female', 'Non-binary', 'Other', 'Not Assigned'],
-                    datasets: [{
-                        data: [maleCount, femaleCount, nonBinaryCount, otherCount, notAssignedCount],
-                        backgroundColor: [
-                            '#3498db', '#e74c3c', '#9b59b6', '#f39c12', '#95a5a6'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
+        const ctx = document.getElementById('genderChart').getContext('2d');
+        window.genderChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Male', 'Female', 'Non-binary', 'Other', 'Not Assigned'],
+                datasets: [{
+                    data: [maleCount, femaleCount, nonBinaryCount, otherCount, notAssignedCount],
+                    backgroundColor: [
+                        '#0d6efd', '#dc3545', '#0dcaf0', '#ffc107', '#6c757d'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
                     }
                 }
-            });
-        }
+            }
+        });
     }
     
     // Wait a bit to ensure Chart.js is fully loaded
@@ -267,6 +251,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('selectedCount').textContent = selectedCount;
         });
     });
+
+    // Count and display unassigned personnel
+    const unassignedCount = document.querySelectorAll('span.badge.bg-secondary').length;
+    document.getElementById('unassignedCount').textContent = unassignedCount;
 });
 
 function assignGender(gender) {

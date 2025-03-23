@@ -26,12 +26,9 @@ class Profile(models.Model):
 
 # FlightGroup model for organizing personnel into groups/squadrons
 class FlightGroup(models.Model):
-    name = models.CharField(max_length=100)  # Name of the flight group
-    description = models.TextField()  # Description of the flight group
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        app_label = 'myapp'
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)  # Make nullable for existing records
 
     def __str__(self):
         return self.name
@@ -133,3 +130,93 @@ class PersonnelStudentAssignment(models.Model):
     
     def __str__(self):
         return f"{self.student.name} assigned to {self.personnel.first_name} {self.personnel.last_name}"
+
+# StudentAttendance model with all required fields
+class StudentAttendance(models.Model):
+    student = models.ForeignKey('StudentRecord', on_delete=models.CASCADE, related_name='attendance_records')
+    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='recorded_attendance')
+    date = models.DateField()
+    time_in = models.TimeField(null=True, blank=True)
+    time_out = models.TimeField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=[
+        ('PRESENT', 'Present'),
+        ('LATE', 'Late'),
+        ('ABSENT', 'Absent'),
+        ('EXCUSED', 'Excused'),
+    ])
+    remarks = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['student', 'date']  # One attendance record per student per day
+        ordering = ['-date', '-created_at']  # Changed from -time_in to -created_at to avoid None issues
+
+    def __str__(self):
+        return f"{self.student.name} - {self.date} - {self.status}"
+
+# Add this new model for special cases
+class StudentSpecialCase(models.Model):
+    CASE_TYPES = [
+        ('band', 'Band Member'),
+        ('office', 'Office Worker'),
+        ('other_gender', 'Other Gender Preference'),
+    ]
+    
+    student = models.OneToOneField(StudentRecord, on_delete=models.CASCADE, related_name='special_case')
+    case_type = models.CharField(max_length=20, choices=CASE_TYPES)
+    handler = models.ForeignKey(Personnel, on_delete=models.SET_NULL, null=True, blank=True, related_name='handled_special_cases')
+    handler_name = models.CharField(max_length=100, blank=True)  # Keep for backward compatibility
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.student.name} - {self.get_case_type_display()}"
+
+# Model for tracking student activities for grading
+class StudentActivity(models.Model):
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='activities')
+    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='recorded_activities')
+    sf = models.IntegerField()  # Serial/Form number
+    date = models.DateField()
+    cadet_sign = models.CharField(max_length=100, blank=True)
+    activity_description = models.TextField()
+    merits = models.IntegerField(default=0)
+    demerits = models.IntegerField(default=0)
+    flight_leader_sign = models.CharField(max_length=100, blank=True)
+    remarks = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+
+    def __str__(self):
+        return f"{self.student.name} - Activity {self.sf} - {self.date}"
+
+# Model for storing student grades
+class StudentGrade(models.Model):
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='grades')
+    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='given_grades')
+    
+    # Input fields
+    num_periods = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    num_merits = models.IntegerField(default=0)
+    num_demerits = models.IntegerField(default=0)
+    subject_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    
+    # Calculated fields
+    attendance_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    military_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    proficiency_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    total_grade = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['student', 'personnel']
+
+    def __str__(self):
+        return f"{self.student.name} - Grade: {self.total_grade}"

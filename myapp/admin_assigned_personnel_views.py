@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Personnel, StudentRecord, PersonnelStudentAssignment
+from .models import Personnel, StudentRecord, PersonnelStudentAssignment, StudentSpecialCase
 
 @login_required
 def assigned_personnel_list(request):
@@ -25,9 +25,19 @@ def assigned_personnel_list(request):
         if assignment.personnel_id in personnel_assignments:
             personnel_assignments[assignment.personnel_id].append(assignment.student)
     
-    # Count unassigned students
+    # Get unassigned students with related special cases
     assigned_student_ids = assignments.values_list('student_id', flat=True)
-    unassigned_students = StudentRecord.objects.exclude(id__in=assigned_student_ids)
+    unassigned_students = StudentRecord.objects.exclude(
+        id__in=assigned_student_ids
+    ).select_related('special_case').order_by('name')
+    
+    # Get all assignments for the student assignment table
+    all_assignments = PersonnelStudentAssignment.objects.select_related('student', 'personnel').all()
+    
+    # Get special cases with related student data and handler data
+    special_cases = StudentSpecialCase.objects.select_related('student', 'handler').order_by(
+        'student__name'
+    ).all()
     
     context = {
         'personnel_list': personnel_list,
@@ -37,7 +47,9 @@ def assigned_personnel_list(request):
         'unassigned_count': unassigned_students.count(),
         'total_students': student_list.count(),
         'total_personnel': personnel_list.count(),
-        'total_assignments': assignments.count()
+        'total_assignments': assignments.count(),
+        'all_assignments': all_assignments,
+        'special_cases': special_cases,
     }
     
     return render(request, 'admin/admin_assigned_personnel.html', context)
@@ -45,24 +57,22 @@ def assigned_personnel_list(request):
 @login_required
 def auto_assign_students(request):
     """
-    Automatically assign students to personnel based on gender
+    Automatically assign students to personnel based on gender, excluding special cases
     """
     if request.method == 'POST':
         try:
-            # Clear existing assignments if requested
-            if request.POST.get('clear_existing') == 'true':
-                PersonnelStudentAssignment.objects.all().delete()
-                messages.success(request, 'Existing assignments cleared.')
-            
             # Get all personnel with gender assignments
             male_personnel = Personnel.objects.filter(gender='Male')
             female_personnel = Personnel.objects.filter(gender='Female')
             
-            # Get all unassigned students
+            # IMPORTANT: This part excludes special cases from auto-assignment
+            special_case_students = StudentSpecialCase.objects.values_list('student_id', flat=True)
             assigned_student_ids = PersonnelStudentAssignment.objects.values_list('student_id', flat=True)
-            unassigned_students = StudentRecord.objects.exclude(id__in=assigned_student_ids)
+            unassigned_students = StudentRecord.objects.exclude(
+                id__in=list(assigned_student_ids) + list(special_case_students)
+            )
             
-            # Separate students by gender
+            # Only non-special case students are assigned
             male_students = unassigned_students.filter(gender='M')
             female_students = unassigned_students.filter(gender='F')
             
@@ -111,21 +121,18 @@ def manual_assign_student(request):
             student = StudentRecord.objects.get(id=student_id)
             personnel = Personnel.objects.get(id=personnel_id)
             
-            # Check if student is already assigned
-            existing_assignment = PersonnelStudentAssignment.objects.filter(student=student).first()
-            if existing_assignment:
-                # Update existing assignment
-                existing_assignment.personnel = personnel
-                existing_assignment.save()
-                messages.success(request, f'Updated assignment for {student.name}.')
-            else:
-                # Create new assignment
-                PersonnelStudentAssignment.objects.create(
-                    personnel=personnel,
-                    student=student
-                )
-                messages.success(request, f'Assigned {student.name} to {personnel.first_name} {personnel.last_name}.')
-                
+            # Create the assignment
+            assignment = PersonnelStudentAssignment.objects.create(
+                student=student,
+                personnel=personnel
+            )
+            
+            messages.success(request, f'Successfully assigned {student.name} to {personnel.first_name} {personnel.last_name}.')
+            
+        except StudentRecord.DoesNotExist:
+            messages.error(request, 'Student not found.')
+        except Personnel.DoesNotExist:
+            messages.error(request, 'Personnel not found.')
         except Exception as e:
             messages.error(request, f'Error assigning student: {str(e)}')
     
@@ -199,5 +206,100 @@ def reset_all_assignments(request):
             messages.success(request, f'Successfully reset all assignments. {assignment_count} assignments were cleared.')
         except Exception as e:
             messages.error(request, f'Error resetting assignments: {str(e)}')
+    
+    return redirect('assigned_personnel_list')
+
+@login_required
+def handle_special_cases(request):
+    """
+    Handle special case assignments for students (band, office, other gender)
+    """
+    if request.method == 'POST':
+        student_ids = request.POST.getlist('student_ids')
+        case_type = request.POST.get('special_case_type')
+        handler_id = request.POST.get('handler_id')
+        notes = request.POST.get('notes', '')
+        case_id = request.POST.get('case_id')  # For editing existing cases
+
+        try:
+            handler = None
+            if handler_id:
+                try:
+                    handler = Personnel.objects.get(id=handler_id)
+                except Personnel.DoesNotExist:
+                    pass
+
+            # If editing a single case
+            if case_id:
+                special_case = get_object_or_404(StudentSpecialCase, id=case_id)
+                special_case.case_type = case_type
+                special_case.handler = handler
+                special_case.handler_name = handler.first_name + " " + handler.last_name if handler else ""
+                special_case.notes = notes
+                special_case.save()
+                
+                messages.success(request, f'Successfully updated special case for {special_case.student.name}')
+                
+            # If creating/updating multiple cases
+            else:
+                # Process each selected student
+                for student_id in student_ids:
+                    student = StudentRecord.objects.get(id=student_id)
+                    
+                    # Update or create special case
+                    special_case, created = StudentSpecialCase.objects.update_or_create(
+                        student=student,
+                        defaults={
+                            'case_type': case_type,
+                            'handler': handler,
+                            'handler_name': handler.first_name + " " + handler.last_name if handler else "",
+                            'notes': notes
+                        }
+                    )
+
+                    # Remove any existing assignment if present
+                    PersonnelStudentAssignment.objects.filter(student=student).delete()
+
+                action = 'Updated' if not created else 'Created'
+                messages.success(
+                    request, 
+                    f'Successfully {action.lower()} special case(s) for {len(student_ids)} student(s)'
+                )
+
+        except Exception as e:
+            messages.error(request, f'Error processing special cases: {str(e)}')
+
+    return redirect('assigned_personnel_list')
+
+@login_required
+def remove_special_case(request, case_id):
+    """
+    Remove a student's special case status
+    """
+    try:
+        special_case = get_object_or_404(StudentSpecialCase, id=case_id)
+        student_name = special_case.student.name
+        case_type = special_case.get_case_type_display()
+        special_case.delete()
+        messages.success(request, f'Removed {case_type} status from {student_name}')
+    except Exception as e:
+        messages.error(request, f'Error removing special case: {str(e)}')
+    
+    return redirect('assigned_personnel_list')
+
+@login_required
+def bulk_remove_special_cases(request):
+    """
+    Remove multiple special cases at once
+    """
+    if request.method == 'POST':
+        case_ids = request.POST.get('case_ids', '').split(',')
+        try:
+            cases = StudentSpecialCase.objects.filter(id__in=case_ids)
+            count = cases.count()
+            cases.delete()
+            messages.success(request, f'Successfully removed {count} special case(s).')
+        except Exception as e:
+            messages.error(request, f'Error removing special cases: {str(e)}')
     
     return redirect('assigned_personnel_list')

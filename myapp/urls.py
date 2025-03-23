@@ -1,5 +1,5 @@
 from django.urls import path
-from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views
+from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views, personnel_student_views, personnel_studentattendance_views, personnel_grading_views
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -11,9 +11,9 @@ urlpatterns = [
     path('logout/', admin_views.admin_logout, name='logout'),
 
     # Admin Group URLs
-    path('admin-flight-groups/', admin_group_views.flight_groups, name='admin_flight_groups'),
-    path('admin-flight-groups/edit/<int:group_id>/', admin_group_views.edit_flight_group, name='edit_flight_group'),
-    path('admin-flight-groups/delete/<int:group_id>/', admin_group_views.delete_flight_group, name='delete_flight_group'),
+    path('admin-flight-groups/', admin_member_views.add_flight_group, name='admin_flight_groups'),
+    path('edit-flight-group/<int:group_id>/', admin_member_views.edit_flight_group, name='edit_flight_group'),
+    path('delete-flight-group/<int:group_id>/', admin_member_views.delete_flight_group, name='delete_flight_group'),
 
     # Personnel Admin URLs
     path('admin-personnel/', admin_member_views.personnel_list, name='admin_personnel_list'),
@@ -64,4 +64,34 @@ urlpatterns = [
     path('remove-student-assignment/<int:assignment_id>/', admin_assigned_personnel_views.remove_student_assignment, name='remove_student_assignment'),
     path('reassign-student/', admin_assigned_personnel_views.reassign_student, name='reassign_student'),
     path('reset-all-assignments/', admin_assigned_personnel_views.reset_all_assignments, name='reset_all_assignments'),
+    path('handle-special-cases/', admin_assigned_personnel_views.handle_special_cases, name='handle_special_cases'),
+    path('remove-special-case/<int:case_id>/', admin_assigned_personnel_views.remove_special_case, name='remove_special_case'),
+    path('bulk-remove-special-cases/', admin_assigned_personnel_views.bulk_remove_special_cases, name='bulk_remove_special_cases'),
+
+    # Personnel Student URLs
+    path('personnel/assigned-students/', personnel_student_views.view_assigned_students, name='view_assigned_students'),
+    path('personnel/student-details/<int:student_id>/', personnel_student_views.get_student_details, name='get_student_details'),
+    path('personnel/filter-students/', personnel_student_views.filter_students, name='filter_students'),
+
+    # Student Attendance URLs
+    path('personnel/attendance/', personnel_studentattendance_views.attendance_dashboard, name='attendance_dashboard'),
+    path('personnel/record-attendance/', personnel_studentattendance_views.record_attendance, name='record_attendance'),
+    path('personnel/check-attendance/', personnel_studentattendance_views.check_attendance_exists, name='check_attendance_exists'),
+    path('personnel/update-attendance/', personnel_studentattendance_views.update_attendance, name='update_attendance'),
+    path('personnel/attendance-history/', personnel_studentattendance_views.view_attendance_history, name='view_attendance_history'),
+    path('personnel/student-attendance/<int:student_id>/', personnel_studentattendance_views.get_student_attendance, name='get_student_attendance'),
+    path('personnel/batch-record-attendance/', personnel_studentattendance_views.batch_record_attendance, name='batch_record_attendance'),
+    path('personnel/batch-update-attendance/', personnel_studentattendance_views.batch_update_attendance, name='batch_update_attendance'),
+    path('personnel/student-attendance-summary/<int:student_id>/', 
+         personnel_studentattendance_views.get_student_attendance_summary, 
+         name='get_student_attendance_summary'),
+
+    # Student Grading URLs
+    path('personnel/student-grading/<int:student_id>/', personnel_grading_views.student_grading, name='student_grading'),
+    path('personnel/add-activity/<int:student_id>/', personnel_grading_views.add_student_activity, name='add_student_activity'),
+    path('personnel/edit-activity/<int:activity_id>/', personnel_grading_views.edit_student_activity, name='edit_student_activity'),
+    path('personnel/delete-activity/<int:activity_id>/', personnel_grading_views.delete_student_activity, name='delete_student_activity'),
+    path('personnel/get-activity/<int:activity_id>/', personnel_grading_views.get_student_activity, name='get_student_activity'),
+    path('personnel/update-grade/<int:student_id>/', personnel_grading_views.update_student_grade, name='update_student_grade'),
+    path('personnel/student-grades/', personnel_grading_views.view_student_grades, name='view_student_grades'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

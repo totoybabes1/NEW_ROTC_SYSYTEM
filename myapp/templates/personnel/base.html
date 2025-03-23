@@ -32,6 +32,24 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{% url 'view_assigned_students' %}" class="{% if request.path == '/personnel/assigned-students/' %}active{% endif %}">
+                        <i class="fas fa-users"></i>
+                        <span>My Students</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'attendance_dashboard' %}" class="{% if request.path == '/personnel/attendance/' %}active{% endif %}">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>Record Attendance</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'view_attendance_history' %}" class="{% if request.path == '/personnel/attendance-history/' %}active{% endif %}">
+                        <i class="fas fa-history"></i>
+                        <span>Attendance History</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{% url 'personnel_profile' %}" class="{% if request.path == '/personnel/profile/' %}active{% endif %}">
                         <i class="fas fa-user"></i>
                         <span>Profile</span>

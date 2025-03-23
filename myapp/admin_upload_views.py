@@ -18,190 +18,207 @@ def upload_excel(request):
         excel_file = request.FILES.get('excel_file')
         if excel_file and excel_file.name.endswith(('.xlsx', '.xls')):
             try:
-                # Load the entire Excel file first to analyze it
-                full_df = pd.read_excel(excel_file, sheet_name=None, header=None)
+                # Read Excel file with explicit header=None to avoid skipping first row
+                df = pd.read_excel(excel_file, header=None)
                 
-                # Determine which sheet to use (first sheet by default)
-                sheet_name = list(full_df.keys())[0]
-                if len(full_df.keys()) > 1:
-                    # If multiple sheets, try to find one with student data
-                    for sheet in full_df.keys():
-                        sheet_df = full_df[sheet]
-                        # Check if this sheet might contain student data
-                        sheet_str = sheet_df.astype(str).values.flatten()
-                        if any('student' in str(val).lower() for val in sheet_str):
-                            sheet_name = sheet
+                # Find the header row and data rows
+                header_row = None
+                data_start_row = 0
+                
+                # Look for rows that might contain headers like "Student No." or "Name"
+                for i, row in df.iterrows():
+                    row_str = ' '.join(str(x).lower() for x in row if pd.notna(x))
+                    if ('student' in row_str and ('no' in row_str or 'number' in row_str)) or 'name' in row_str:
+                        header_row = i
+                        data_start_row = i + 1
+                        break
+                
+                # If we couldn't find a header row, try to detect the first row with student numbers
+                if header_row is None:
+                    # Look for a pattern like student numbers (e.g., 20230056)
+                    for i, row in df.iterrows():
+                        for cell in row:
+                            if pd.notna(cell) and isinstance(cell, (int, str)) and re.match(r'\d{8}', str(cell)):
+                                data_start_row = i
+                                break
+                        if data_start_row > 0:
                             break
                 
-                # Get the selected sheet
-                df_raw = full_df[sheet_name]
-                
-                # Convert all data to string for easier handling
-                df_str = df_raw.astype(str)
-                
-                # Look for student numbers in the entire sheet
-                # Typical student numbers follow patterns like: 2020-12345 or 20-12345 or similar
-                student_id_pattern = r'(?:\d{2,4}[-]?\d{4,6})|(?:\d{4,10})'
-                
-                # Find cells that might contain student IDs
-                potential_id_locations = []
-                for row_idx, row in enumerate(df_str.values):
-                    for col_idx, cell in enumerate(row):
-                        if pd.notna(cell) and re.search(student_id_pattern, str(cell)):
-                            potential_id_locations.append((row_idx, col_idx))
-                
-                if not potential_id_locations:
-                    messages.error(request, 'Could not identify any student ID patterns in the Excel file')
-                    return redirect('upload_excel')
-                
-                # Determine the most common column for student IDs
-                id_columns = [loc[1] for loc in potential_id_locations]
-                student_id_col = max(set(id_columns), key=id_columns.count)
-                
-                # Identify rows that contain student records (having a student ID)
-                student_rows = [loc[0] for loc in potential_id_locations if loc[1] == student_id_col]
-                
-                # Determine name column (usually right after or near student ID)
-                name_col = student_id_col + 1
-                # Try to find better name column by looking for common name patterns
-                for col in range(max(0, student_id_col - 1), min(df_str.shape[1], student_id_col + 3)):
-                    if col != student_id_col:
-                        col_values = df_str.iloc[student_rows, col].tolist()
-                        # Check if this column contains names (names typically have spaces and no digits)
-                        if all(re.search(r'[A-Za-z]+\s+[A-Za-z]+', str(val)) for val in col_values if pd.notna(val) and val != 'nan'):
-                            name_col = col
-                            break
-                
-                # Try to identify gender column (usually contains only M/F or Male/Female)
+                # Find columns for student data
+                student_no_col = None
+                name_col = None
                 gender_col = None
-                for col in range(df_str.shape[1]):
-                    col_values = df_str.iloc[student_rows, col].tolist()
-                    # Check if values are consistent with gender entries
-                    gender_like_values = [
-                        val for val in col_values 
-                        if pd.notna(val) and val != 'nan' and 
-                        (val.upper() in ['M', 'F', 'MALE', 'FEMALE'] or 
-                         re.match(r'^[MF]$', val.upper()) or
-                         'male' in val.lower() or 'female' in val.lower())
-                    ]
-                    if len(gender_like_values) >= len(student_rows) * 0.5:  # If at least half the rows have gender values
-                        gender_col = col
-                        break
-                
-                # Try to identify course column
                 course_col = None
-                course_keywords = ['course', 'program', 'degree', 'bsit', 'bscs', 'bs']
-                for col in range(df_str.shape[1]):
-                    col_values = [str(val).lower() for val in df_str.iloc[student_rows, col] if pd.notna(val) and val != 'nan']
-                    # Check column header first
-                    header_value = str(df_str.iloc[0, col]).lower() if df_str.shape[0] > 0 else ""
-                    if any(keyword in header_value for keyword in course_keywords):
-                        course_col = col
-                        break
-                    # Check if values in the column look like course codes
-                    if all(re.search(r'^[A-Za-z]{2,6}$', val) or re.search(r'^BS[A-Za-z]{2,4}$', val) for val in col_values if val):
-                        course_col = col
-                        break
-                
-                # Try to identify year column
                 year_col = None
-                year_keywords = ['year', 'level', 'yr']
-                for col in range(df_str.shape[1]):
-                    col_values = [str(val).lower() for val in df_str.iloc[student_rows, col] if pd.notna(val) and val != 'nan']
-                    # Check column header first
-                    header_value = str(df_str.iloc[0, col]).lower() if df_str.shape[0] > 0 else ""
-                    if any(keyword in header_value for keyword in year_keywords):
-                        year_col = col
-                        break
-                    # Check if values in the column are years (1-5 typically)
-                    if all(val in ['1', '2', '3', '4', '5', 'i', 'ii', 'iii', 'iv', 'v'] for val in col_values if val):
-                        year_col = col
-                        break
                 
-                # Clear existing records if requested
-                if request.POST.get('clear_existing', False):
-                    StudentRecord.objects.all().delete()
+                # If we found a header row, use it to identify columns
+                if header_row is not None:
+                    for j, cell in enumerate(df.iloc[header_row]):
+                        if pd.notna(cell):
+                            cell_str = str(cell).lower()
+                            if 'student' in cell_str and ('no' in cell_str or 'number' in cell_str):
+                                student_no_col = j
+                            elif 'name' in cell_str:
+                                name_col = j
+                            elif 'gender' in cell_str or 'sex' in cell_str:
+                                gender_col = j
+                            elif 'course' in cell_str or 'program' in cell_str:
+                                course_col = j
+                            elif 'year' in cell_str:
+                                year_col = j
                 
+                # If we couldn't identify columns from headers, make educated guesses
+                if student_no_col is None:
+                    # Assume first column with numeric values that look like IDs
+                    for j in range(df.shape[1]):
+                        col_values = df.iloc[data_start_row:, j]
+                        if col_values.apply(lambda x: pd.notna(x) and re.match(r'\d{8}', str(x))).any():
+                            student_no_col = j
+                            break
+                
+                if name_col is None and student_no_col is not None:
+                    # Assume name is in the column after student number
+                    name_col = student_no_col + 1
+                
+                if gender_col is None:
+                    # Look for a column with M/F values
+                    for j in range(df.shape[1]):
+                        col_values = df.iloc[data_start_row:, j].astype(str)
+                        if col_values.apply(lambda x: x.upper() in ['M', 'F', 'MALE', 'FEMALE']).mean() > 0.3:
+                            gender_col = j
+                            break
+                
+                if course_col is None:
+                    # Look for a column with course-like values (e.g., BSCRM, BSIT)
+                    for j in range(df.shape[1]):
+                        col_values = df.iloc[data_start_row:, j].astype(str)
+                        if col_values.apply(lambda x: bool(re.match(r'BS[A-Z]{2,4}', x.upper()) if isinstance(x, str) else False)).mean() > 0.2:
+                            course_col = j
+                            break
+                
+                if year_col is None:
+                    # Look for a column with year values (1-5)
+                    for j in range(df.shape[1]):
+                        col_values = df.iloc[data_start_row:, j]
+                        if col_values.apply(lambda x: pd.notna(x) and str(x) in ['1', '2', '3', '4', '5']).mean() > 0.3:
+                            year_col = j
+                            break
+                
+                # Debug information
+                print(f"Header row: {header_row}, Data start row: {data_start_row}")
+                print(f"Student No. column: {student_no_col}, Name column: {name_col}")
+                print(f"Gender column: {gender_col}, Course column: {course_col}, Year column: {year_col}")
+                
+                # Process data rows
                 records_created = 0
                 records_skipped = 0
+                skipped_rows = []
                 
-                # Process all identified student rows
-                for row_idx in student_rows:
+                for i in range(data_start_row, len(df)):
+                    row = df.iloc[i]
+                    
+                    # Skip empty rows
+                    if row.isna().all():
+                        continue
+                    
                     try:
-                        # Get student number
-                        student_no = str(df_raw.iloc[row_idx, student_id_col])
-                        # Clean student number (remove any non-alphanumeric except dash)
-                        student_no = re.sub(r'[^A-Za-z0-9\-]', '', student_no)
+                        # Extract student number - handle different formats
+                        student_no = None
+                        if student_no_col is not None:
+                            if pd.notna(row[student_no_col]):
+                                # Convert to string and clean up
+                                student_no = str(row[student_no_col]).strip()
+                                # If it's a float, convert to int first to remove decimal
+                                if isinstance(row[student_no_col], float):
+                                    student_no = str(int(row[student_no_col]))
+                            
+                        # If still no student number, try to find it in any column
+                        if not student_no:
+                            for j, cell in enumerate(row):
+                                if pd.notna(cell) and isinstance(cell, (int, float, str)):
+                                    cell_str = str(cell)
+                                    if re.match(r'\d{8}', cell_str):
+                                        student_no = cell_str
+                                        break
                         
-                        # Skip if student_no is empty or just spaces
-                        if not student_no or student_no.isspace() or student_no == 'nan':
+                        if not student_no:
+                            # Skip rows without student numbers
+                            skipped_rows.append(f"Row {i+1}: No student number found")
                             records_skipped += 1
                             continue
                         
-                        # Get name
-                        name = str(df_raw.iloc[row_idx, name_col]) if name_col is not None else ''
-                        name = name.strip() if name and name != 'nan' else ''
+                        # Extract name
+                        name = ""
+                        if name_col is not None and pd.notna(row[name_col]):
+                            name = str(row[name_col]).strip()
                         
-                        # Get gender (default empty)
-                        gender = ''
-                        if gender_col is not None:
-                            gender_value = str(df_raw.iloc[row_idx, gender_col]).strip()
-                            if gender_value and gender_value != 'nan':
-                                if gender_value.upper() in ['M', 'MALE']:
-                                    gender = 'M'
-                                elif gender_value.upper() in ['F', 'FEMALE']:
-                                    gender = 'F'
-                                else:
-                                    gender = gender_value[0].upper()  # Just take first letter
+                        # If no name found, try to find it in any column
+                        if not name:
+                            for j, cell in enumerate(row):
+                                if pd.notna(cell) and isinstance(cell, str) and ',' in cell and len(cell) > 5:
+                                    name = cell.strip()
+                                    break
                         
-                        # Get course (default to 'BSINT')
-                        course = 'BSINT'
-                        if course_col is not None:
-                            course_value = str(df_raw.iloc[row_idx, course_col]).strip()
-                            if course_value and course_value != 'nan':
-                                course = course_value
+                        if not name:
+                            name = f"Student {student_no}"  # Default name if none found
                         
-                        # Get year - Simplified year handling
-                        year = 4  # Default year level
-                        if year_col is not None:
-                            year_value = df_raw.iloc[row_idx, year_col]
-                            if pd.notna(year_value):
-                                try:
-                                    # Try to convert to integer
-                                    year = int(float(str(year_value).strip()))
-                                    # Ensure year is between 1-5
-                                    if year < 1 or year > 5:
-                                        year = 4
-                                except (ValueError, TypeError):
-                                    # If conversion fails, try to handle roman numerals
-                                    year_str = str(year_value).strip().upper()
-                                    if year_str in ['I', '1', 'FIRST']:
-                                        year = 1
-                                    elif year_str in ['II', '2', 'SECOND']:
-                                        year = 2
-                                    elif year_str in ['III', '3', 'THIRD']:
-                                        year = 3
-                                    elif year_str in ['IV', '4', 'FOURTH']:
-                                        year = 4
-                                    elif year_str in ['V', '5', 'FIFTH']:
-                                        year = 5
-                                    else:
-                                        year = 4  # Default if no valid year found
+                        # Extract gender
+                        gender = "M"  # Default gender
+                        if gender_col is not None and pd.notna(row[gender_col]):
+                            gender_val = str(row[gender_col]).strip().upper()
+                            if gender_val in ['M', 'MALE']:
+                                gender = 'M'
+                            elif gender_val in ['F', 'FEMALE']:
+                                gender = 'F'
+                            else:
+                                # Take first character if it's M or F
+                                first_char = gender_val[0] if gender_val else ''
+                                gender = first_char if first_char in ['M', 'F'] else 'M'
                         
-                        # Log exact year extraction for debugging
-                        print(f"Row {row_idx}: Student {student_no}, Year value in Excel: {df_raw.iloc[row_idx, year_col] if year_col is not None else 'N/A'}, Extracted year: {year}")
+                        # Extract course
+                        course = "BSCRM"  # Default course
+                        if course_col is not None and pd.notna(row[course_col]):
+                            course_val = str(row[course_col]).strip().upper()
+                            # Ensure course is stored as text, not a number
+                            if course_val.isdigit():
+                                course = f"BS{course_val}"
+                            else:
+                                course = course_val
                         
-                        # Check if record already exists
-                        existing_record = StudentRecord.objects.filter(student_no=student_no).first()
+                        # Extract year
+                        year = 2  # Default to year 2
+                        if year_col is not None and pd.notna(row[year_col]):
+                            year_val = row[year_col]
+                            if isinstance(year_val, (int, float)) and 1 <= year_val <= 5:
+                                year = int(year_val)
+                            elif isinstance(year_val, str):
+                                year_str = year_val.strip()
+                                if year_str.isdigit() and 1 <= int(year_str) <= 5:
+                                    year = int(year_str)
+                                elif year_str.upper() in ['I', 'FIRST', '1ST']:
+                                    year = 1
+                                elif year_str.upper() in ['II', 'SECOND', '2ND']:
+                                    year = 2
+                                elif year_str.upper() in ['III', 'THIRD', '3RD']:
+                                    year = 3
+                                elif year_str.upper() in ['IV', 'FOURTH', '4TH']:
+                                    year = 4
+                                elif year_str.upper() in ['V', 'FIFTH', '5TH']:
+                                    year = 5
                         
-                        if existing_record:
+                        # Check if student already exists
+                        existing_student = StudentRecord.objects.filter(student_no=student_no).first()
+                        
+                        if existing_student:
                             # Update existing record
-                            existing_record.name = name
-                            existing_record.gender = gender
-                            existing_record.course = course
-                            existing_record.year = year
-                            existing_record.save()
-                            records_created += 1
+                            if name:
+                                existing_student.name = name
+                            if gender:
+                                existing_student.gender = gender
+                            if course:
+                                existing_student.course = course
+                            existing_student.year = year
+                            existing_student.save()
                         else:
                             # Create new record
                             StudentRecord.objects.create(
@@ -209,35 +226,36 @@ def upload_excel(request):
                                 name=name,
                                 gender=gender,
                                 course=course,
-                                year=year
+                                year=year,
+                                status='ACTIVE'
                             )
-                            records_created += 1
                         
-                        print(f"Processed record {records_created}: {student_no} - {name} - Year: {year}")
-                            
-                    except Exception as row_error:
-                        print(f"Error in row {row_idx+1}: {str(row_error)}")
+                        records_created += 1
+                        
+                    except Exception as e:
+                        error_msg = f"Row {i+1}: {str(e)}"
+                        print(error_msg)
+                        skipped_rows.append(error_msg)
                         records_skipped += 1
-                        continue
-
+                
                 # Create upload record
-                upload_record = ExcelUpload.objects.create(
+                ExcelUpload.objects.create(
                     file_name=excel_file.name,
                     total_records=records_created,
                     processed=True
                 )
                 
-                messages.success(request, f'Successfully uploaded {records_created} student records! {records_skipped} records were skipped.')
+                success_msg = f'Successfully uploaded {records_created} student records!'
+                if records_skipped > 0:
+                    success_msg += f' {records_skipped} records were skipped.'
+                    print("Skipped rows details:")
+                    for msg in skipped_rows:
+                        print(f"  - {msg}")
                 
-                # Additional logging for debugging
-                print(f"Total records found: {len(student_rows)}")
-                print(f"Records created: {records_created}")
-                print(f"Records skipped: {records_skipped}")
-                
+                messages.success(request, success_msg)
                 return redirect('display_uploaded_tables')
-
+                
             except Exception as e:
-                print(f"File processing error: {str(e)}")
                 messages.error(request, f'Error processing file: {str(e)}')
         else:
             messages.error(request, 'Please upload only Excel files (.xlsx, .xls)')
