@@ -61,9 +61,12 @@ def auto_assign_students(request):
     """
     if request.method == 'POST':
         try:
+            # Get the maximum limit from the form
+            max_limit = int(request.POST.get('max_limit', 50))
+            
             # Get all personnel with gender assignments
-            male_personnel = Personnel.objects.filter(gender='Male')
-            female_personnel = Personnel.objects.filter(gender='Female')
+            male_personnel = list(Personnel.objects.filter(gender_assignment='Male'))
+            female_personnel = list(Personnel.objects.filter(gender_assignment='Female'))
             
             # IMPORTANT: This part excludes special cases from auto-assignment
             special_case_students = StudentSpecialCase.objects.values_list('student_id', flat=True)
@@ -73,35 +76,55 @@ def auto_assign_students(request):
             )
             
             # Only non-special case students are assigned
-            male_students = unassigned_students.filter(gender='M')
-            female_students = unassigned_students.filter(gender='F')
+            male_students = list(unassigned_students.filter(gender='M'))
+            female_students = list(unassigned_students.filter(gender='F'))
             
-            # Count for load balancing
-            male_personnel_count = male_personnel.count()
-            female_personnel_count = female_personnel.count()
+            # Track assignments per personnel
+            personnel_assignment_count = {}
+            for personnel in male_personnel + female_personnel:
+                # Initialize with current assignment count
+                personnel_assignment_count[personnel.id] = PersonnelStudentAssignment.objects.filter(
+                    personnel=personnel
+                ).count()
             
             # Assign male students
-            if male_personnel_count > 0:
-                for i, student in enumerate(male_students):
-                    # Distribute evenly among male personnel
-                    personnel = male_personnel[i % male_personnel_count]
-                    PersonnelStudentAssignment.objects.create(
-                        personnel=personnel,
-                        student=student
+            if male_personnel:
+                for student in male_students:
+                    # Find the male personnel with the fewest assignments
+                    available_personnel = sorted(
+                        [p for p in male_personnel if personnel_assignment_count.get(p.id, 0) < max_limit],
+                        key=lambda p: personnel_assignment_count.get(p.id, 0)
                     )
+                    
+                    if available_personnel:
+                        personnel = available_personnel[0]
+                        PersonnelStudentAssignment.objects.create(
+                            personnel=personnel,
+                            student=student
+                        )
+                        # Increment the count
+                        personnel_assignment_count[personnel.id] = personnel_assignment_count.get(personnel.id, 0) + 1
             
             # Assign female students
-            if female_personnel_count > 0:
-                for i, student in enumerate(female_students):
-                    # Distribute evenly among female personnel
-                    personnel = female_personnel[i % female_personnel_count]
-                    PersonnelStudentAssignment.objects.create(
-                        personnel=personnel,
-                        student=student
+            if female_personnel:
+                for student in female_students:
+                    # Find the female personnel with the fewest assignments
+                    available_personnel = sorted(
+                        [p for p in female_personnel if personnel_assignment_count.get(p.id, 0) < max_limit],
+                        key=lambda p: personnel_assignment_count.get(p.id, 0)
                     )
+                    
+                    if available_personnel:
+                        personnel = available_personnel[0]
+                        PersonnelStudentAssignment.objects.create(
+                            personnel=personnel,
+                            student=student
+                        )
+                        # Increment the count
+                        personnel_assignment_count[personnel.id] = personnel_assignment_count.get(personnel.id, 0) + 1
             
-            total_assigned = male_students.count() + female_students.count()
-            messages.success(request, f'Successfully assigned {total_assigned} students to personnel based on gender.')
+            total_assigned = len(male_students) + len(female_students)
+            messages.success(request, f'Successfully assigned {total_assigned} students to personnel based on gender, with a maximum of {max_limit} students per personnel.')
             
         except Exception as e:
             messages.error(request, f'Error assigning students: {str(e)}')

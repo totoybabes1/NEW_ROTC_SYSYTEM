@@ -83,23 +83,29 @@
                                     <div class="col-md-9 mb-4">
                                         <div class="card shadow-sm h-100">
                                             <div class="card-header py-2">
-                                                <h6 class="mb-0">Upload Excel File</h6>
+                                                <h6 class="mb-0">Upload Excel Files</h6>
                                             </div>
                                             <div class="card-body p-3">
                                                 <form method="POST" enctype="multipart/form-data">
                                                     {% csrf_token %}
                                                     <div class="text-center p-3 border rounded mb-3" id="fileUploadArea">
                                                         <i class="fas fa-cloud-upload-alt fa-2x mb-2 text-muted"></i>
-                                                        <h6 id="fileHeading" class="mb-1">Drop your Excel file here</h6>
+                                                        <h6 id="fileHeading" class="mb-1">Drop your Excel files here</h6>
                                                         <small class="text-muted" id="fileText">or click to browse your files</small>
-                                                        <input type="file" class="form-control d-none" id="excelFileInput" name="excel_file" accept=".xlsx,.xls" required>
+                                                        <input type="file" class="form-control d-none" id="excelFileInput" name="excel_files" accept=".xlsx,.xls" multiple required>
                                                         <button type="button" class="btn btn-outline-secondary btn-lg fs-4 py-2 px-3" id="browseButton">Browse Files</button>
+                                                    </div>
+                                                    
+                                                    <!-- Selected files list -->
+                                                    <div id="selectedFilesList" class="mb-3 d-none">
+                                                        <h6 class="mb-2"><i class="fas fa-file-excel me-2"></i>Selected Files:</h6>
+                                                        <ul class="list-group" id="filesList"></ul>
                                                     </div>
                                                     
                                                     <!-- Add file format guidance -->
                                                     <div class="alert alert-info mb-3">
                                                         <h6 class="mb-1"><i class="fas fa-info-circle me-2"></i>Excel File Format</h6>
-                                                        <p class="small mb-0">For best results, your Excel file should include columns for:</p>
+                                                        <p class="small mb-0">For best results, your Excel files should include columns for:</p>
                                                         <ul class="small mb-0">
                                                             <li>Student No. (e.g., 20230056)</li>
                                                             <li>Name (e.g., ABELLANA, JAED B.)</li>
@@ -224,27 +230,60 @@ document.addEventListener('DOMContentLoaded', function() {
     const browseButton = document.getElementById('browseButton');
     const fileHeading = document.getElementById('fileHeading');
     const fileText = document.getElementById('fileText');
+    const selectedFilesList = document.getElementById('selectedFilesList');
+    const filesList = document.getElementById('filesList');
     
     // Trigger file input when browse button is clicked
     browseButton.addEventListener('click', function() {
         fileInput.click();
     });
     
-    // Show file name when file is selected
+    // Show file names when files are selected
     fileInput.addEventListener('change', function() {
         if (this.files.length > 0) {
-            const fileName = this.files[0].name;
-            fileHeading.textContent = 'File selected:';
-            fileText.textContent = fileName;
+            fileHeading.textContent = 'Files selected:';
+            fileText.textContent = `${this.files.length} file(s) selected`;
             fileUploadArea.classList.remove('border-dashed');
             fileUploadArea.classList.add('border-success', 'bg-light');
+            
+            // Display list of selected files
+            filesList.innerHTML = '';
+            selectedFilesList.classList.remove('d-none');
+            
+            Array.from(this.files).forEach((file, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                
+                const fileIcon = document.createElement('i');
+                fileIcon.className = 'fas fa-file-excel text-success me-2';
+                
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name;
+                
+                const fileSize = document.createElement('span');
+                fileSize.className = 'badge bg-light text-dark';
+                fileSize.textContent = formatFileSize(file.size);
+                
+                listItem.appendChild(fileIcon);
+                listItem.appendChild(fileName);
+                listItem.appendChild(fileSize);
+                filesList.appendChild(listItem);
+            });
         } else {
-            fileHeading.textContent = 'Drop your Excel file here';
+            fileHeading.textContent = 'Drop your Excel files here';
             fileText.textContent = 'or click to browse your files';
             fileUploadArea.classList.add('border-dashed');
             fileUploadArea.classList.remove('border-success', 'bg-light');
+            selectedFilesList.classList.add('d-none');
         }
     });
+    
+    // Format file size
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' bytes';
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        else return (bytes / 1048576).toFixed(1) + ' MB';
+    }
     
     // Add drag and drop functionality
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -277,11 +316,28 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
-        fileInput.files = files;
         
-        // Trigger change event
-        const event = new Event('change');
-        fileInput.dispatchEvent(event);
+        // Filter only Excel files
+        const excelFiles = Array.from(files).filter(file => 
+            file.name.endsWith('.xlsx') || file.name.endsWith('.xls')
+        );
+        
+        if (excelFiles.length > 0) {
+            // Create a new DataTransfer object
+            const dataTransfer = new DataTransfer();
+            
+            // Add all Excel files to the DataTransfer object
+            excelFiles.forEach(file => dataTransfer.items.add(file));
+            
+            // Set the files property of the file input
+            fileInput.files = dataTransfer.files;
+            
+            // Trigger change event
+            const event = new Event('change');
+            fileInput.dispatchEvent(event);
+        } else {
+            alert('Please drop only Excel files (.xlsx, .xls)');
+        }
     }
 
     // Add click handlers to all delete buttons
