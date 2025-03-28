@@ -32,18 +32,19 @@
    
     
     <!-- Statistics Row with Accordion -->
-    <div class="accordion mb-4" id="statisticsAccordion">
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#statsCollapse">
-                    <i class="fas fa-chart-bar me-2"></i>Student Statistics
-                </button>
-            </h2>
-            <div id="statsCollapse" class="accordion-collapse collapse show" data-bs-parent="#statisticsAccordion">
-                <div class="accordion-body">
-                    <div class="row">
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card shadow-sm h-100">
+    <div class="row mb-4">
+        <div class="col-12 col-lg-3 order-lg-2">
+            <div class="accordion" id="statisticsAccordion">
+                <div class="accordion-item shadow-sm">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#statsCollapse">
+                            <i class="fas fa-chart-bar me-2"></i>Student Statistics
+                        </button>
+                    </h2>
+                    <div id="statsCollapse" class="accordion-collapse collapse show" data-bs-parent="#statisticsAccordion">
+                        <div class="accordion-body p-3">
+                            <!-- Total Students -->
+                            <div class="card shadow-sm mb-3">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
@@ -56,11 +57,10 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        {% for course, students in students_by_course.items %}
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card shadow-sm h-100">
+                            
+                            <!-- Course-wise Statistics -->
+                            {% for course, students in students_by_course.items %}
+                            <div class="card shadow-sm mb-3">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-success bg-opacity-10 p-3 rounded me-3">
@@ -73,25 +73,24 @@
                                     </div>
                                 </div>
                             </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+        
+        <div class="col-12 col-lg-9 order-lg-1">
+            <!-- Your existing refresh button and students table code goes here -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <button type="button" class="btn btn-primary d-flex align-items-center" id="refreshStudentList">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh List
+                    </button>
+                </div>
+            </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <button type="button" class="btn btn-primary d-flex align-items-center" id="refreshStudentList">
-                <i class="fas fa-sync-alt me-2"></i>Refresh List
-            </button>
-        </div>
-    </div>
-
-    <!-- Students List -->
-    <div class="row">
-        <div class="col-12">
+            <!-- Students List -->
             <div class="card shadow-sm">
                 <div class="card-header bg-white py-3">
                     <h5 class="mb-0 fw-bold text-primary">

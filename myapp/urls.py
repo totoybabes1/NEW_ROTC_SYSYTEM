@@ -1,5 +1,5 @@
 from django.urls import path
-from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views, personnel_student_views, personnel_studentattendance_views
+from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views, personnel_student_views 
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -69,10 +69,7 @@ urlpatterns = [
     path('bulk-remove-special-cases/', admin_assigned_personnel_views.bulk_remove_special_cases, name='bulk_remove_special_cases'),
 
     # Personnel Student URLs
-    path('personnel/assigned-students/', personnel_student_views.view_assigned_students, name='view_assigned_students'),
+    path('personnel/assigned-students/', personnel_student_views.view_assigned_students, name='view_students_assigned'),
     path('personnel/student-details/<int:student_id>/', personnel_student_views.get_student_details, name='get_student_details'),
     path('personnel/filter-students/', personnel_student_views.filter_students, name='filter_students'),
-
-    # Add the new URL for viewing assigned students
-    path('personnel/students-assigned/', personnel_studentattendance_views.view_students_assigned, name='view_students_assigned'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

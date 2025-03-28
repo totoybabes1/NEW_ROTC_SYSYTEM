@@ -1,41 +1,46 @@
-from django.shortcuts import render, get_object_or_404
+from pyexpat.errors import messages
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .models import Personnel, PersonnelStudentAssignment, StudentRecord
 from django.db.models import Count
 
+
+
 @login_required
 def view_assigned_students(request):
+    """View students assigned to the logged-in personnel"""
     try:
         personnel = Personnel.objects.get(user=request.user)
-        # Get all assignments with related student data
-        assignments = PersonnelStudentAssignment.objects.filter(
-            personnel=personnel
-        ).select_related('student')
+        assignments = PersonnelStudentAssignment.objects.filter(personnel=personnel)
         
-        # Get some statistics
-        stats = {
-            'total_students': assignments.count(),
-            'active_students': assignments.filter(student__status='ACTIVE').count(),
-            'by_gender': assignments.values('student__gender').annotate(
-                count=Count('student__gender')
-            ),
-            'by_course': assignments.values('student__course').annotate(
-                count=Count('student__course')
-            ),
-            'by_year': assignments.values('student__year').annotate(
-                count=Count('student__year')
-            )
-        }
+        # Get statistics
+        total_students = assignments.count()
+        
+        # Group students by course
+        students_by_course = {}
+        for assignment in assignments:
+            course = assignment.student.course
+            if course not in students_by_course:
+                students_by_course[course] = []
+            students_by_course[course].append(assignment.student)
+        
+        # Get all assigned students
+        assigned_students = [assignment.student for assignment in assignments]
         
         context = {
-            'assignments': assignments,
             'personnel': personnel,
-            'stats': stats,
+            'assignments': assignments,
+            'assigned_students': assigned_students,
+            'total_students': total_students,
+            'students_by_course': students_by_course,
         }
-        return render(request, 'personnel/assigned_students.html', context)
+        
+        return render(request, 'personnel/students_assigned.html', context)
     except Personnel.DoesNotExist:
-        return render(request, 'personnel/assigned_students.html', {'error': 'Personnel not found'})
+        messages.error(request, "Personnel profile not found.")
+        return redirect('personnel_login')
+
 
 @login_required
 def get_student_details(request, student_id):
