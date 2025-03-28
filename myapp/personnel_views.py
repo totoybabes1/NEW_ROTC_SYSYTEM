@@ -84,3 +84,35 @@ def personnel_profile(request):
             messages.success(request, 'Profile updated successfully.')
         
     return render(request, 'personnel/profile.html', {'personnel': personnel})
+
+@login_required(login_url='personnel_login')
+def attendance_dashboard(request):
+    personnel = Personnel.objects.get(user=request.user)
+    
+    # Get recent activities
+    recent_activities = StudentActivity.objects.filter(
+        personnel=personnel
+    ).select_related('student').order_by('-date')[:10]
+    
+    context = {
+        'personnel': personnel,
+        'recent_activities': recent_activities,
+    }
+    
+    return render(request, 'personnel/attendance_dashboard.html', context)
+
+@login_required(login_url='personnel_login')
+def view_attendance_history(request):
+    personnel = Personnel.objects.get(user=request.user)
+    
+    # Get recent activities
+    recent_activities = StudentActivity.objects.filter(
+        personnel=personnel
+    ).select_related('student').order_by('-date')[:10]
+    
+    context = {
+        'personnel': personnel,
+        'recent_activities': recent_activities,
+    }
+    
+    return render(request, 'personnel/attendance_history.html', context)

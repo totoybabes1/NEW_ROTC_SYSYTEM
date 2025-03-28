@@ -14,145 +14,16 @@
     <!-- Page Header Card -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <div class="accordion" id="infoAccordion">
-                        <div class="accordion-item border-0">
-                            <div class="row align-items-center">
-                                <div class="col-auto">
-                                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                                        <i class="fa-solid fa-users-line text-primary fa-2x"></i>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <h1 class="h3 mb-2">Personnel & Flight Groups</h1>
-                                    <div class="accordion-header" id="headingInfo">
-                                        <button class="accordion-button bg-transparent shadow-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfo" aria-expanded="true" aria-controls="collapseInfo">
-                                            View Details
-                                        </button>
-                                    </div>
-                                    <div id="collapseInfo" class="accordion-collapse collapse show" aria-labelledby="headingInfo" data-bs-parent="#infoAccordion">
-                                        <div class="accordion-body px-0">
-                                            <p class="text-muted mb-0">
-                                                View, manage, and keep track of all personnel records in one place.  
-                                                Easily add new members, update existing information, and ensure accurate record-keeping.  
-                                                Maintain an organized database to streamline personnel management and improve efficiency.
-                                            </p>
-                                            <hr class="my-3">
-                                            <p class="text-muted mb-0">
-                                                Organize personnel into flight groups for better coordination and management.
-                                                Create, edit and manage flight groups to structure your organization effectively.
-                                                Track group assignments and maintain clear hierarchies within your personnel system.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-25 rounded-circle p-4">
+                                <i class="fa-solid fa-users-line text-primary fa-3x fw-bold"></i>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions Row -->
-    <div class="row g-3 mb-4">
-        <!-- Quick Actions Card -->
-        <div class="col-12 col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title d-flex align-items-center">
-                        <i class="fas fa-bolt me-2"></i><span class="h5 mb-0">Quick Actions</span>
-                    </h6>
-                    <p class="text-muted small mb-3">
-                        Use the options below to quickly manage personnel and flight groups. You can add new personnel, create flight groups, or assign gender to existing personnel with just a few clicks.
-                    </p>
-                    <div class="d-grid gap-3">
-                        <button class="btn btn-primary btn-lg py-1" data-bs-toggle="modal" data-bs-target="#addPersonnelModal">
-                            <i class="fas fa-plus-circle me-2"></i>Add New Personnel
-                        </button>
-                        
-                        <button class="btn btn-primary btn-lg py-1" data-bs-toggle="modal" data-bs-target="#addFlightGroupModal">
-                            <i class="fas fa-layer-group me-2"></i>Create Flight Group/Special Cases
-                        </button>
-                        
-                        <a href="{% url 'assign_gender' %}" class="btn btn-primary btn-lg py-1">
-                            <i class="fas fa-users-cog me-2"></i>Assign or Update Gender
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Statistics Cards -->
-        <div class="col-12 col-md-9">
-            <div class="accordion" id="statisticsAccordion">
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="statisticsHeader">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#statisticsCollapse" aria-expanded="true" aria-controls="statisticsCollapse">
-                            Personnel Statistics
-                        </button>
-                    </h2>
-                    <div id="statisticsCollapse" class="accordion-collapse collapse show" aria-labelledby="statisticsHeader">
-                        <div class="accordion-body">
-                            <div class="row g-3">
-                                <!-- Total Personnel -->
-                                <div class="col-12 col-sm-6 col-md-4">
-                                    <div class="card bg-primary text-white">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="rounded-circle bg-black bg-opacity-25 p-2 me-3">
-                                                    <i class="fas fa-users fa-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-0">Total Personnel</h6>
-                                                    <h3 class="mb-0">{{ personnel.count }}</h3>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Active Personnel -->
-                                <div class="col-12 col-sm-6 col-md-4">
-                                    <div class="card bg-success text-white">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="rounded-circle bg-black bg-opacity-25 p-2 me-3">
-                                                    <i class="fas fa-user-check fa-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-0">Active</h6>
-                                                    <h3 class="mb-0">{{ active_count }}</h3>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Gender Distribution -->
-                                <div class="col-12 col-sm-6 col-md-4">
-                                    <div class="card bg-warning text-white">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="rounded-circle bg-black bg-opacity-25 p-2 me-3">
-                                                    <i class="fas fa-venus-mars fa-lg"></i>
-                                                </div>
-                                                <div class="d-flex gap-3">
-                                                    <div>
-                                                        <h6 class="mb-0">Male</h6>
-                                                        <h3 class="mb-0">{{ male_count }}</h3>
-                                                    </div>
-                                                    <div>
-                                                        <h6 class="mb-0">Female</h6>
-                                                        <h3 class="mb-0">{{ female_count }}</h3>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col">
+                            <h1 class="display-4 mb-0 fw-bolder">Personnel & Flight Groups</h1>
                         </div>
                     </div>
                 </div>
@@ -162,46 +33,100 @@
 
     <!-- Main Content Area -->
     <div class="row g-3">
-        <!-- Search and Filter Section -->
+        <!-- Action Center Card -->
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-body p-3">
-                    <p class="text-muted mb-3">Use the search, sort and filter options below to find specific personnel records.</p>
-                    <div class="row g-2">
-                        <div class="col-12 col-md-4">
-                            <div class="input-group">
-                                <span class="input-group-text bg-transparent">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                                <input type="text" 
-                                       id="searchInput" 
-                                       class="form-control" 
-                                       placeholder="Search personnel...">
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div class="input-group">
-                                <span class="input-group-text bg-transparent">
-                                    <i class="fas fa-sort"></i>
-                                </span>
-                                <select id="sortSelect" class="form-select">
-                                    <option value="name_asc">Name (A-Z)</option>
-                                    <option value="name_desc">Name (Z-A)</option>
-                                    <option value="position_asc">Position (A-Z)</option>
-                                    <option value="position_desc">Position (Z-A)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div class="input-group">
-                                <span class="input-group-text bg-transparent">
-                                    <i class="fas fa-filter"></i>
-                                </span>
-                                <select class="form-select">
-                                    <option value="">All Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
+                <div class="card-header bg-white p-3 border-bottom">
+                    <div class="accordion" id="actionCenterAccordion">
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button p-0 bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#actionCenterContent">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                            <i class="fa-solid fa-compass text-primary fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-1">Action & Search Center</h5>
+                                            <p class="text-muted mb-0 small">Your all-in-one command post for searching personnel records, performing quick actions, and managing team operations. Use the search tools to find specific members or groups, and access essential management functions to coordinate your personnel efficiently.</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="actionCenterContent" class="accordion-collapse collapse show">
+                                <div class="card-body p-3">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text bg-transparent">
+                                                    <i class="fas fa-search"></i>
+                                                </span>
+                                                <input type="text" 
+                                                       id="searchInput" 
+                                                       class="form-control" 
+                                                       placeholder="Search personnel...">
+                                            </div>
+
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text bg-transparent">
+                                                    <i class="fas fa-sort"></i>
+                                                </span>
+                                                <select id="sortSelect" class="form-select">
+                                                    <option value="name_asc">Name (A-Z)</option>
+                                                    <option value="name_desc">Name (Z-A)</option>
+                                                    <option value="position_asc">Position (A-Z)</option>
+                                                    <option value="position_desc">Position (Z-A)</option>
+                                                </select>
+
+                                                <span class="input-group-text bg-transparent">
+                                                    <i class="fas fa-filter"></i>
+                                                </span>
+                                                <select class="form-select">
+                                                    <option value="">All Status</option>
+                                                    <option value="active">Active</option>
+                                                    <option value="inactive">Inactive</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <button class="btn btn-primary position-relative py-2 px-3" data-bs-toggle="modal" data-bs-target="#addPersonnelModal">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                                            <i class="fas fa-plus-circle text-white"></i>
+                                                        </div>
+                                                        <div class="text-start">
+                                                            <small class="d-block text-white-50">Add</small>
+                                                            <span class="fw-bold">Add New Personnel</span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                                
+                                                <button class="btn btn-primary position-relative py-2 px-3" data-bs-toggle="modal" data-bs-target="#addFlightGroupModal">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                                            <i class="fas fa-layer-group text-white"></i>
+                                                        </div>
+                                                        <div class="text-start">
+                                                            <small class="d-block text-white-50">Create</small>
+                                                            <span class="fw-bold">Create Flight Group</span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                                
+                                                <a href="{% url 'assign_gender' %}" class="btn btn-primary position-relative py-2 px-3">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                                            <i class="fas fa-users-cog text-white"></i>
+                                                        </div>
+                                                        <div class="text-start">
+                                                            <small class="d-block text-white-50">Assign</small>
+                                                            <span class="fw-bold">Assign Gender to Personnel</span>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -212,26 +137,44 @@
         <!-- Simple Bootstrap Tab Navigation -->
         <div class="col-12">
             <div class="card shadow-sm">
-                <!-- Simple Tab Navigation -->
-                <ul class="nav nav-tabs" id="personnelTabs">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="personnel-tab" data-bs-toggle="tab" href="#personnel-content">
-                            <i class="fas fa-users me-1"></i> Personnel List
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="flight-groups-tab" data-bs-toggle="tab" href="#flight-groups-content">
-                            <i class="fas fa-layer-group me-1"></i> Flight Groups
-                        </a>
-                    </li>
-                </ul>
+                <!-- Enhanced Tab Navigation -->
+                <div class="card-header bg-white p-0 border-bottom">
+                    <ul class="nav nav-tabs nav-fill border-0" id="personnelTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active py-3 px-4" id="personnel-tab" data-bs-toggle="tab" href="#personnel-content">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                        <i class="fas fa-users text-primary fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fs-4">Personnel List</h6>
+                                        <small class="text-muted fs-6">Manage all personnel</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-3 px-4" id="flight-groups-tab" data-bs-toggle="tab" href="#flight-groups-content">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                        <i class="fas fa-layer-group text-primary fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fs-4">Flight Groups</h6>
+                                        <small class="text-muted fs-6">Manage flight groups</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
                 
                 <!-- Tab Content -->
-                <div class="tab-content p-0" id="personnelTabsContent">
+                <div class="tab-content" id="personnelTabsContent">
                     <!-- Personnel Tab Content -->
                     <div class="tab-pane fade show active" id="personnel-content" role="tabpanel">
                         <div class="row g-0">
-                            <div class="col-12 col-xl-9">
+                            <div class="col-12">
                                 <!-- Messages -->
                                 {% if messages %}
                                     {% for message in messages %}
@@ -242,263 +185,132 @@
                                     {% endfor %}
                                 {% endif %}
 
-                                <!-- Bulk Actions -->
-                                <div class="d-none m-3" id="bulkActions">
-                                    <button id="bulkDeleteBtn" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash"></i> Delete Selected (<span id="selectedCount">0</span>)
-                                    </button>
-                                </div>
-
                                 <!-- Personnel Table Card -->
                                 <div class="card shadow-sm m-3">
-                                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Personnel List</h5>
-                                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#personnelAccordion" aria-expanded="true">
-                                            <i class="fas fa-chevron-down"></i> Toggle View
-                                        </button>
-                                    </div>
-                                    <div class="collapse show" id="personnelAccordion">
-                                        <div class="card-body p-0">
-                                            <div class="table-responsive">
-                                                <table class="table table-hover align-middle mb-0" id="personnelTable">
-                                                    <thead class="bg-light">
-                                                        <tr>
-                                                            <th class="px-3" style="width: 40px;">
-                                                                <input type="checkbox" id="selectAll" class="form-check-input">
-                                                            </th>
-                                                            <th class="d-none d-md-table-cell px-3" style="width: 60px;">Profile</th>
-                                                            <th class="px-3" style="width: 200px;">Name</th>
-                                                            <th class="d-none d-md-table-cell px-3" style="width: 120px;">Student ID</th>
-                                                            <th class="d-none d-md-table-cell px-3" style="width: 150px;">Position</th>
-                                                            <th class="px-3" style="width: 100px;">Status</th>
-                                                            <th class="d-none d-lg-table-cell px-3" style="width: 120px;">Flight Group</th>
-                                                            <th class="d-none d-lg-table-cell px-3" style="width: 120px;">Contact</th>
-                                                            <th class="d-none d-lg-table-cell px-3" style="width: 140px;">Gender Assignment</th>
-                                                            <th class="px-3" style="width: 150px;">Actions</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for person in personnel %}
-                                                        <tr>
-                                                            <td class="px-3">
-                                                                <input type="checkbox" class="form-check-input personnel-checkbox" 
-                                                                       value="{{ person.id }}">
-                                                            </td>
-                                                            <td class="d-none d-md-table-cell px-3">
-                                                                {% if person.profile_picture %}
-                                                                    <img src="{{ person.profile_picture.url }}" 
-                                                                         class="rounded-circle" 
-                                                                         alt="Profile Picture"
-                                                                         width="40" height="40"
-                                                                         data-bs-toggle="modal" 
-                                                                         data-bs-target="#imageModal{{ person.id }}">
-                                                                {% else %}
-                                                                    <img src="{% static 'images/default-profile.png' %}" 
-                                                                         class="rounded-circle" 
-                                                                         alt="Default Profile"
-                                                                         width="40" height="40"
-                                                                         data-bs-toggle="modal" 
-                                                                         data-bs-target="#imageModal{{ person.id }}">
-                                                                {% endif %}
-                                                            </td>
-                                                            <td class="px-3">
-                                                                <div>
-                                                                    <div class="fw-bold">{{ person.first_name }} {{ person.last_name }}</div>
-                                                                    <div class="text-muted small">@{{ person.user.username }}</div>
-                                                                    <!-- Mobile-only info -->
-                                                                    <div class="d-md-none text-muted small">
-                                                                        <div>{{ person.position }}</div>
-                                                                        <div>ID: {{ person.student_id }}</div>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td class="d-none d-md-table-cell px-3">{{ person.student_id }}</td>
-                                                            <td class="d-none d-md-table-cell px-3">{{ person.position }}</td>
-                                                            <td class="px-3">
-                                                                <span class="badge {% if person.status == 'Active' %}bg-success{% else %}bg-warning{% endif %}">
-                                                                    {{ person.status }}
-                                                                </span>
-                                                            </td>
-                                                            <td class="d-none d-lg-table-cell px-3">
-                                                                {% if person.flight_group %}
-                                                                    {{ person.flight_group.name }}
-                                                                {% else %}
-                                                                    <span class="text-muted">None</span>
-                                                                {% endif %}
-                                                            </td>
-                                                            <td class="d-none d-lg-table-cell px-3">{{ person.phone_number }}</td>
-                                                            <td class="d-none d-lg-table-cell px-3">{{ person.gender_assignment|default:"Not Assigned" }}</td>
-                                                            <td class="px-3">
-                                                                <div class="btn-group">
-                                                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" 
-                                                                            data-bs-target="#viewPersonnelModal{{ person.id }}">
-                                                                        <i class="fas fa-eye"></i><span class="d-none d-md-inline ms-1">View</span>
-                                                                    </button>
-                                                                    <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" 
-                                                                            data-bs-target="#editPersonnelModal{{ person.id }}">
-                                                                        <i class="fas fa-edit"></i><span class="d-none d-md-inline ms-1">Edit</span>
-                                                                    </button>
-                                                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" 
-                                                                            data-bs-target="#deletePersonnelModal{{ person.id }}">
-                                                                        <i class="fas fa-trash"></i><span class="d-none d-md-inline ms-1">Delete</span>
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                    <div class="card-header bg-white py-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0 fs-4">
+                                                <i class="fas fa-users text-primary me-2"></i>
+                                                Personnel List
+                                            </h5>
+                                            <span class="badge bg-primary fs-6">{{ personnel|length }} Total</span>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <!-- Personnel Details Accordion -->
-                                <div class="card shadow-sm m-3">
-                                    <div class="card-header bg-white">
-                                        <div class="accordion" id="personnelDetailsAccordion">
-                                            {% for person in personnel %}
-                                            <div class="accordion-item border-0">
-                                                <h2 class="accordion-header" id="heading{{ person.id }}">
-                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                                                            data-bs-target="#collapse{{ person.id }}" aria-expanded="false" 
-                                                            aria-controls="collapse{{ person.id }}">
-                                                        <div class="d-flex align-items-center w-100">
-                                                            <div class="me-3">
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle mb-0" id="personnelTable">
+                                                <thead>
+                                                    <tr class="bg-light">
+                                                        <th class="d-none d-md-table-cell border-0 px-4 py-3" style="width: 60px;">
+                                                            <div class="text-uppercase text-muted fw-bold fs-6">Profile</div>
+                                                        </th>
+                                                        <th class="border-0 px-4 py-3" style="width: 200px;">
+                                                            <div class="text-uppercase text-muted fw-bold fs-6">Name</div>
+                                                        </th>
+                                                        <th class="d-none d-md-table-cell border-0 px-4 py-3" style="width: 120px;">
+                                                            <div class="text-uppercase text-muted fw-bold fs-6">Student ID</div>
+                                                        </th>
+                                                        <th class="d-none d-md-table-cell border-0 px-4 py-3" style="width: 150px;">
+                                                            <div class="text-uppercase text-muted fw-bold fs-6">Position</div>
+                                                        </th>
+                                                        <th class="border-0 px-4 py-3" style="width: 100px;">
+                                                            <div class="text-uppercase text-muted fw-bold fs-6">Status</div>
+                                                        </th>
+                                                        <th class="d-none d-lg-table-cell border-0 px-4 py-3" style="width: 120px;">
+                                                            <div class="text-uppercase text-muted fw-bold fs-6">Flight Group</div>
+                                                        </th>
+                                                        <th class="d-none d-lg-table-cell border-0 px-4 py-3" style="width: 120px;">
+                                                            <div class="text-uppercase text-muted fw-bold fs-6">Contact</div>
+                                                        </th>
+                                                        <th class="d-none d-lg-table-cell border-0 px-4 py-3" style="width: 140px;">
+                                                            <div class="text-uppercase text-muted fw-bold fs-6">Gender Assignment</div>
+                                                        </th>
+                                                        <th class="border-0 px-4 py-3" style="width: 200px;">
+                                                            <div class="text-uppercase text-muted fw-bold fs-6">Actions</div>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="border-top-0">
+                                                    {% for person in personnel %}
+                                                    <tr>
+                                                        <td class="d-none d-md-table-cell px-4">
+                                                            <div class="position-relative">
                                                                 {% if person.profile_picture %}
                                                                     <img src="{{ person.profile_picture.url }}" 
-                                                                         class="rounded-circle" 
+                                                                         class="rounded-circle border shadow-sm" 
                                                                          alt="Profile Picture"
-                                                                         width="40" height="40">
+                                                                         width="48" height="48"
+                                                                         style="object-fit: cover;"
+                                                                         data-bs-toggle="modal" 
+                                                                         data-bs-target="#imageModal{{ person.id }}">
                                                                 {% else %}
                                                                     <img src="{% static 'images/default-profile.png' %}" 
-                                                                         class="rounded-circle" 
+                                                                         class="rounded-circle border shadow-sm" 
                                                                          alt="Default Profile"
-                                                                         width="40" height="40">
+                                                                         width="48" height="48"
+                                                                         style="object-fit: cover;"
+                                                                         data-bs-toggle="modal" 
+                                                                         data-bs-target="#imageModal{{ person.id }}">
                                                                 {% endif %}
                                                             </div>
+                                                        </td>
+                                                        <td class="px-4">
                                                             <div>
-                                                                <div class="fw-bold">{{ person.first_name }} {{ person.last_name }}</div>
-                                                                <div class="text-muted small">{{ person.position }}</div>
-                                                            </div>
-                                                            <div class="ms-auto">
-                                                                <span class="badge {% if person.status == 'Active' %}bg-success{% else %}bg-warning{% endif %}">
-                                                                    {{ person.status }}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                </h2>
-                                                <div id="collapse{{ person.id }}" class="accordion-collapse collapse" 
-                                                     aria-labelledby="heading{{ person.id }}" data-bs-parent="#personnelDetailsAccordion">
-                                                    <div class="accordion-body">
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <h6 class="mb-3"><i class="fas fa-user-circle me-2"></i>Basic Information</h6>
-                                                                <div class="mb-2">
-                                                                    <label class="text-muted small d-block">Student ID</label>
-                                                                    <span>{{ person.student_id }}</span>
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <label class="text-muted small d-block">Age</label>
-                                                                    <span>{{ person.age }}</span>
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <label class="text-muted small d-block">Gender</label>
-                                                                    <span>{{ person.gender }}</span>
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <label class="text-muted small d-block">Gender Assignment</label>
-                                                                    <span>{{ person.gender_assignment|default:"Not Assigned" }}</span>
+                                                                <div class="fw-semibold text-dark fs-5">{{ person.first_name }} {{ person.last_name }}</div>
+                                                                <div class="text-muted fs-6">@{{ person.user.username }}</div>
+                                                                <!-- Mobile-only info -->
+                                                                <div class="d-md-none text-muted fs-6 mt-1">
+                                                                    <div><i class="fas fa-briefcase me-1"></i>{{ person.position }}</div>
+                                                                    <div><i class="fas fa-id-card me-1"></i>{{ person.student_id }}</div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-md-6">
-                                                                <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Additional Information</h6>
-                                                                <div class="mb-2">
-                                                                    <label class="text-muted small d-block">Phone Number</label>
-                                                                    <span>{{ person.phone_number }}</span>
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <label class="text-muted small d-block">Flight Group</label>
-                                                                    {% if person.flight_group %}
-                                                                        <span>{{ person.flight_group.name }}</span>
-                                                                    {% else %}
-                                                                        <span class="text-muted">None</span>
-                                                                    {% endif %}
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <label class="text-muted small d-block">Username</label>
-                                                                    <span>@{{ person.user.username }}</span>
-                                                                </div>
+                                                        </td>
+                                                        <td class="d-none d-md-table-cell px-4">
+                                                            <span class="badge bg-light text-dark border fs-6">{{ person.student_id }}</span>
+                                                        </td>
+                                                        <td class="d-none d-md-table-cell px-4">
+                                                            <span class="text-muted fs-6">{{ person.position }}</span>
+                                                        </td>
+                                                        <td class="px-4">
+                                                            <span class="badge {% if person.status == 'Active' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} px-3 py-2 fs-6">
+                                                                <i class="fas fa-circle me-1" style="font-size: 8px;"></i>{{ person.status }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="d-none d-lg-table-cell px-4">
+                                                            {% if person.flight_group %}
+                                                                <span class="badge bg-primary-subtle text-primary px-3 py-2 fs-6">{{ person.flight_group.name }}</span>
+                                                            {% else %}
+                                                                <span class="badge bg-secondary-subtle text-secondary px-3 py-2 fs-6">None</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="d-none d-lg-table-cell px-4">
+                                                            <span class="text-muted fs-6">{{ person.phone_number }}</span>
+                                                        </td>
+                                                        <td class="d-none d-lg-table-cell px-4">
+                                                            <span class="badge {% if person.gender_assignment %}bg-info-subtle text-info{% else %}bg-secondary-subtle text-secondary{% endif %} px-3 py-2 fs-6">
+                                                                {{ person.gender_assignment|default:"Not Assigned" }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-4">
+                                                            <div class="btn-group">
+                                                                <button class="btn btn-outline-primary px-3 py-2" data-bs-toggle="modal" 
+                                                                        data-bs-target="#viewPersonnelModal{{ person.id }}">
+                                                                    <i class="fas fa-eye me-2"></i>View
+                                                                </button>
+                                                                <button class="btn btn-outline-success px-3 py-2" data-bs-toggle="modal" 
+                                                                        data-bs-target="#editPersonnelModal{{ person.id }}">
+                                                                    <i class="fas fa-edit me-2"></i>Edit
+                                                                </button>
+                                                                <button class="btn btn-outline-danger px-3 py-2" data-bs-toggle="modal" 
+                                                                        data-bs-target="#deletePersonnelModal{{ person.id }}">
+                                                                    <i class="fas fa-trash me-2"></i>Delete
+                                                                </button>
                                                             </div>
-                                                        </div>
-                                                        <div class="mt-3 d-flex justify-content-end">
-                                                            <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" 
-                                                                    data-bs-target="#viewPersonnelModal{{ person.id }}">
-                                                                <i class="fas fa-eye me-1"></i>View Details
-                                                            </button>
-                                                            <button class="btn btn-sm btn-outline-success me-2" data-bs-toggle="modal" 
-                                                                    data-bs-target="#editPersonnelModal{{ person.id }}">
-                                                                <i class="fas fa-edit me-1"></i>Edit
-                                                            </button>
-                                                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" 
-                                                                    data-bs-target="#deletePersonnelModal{{ person.id }}">
-                                                                <i class="fas fa-trash me-1"></i>Delete
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Side Panel -->
-                            <div class="col-12 col-xl-3">
-                                <div class="row g-3 m-3">
-                                    <!-- Statistics card -->
-                                    <div class="col-12 col-md-6 col-xl-12">
-                                        <div class="card shadow-sm">
-                                            <div class="card-body p-3">
-                                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                                    <h6 class="fw-semibold mb-0">Overview</h6>
-                                                    <button class="btn btn-sm btn-outline-primary" id="zoomChartBtn">
-                                                        <i class="fas fa-search-plus"></i>
-                                                    </button>
-                                                </div>
-                                                <div class="chart-container" style="position: relative; height: 200px;">
-                                                    <canvas id="personnelChart"></canvas>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Quick Stats -->
-                                    <div class="col-12 col-md-6 col-xl-12">
-                                        <div class="card shadow-sm">
-                                            <div class="card-body p-3">
-                                                <h6 class="fw-semibold mb-3">Quick Stats</h6>
-                                                <div class="quick-stat mb-2">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="text-muted">Active Personnel</span>
-                                                        <span class="badge bg-success" id="activePercentage">0%</span>
-                                                    </div>
-                                                    <div class="progress" style="height: 4px;">
-                                                        <div class="progress-bar bg-success" id="activeProgressBar" style="width: 0%"></div>
-                                                    </div>
-                                                </div>
-                                                <div class="quick-stat mb-2">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="text-muted">Assigned Groups</span>
-                                                        <span class="badge bg-primary" id="assignedPercentage">0%</span>
-                                                    </div>
-                                                    <div class="progress" style="height: 4px;">
-                                                        <div class="progress-bar bg-primary" id="assignedProgressBar" style="width: 0%"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
@@ -511,7 +323,7 @@
                         <div class="p-3">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>Flight Groups</h5>
-                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addFlightGroupModal">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFlightGroupModal">
                                     <i class="fas fa-plus"></i> Add Flight Group
                                 </button>
                             </div>
@@ -526,11 +338,11 @@
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <span class="badge bg-info">{{ group.id|get_flight_group_members }} members</span>
                                                 <div>
-                                                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editFlightGroupModal{{ group.id }}">
-                                                        <i class="fas fa-edit"></i>
+                                                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editFlightGroupModal{{ group.id }}">
+                                                        <i class="fas fa-edit me-2"></i>Edit
                                                     </button>
-                                                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteFlightGroupModal{{ group.id }}">
-                                                        <i class="fas fa-trash"></i>
+                                                    <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteFlightGroupModal{{ group.id }}">
+                                                        <i class="fas fa-trash me-2"></i>Delete
                                                     </button>
                                                 </div>
                                             </div>
@@ -637,7 +449,6 @@
 </div>
 
 <!-- Include Bootstrap JS and dependencies -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'js/personnel_list.js' %}"></script>
 
 <!-- Add this for no results message -->
@@ -694,49 +505,6 @@
     </div>
 </div>
 {% endfor %}
-
-<!-- Add this new modal for bulk delete confirmation -->
-<div class="modal fade" id="bulkDeleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle text-danger"></i> 
-                    Confirm Bulk Delete
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete <span id="deleteCount">0</span> selected personnel?</p>
-                <p class="text-danger">This action cannot be undone!</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmBulkDelete">
-                    <i class="fas fa-trash"></i> Delete Selected
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- Add this modal for the zoomed chart -->
-<div class="modal fade" id="chartZoomModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title">Personnel Distribution</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="zoomed-chart-container" style="position: relative; height: 400px;">
-                    <canvas id="zoomedPersonnelChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Add back the Edit and View Personnel Modals -->
 {% for person in personnel %}
@@ -1017,6 +785,48 @@
     </div>
 </div>
 {% endfor %}
+
+<style>
+    #personnelTabs .nav-link {
+        border: none;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    #personnelTabs .nav-link:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+
+    #personnelTabs .nav-link.active {
+        border: none;
+        background-color: transparent;
+    }
+
+    #personnelTabs .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: #0d6efd;
+        border-radius: 3px 3px 0 0;
+    }
+
+    #personnelTabs .nav-link:not(.active) {
+        color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+        #personnelTabs .nav-link {
+            padding: 1rem 0.5rem;
+        }
+        
+        #personnelTabs small {
+            display: none;
+        }
+    }
+</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

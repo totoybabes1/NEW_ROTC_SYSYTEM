@@ -22,35 +22,27 @@
             <div class="sidebar-header">
                 <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="sidebar-logo">
                 <h3>ROTC System</h3>
+                <button type="button" id="sidebarClose" class="d-md-none close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             
             <ul class="list-unstyled components">
-                <li>
-                    <a href="{% url 'personnel_dashboard' %}" class="{% if request.path == '/personnel/dashboard/' %}active{% endif %}">
-                        <i class="fas fa-home"></i>
+                <li class="{% if request.path == '/personnel/dashboard/' %}active{% endif %}">
+                    <a href="{% url 'personnel_dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i> 
                         <span>Dashboard</span>
                     </a>
                 </li>
-                <li>
-                    <a href="{% url 'view_assigned_students' %}" class="{% if request.path == '/personnel/assigned-students/' %}active{% endif %}">
-                        <i class="fas fa-users"></i>
-                        <span>My Students</span>
+                <li class="{% if request.path == '/personnel/students-assigned/' %}active{% endif %}">
+                    <a href="{% url 'view_students_assigned' %}">
+                        <i class="fas fa-user-graduate"></i> 
+                        <span>Assigned Students</span>
                     </a>
                 </li>
-                <li>
-                    <a href="{% url 'attendance_dashboard' %}" class="{% if request.path == '/personnel/attendance/' %}active{% endif %}">
-                        <i class="fas fa-clipboard-check"></i>
-                        <span>Record Attendance</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'view_attendance_history' %}" class="{% if request.path == '/personnel/attendance-history/' %}active{% endif %}">
-                        <i class="fas fa-history"></i>
-                        <span>Attendance History</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'personnel_profile' %}" class="{% if request.path == '/personnel/profile/' %}active{% endif %}">
+                
+                <li class="{% if request.path == '/personnel/profile/' %}active{% endif %}">
+                    <a href="{% url 'personnel_profile' %}">
                         <i class="fas fa-user"></i>
                         <span>Profile</span>
                     </a>
@@ -120,16 +112,29 @@
             // Sidebar toggle functionality
             const sidebar = document.getElementById('sidebar');
             const sidebarCollapse = document.getElementById('sidebarCollapse');
-
-            sidebarCollapse.addEventListener('click', function() {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-            });
+            const sidebarClose = document.getElementById('sidebarClose');
+            
+            if (sidebarCollapse) {
+                sidebarCollapse.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    overlay.classList.toggle('active');
+                    document.body.classList.toggle('sidebar-open');
+                });
+            }
+            
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.classList.remove('sidebar-open');
+                });
+            }
 
             // Close sidebar when clicking overlay
             overlay.addEventListener('click', function() {
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
             });
 
             // Handle window resize
@@ -137,6 +142,16 @@
                 if (window.innerWidth > 768) {
                     sidebar.classList.remove('active');
                     overlay.classList.remove('active');
+                    document.body.classList.remove('sidebar-open');
+                }
+            });
+            
+            // Add active class to parent li when submenu item is active
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('#sidebar .components li').forEach(item => {
+                const link = item.querySelector('a');
+                if (link && currentPath === link.getAttribute('href')) {
+                    item.classList.add('active');
                 }
             });
         });

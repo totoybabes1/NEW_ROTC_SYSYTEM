@@ -6,6 +6,14 @@
 <link rel="stylesheet" href="{% static 'css/admin_login.css' %}">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+<!-- Custom style to fix sidebar space issue -->
+<style>
+    /* Override main-content margin for login page */
+    body .main-content {
+        margin-left: 0 !important;
+    }
+</style>
+
 <div class="login-container d-flex justify-content-center align-items-center">
     <div class="card">
         <div class="card-body">
@@ -44,6 +52,11 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure the body doesn't have the authenticated class on login page
+        document.body.classList.remove('authenticated');
+    });
+    
     document.querySelector('form').addEventListener('submit', function(event) {
         event.preventDefault();
         this.classList.add('submitted');

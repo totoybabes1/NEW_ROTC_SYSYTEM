@@ -133,27 +133,41 @@ class PersonnelStudentAssignment(models.Model):
 
 # StudentAttendance model with all required fields
 class StudentAttendance(models.Model):
-    student = models.ForeignKey('StudentRecord', on_delete=models.CASCADE, related_name='attendance_records')
-    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='recorded_attendance')
-    date = models.DateField()
-    time_in = models.TimeField(null=True, blank=True)
-    time_out = models.TimeField(null=True, blank=True)
-    status = models.CharField(max_length=10, choices=[
+    STATUS_CHOICES = [
         ('PRESENT', 'Present'),
         ('LATE', 'Late'),
         ('ABSENT', 'Absent'),
         ('EXCUSED', 'Excused'),
-    ])
-    remarks = models.TextField(blank=True)
+    ]
+    
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='attendance_records')
+    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='recorded_attendance')
+    date = models.DateField()
+    time_in = models.TimeField(null=True, blank=True)
+    time_out = models.TimeField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, null=True, blank=True)
+    remarks = models.TextField(blank=True, null=True)
+    
+    # Activity tracking fields
+    is_activity = models.BooleanField(default=False)
+    sf = models.CharField(max_length=50, blank=True, null=True)
+    cadet_sign = models.CharField(max_length=100, blank=True, null=True)
+    activity_description = models.TextField(blank=True, null=True)
+    merits = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    demerits = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    flight_leader_sign = models.CharField(max_length=100, blank=True, null=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     class Meta:
-        unique_together = ['student', 'date']  # One attendance record per student per day
-        ordering = ['-date', '-created_at']  # Changed from -time_in to -created_at to avoid None issues
-
+        unique_together = ['student', 'date', 'is_activity']
+        ordering = ['-date', '-created_at']
+    
     def __str__(self):
-        return f"{self.student.name} - {self.date} - {self.status}"
+        if self.is_activity:
+            return f"{self.student.name} - Activity on {self.date}"
+        return f"{self.student.name} - {self.status} on {self.date}"
 
 # Add this new model for special cases
 class StudentSpecialCase(models.Model):
@@ -174,49 +188,32 @@ class StudentSpecialCase(models.Model):
     def __str__(self):
         return f"{self.student.name} - {self.get_case_type_display()}"
 
-# Model for tracking student activities for grading
-class StudentActivity(models.Model):
-    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='activities')
-    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='recorded_activities')
-    sf = models.IntegerField()  # Serial/Form number
-    date = models.DateField()
-    cadet_sign = models.CharField(max_length=100, blank=True)
-    activity_description = models.TextField()
-    merits = models.IntegerField(default=0)
-    demerits = models.IntegerField(default=0)
-    flight_leader_sign = models.CharField(max_length=100, blank=True)
-    remarks = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-date', '-created_at']
-
-    def __str__(self):
-        return f"{self.student.name} - Activity {self.sf} - {self.date}"
-
 # Model for storing student grades
 class StudentGrade(models.Model):
     student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='grades')
-    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='given_grades')
     
-    # Input fields
-    num_periods = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    # Attendance component (30%)
+    num_periods = models.IntegerField(default=0)
+    attendance_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    
+    # Aptitude component (30%)
+    num_tws = models.IntegerField(default=0)
     num_merits = models.IntegerField(default=0)
     num_demerits = models.IntegerField(default=0)
-    subject_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    
-    # Calculated fields
-    attendance_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     military_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    
+    # Subject proficiency component (40%)
+    subject_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     proficiency_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    total_grade = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    
+    # Final grade
+    final_grade = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     class Meta:
-        unique_together = ['student', 'personnel']
-
+        unique_together = ['student']
+    
     def __str__(self):
-        return f"{self.student.name} - Grade: {self.total_grade}"
+        return f"{self.student.name} - Grade: {self.final_grade}"

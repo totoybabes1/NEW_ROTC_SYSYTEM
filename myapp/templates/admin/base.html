@@ -21,54 +21,83 @@
     <style>
         /* Sidebar styles */
         .sidebar {
+            font-size: 15px;
             width: 250px;
             height: 100vh;
-            background-color: #343a40; /* Dark background */
-            color: white;
+            background: #2c3e50;
+            color: #fff;
             position: fixed;
             top: 0;
             left: 0;
-            transition: transform 0.3s ease;
+            transition: 0.3s;
             z-index: 1000;
         }
+        
         .sidebar.collapsed {
-            transform: translateX(-250px); /* Hide sidebar */
+            transform: translateX(-250px);
         }
+        
         .sidebar-header {
-            padding: 20px;
+            padding: 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
         .sidebar-body {
-            padding: 20px;
+            padding: 1rem 0;
+            height: calc(100vh - 80px);
             overflow-y: auto;
-            height: calc(100vh - 60px); /* Adjust height */
         }
+        
         .sidebar-body .nav-link {
-            color: white;
-            padding: 10px 15px;
-            margin: 5px 0;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
+            color: #fff;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.2s;
         }
+        
         .sidebar-body .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
+        
         .sidebar-body .nav-link.active {
-            background-color: #0d6efd; /* Bootstrap primary color */
+            background: #3498db;
         }
-
-        /* Main content styles */
+        
+        /* Icons for nav links */
+        .sidebar-body .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main content adjustment */
         .main-content {
-            margin-left: 250px; /* Match sidebar width */
-            transition: margin-left 0.3s ease;
+            margin-left: 250px;
+            transition: 0.3s;
+            background-color: #f8f9fa;
+            min-height: 100vh;
         }
+        
         .main-content.expanded {
-            margin-left: 0; /* Adjust when sidebar is collapsed */
+            margin-left: 0;
         }
 
         /* Navbar styles */
         .navbar {
-            z-index: 999; /* Ensure navbar is above sidebar */
+            z-index: 999;
+        }
+
+        /* Logout section at bottom */
+        .sidebar-body .border-top {
+            margin-top: 2rem;
+            padding-top: 1rem;
+        }
+        .sidebar-body .nav-link.text-danger {
+            color: #ff6b6b !important;
+        }
+        .sidebar-body .nav-link.text-danger:hover {
+            background-color: rgba(255, 107, 107, 0.1);
         }
     </style>
 </head>
@@ -138,54 +167,60 @@
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.path == dashboard_url %}active{% endif %}">
-                        Dashboard
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
                     </a>
                 </li>
-              
                 <li class="nav-item">
                     <a href="{% url 'admin_personnel_list' %}" class="nav-link {% if request.path == personnel_url %}active{% endif %}">
-                        Personnel/Flight Groups
+                        <i class="fas fa-users"></i>
+                        <span>Personnel/Flight Groups</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="{% url 'assigned_personnel_list' %}" class="nav-link {% if request.path == assigned_personnel_url %}active{% endif %}">
-                        Assigned Personnel
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'admin_event_calendar' %}" class="nav-link {% if request.path == calendar_url %}active{% endif %}">
-                        Event Calendar
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'upload_excel' %}" class="nav-link {% if request.path == upload_url %}active{% endif %}">
-                        Upload Excel
+                        <i class="fas fa-user-check"></i>
+                        <span>Assigned Personnel</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="{% url 'assign_gender' %}" class="nav-link {% if request.path == assign_url %}active{% endif %}">
-                        Assigned Gender
+                        <i class="fas fa-venus-mars"></i>
+                        <span>Assigned Gender</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'admin_event_calendar' %}" class="nav-link {% if request.path == calendar_url %}active{% endif %}">
+                        <i class="fas fa-calendar"></i>
+                        <span>Event Calendar</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'upload_excel' %}" class="nav-link {% if request.path == upload_url %}active{% endif %}">
+                        <i class="fas fa-upload"></i>
+                        <span>Upload Excel</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="{% url 'display_uploaded_tables' %}" class="nav-link {% if request.path == tables_url %}active{% endif %}">
-                        Uploaded Student Records
+                        <i class="fas fa-table"></i>
+                        <span>Student Records</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="{% url 'admin_profile' %}" class="nav-link {% if request.path == profile_url %}active{% endif %}">
-                        Profile
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
                     </a>
                 </li>
             </ul>
             
-            <!-- Logout link at the bottom of the sidebar -->
-            <div class="mt-auto">
-                <div class="border-top border-secondary pt-3">
-                    <a href="#" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                        Logout
-                    </a>
-                </div>
+            <!-- Logout link -->
+            <div class="mt-3 px-3">
+                <a href="#" class="nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
             </div>
         </div>
     </div>

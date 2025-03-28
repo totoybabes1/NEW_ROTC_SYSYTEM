@@ -4,35 +4,58 @@
 {% block title %}Personnel Profile{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/personnel_profile.css' %}">
-<div class="container profile-container">
+
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="text-center logo-container">
+                                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 80px;">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="display-4 mb-0 fw-bolder">Personnel Profile</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
     <div class="row">
         <!-- Left Column - Profile Picture and Basic Info -->
         <div class="col-md-4 mb-4">
-            <div class="profile-card">
-                <div class="profile-picture-container">
-                    {% if personnel.profile_picture %}
-                        <img src="{{ personnel.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
-                    {% else %}
-                        <img src="{% static 'img/default-profile.png' %}" alt="Default Profile Picture" class="profile-picture">
-                    {% endif %}
-                    <h4 class="mt-3">{{ personnel.first_name }} {{ personnel.last_name }}</h4>
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if personnel.profile_picture %}
+                            <img src="{{ personnel.profile_picture.url }}" alt="Profile Picture" class="rounded-circle img-fluid mx-auto d-block" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                            <img src="{% static 'img/default-profile.png' %}" alt="Default Profile Picture" class="rounded-circle img-fluid mx-auto d-block" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    <h4>{{ personnel.first_name }} {{ personnel.last_name }}</h4>
                     <p class="text-muted">{{ personnel.position }}</p>
                     
                     <!-- Basic Information -->
-                    <div class="profile-info text-start mt-4">
-                        <p><i class="fas fa-id-badge me-2"></i> <span>ID:</span> {{ personnel.student_id }}</p>
-                        <p><i class="fas fa-user me-2"></i> <span>Status:</span> {{ personnel.status }}</p>
-                        <p><i class="fas fa-users me-2"></i> <span>Flight Group:</span> {{ personnel.flight_group.name }}</p>
-                        <p><i class="fas fa-calendar me-2"></i> <span>Joined:</span> {{ personnel.date_joined|date:"M d, Y" }}</p>
+                    <div class="text-start mt-4">
+                        <p><i class="fas fa-id-badge me-2"></i> <strong>ID:</strong> {{ personnel.student_id }}</p>
+                        <p><i class="fas fa-user me-2"></i> <strong>Status:</strong> {{ personnel.status }}</p>
+                        <p><i class="fas fa-users me-2"></i> <strong>Flight Group:</strong> {{ personnel.flight_group.name }}</p>
+                        <p><i class="fas fa-calendar me-2"></i> <strong>Joined:</strong> {{ personnel.date_joined|date:"M d, Y" }}</p>
                     </div>
                     
                     <!-- Profile Picture Upload Form -->
-                    <form method="POST" enctype="multipart/form-data" id="profile-picture-form" class="upload-section">
+                    <form method="POST" enctype="multipart/form-data" id="profile-picture-form" class="mt-4">
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="profile_picture" class="form-label">Update Profile Picture</label>
-                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            <input type="file" class="form-control form-control-sm" id="profile_picture" name="profile_picture" accept="image/*">
                         </div>
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-upload me-2"></i> Upload New Picture
@@ -44,9 +67,9 @@
 
         <!-- Right Column - Edit Profile Form -->
         <div class="col-md-8">
-            <div class="profile-card">
-                <div class="card-header bg-white">
-                    <h5><i class="fas fa-user-edit me-2"></i> Edit Profile Information</h5>
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i> Edit Profile Information</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST">
@@ -84,38 +107,41 @@
                         <!-- Change Password Section -->
                         <div class="card mb-4">
                             <div class="card-header bg-light">
-                                <h6 class="mb-0">
-                                    <i class="fas fa-lock me-2"></i>Change Password
-                                    <button class="btn btn-sm btn-link float-end" onclick="togglePasswordSection()" id="togglePasswordBtn">
+                                <h6 class="mb-0 d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-lock me-2"></i>Change Password</span>
+                                    <button type="button" class="btn btn-sm btn-link" onclick="togglePasswordSection()" id="togglePasswordBtn">
                                         Hide
                                     </button>
                                 </h6>
                             </div>
                             <div class="card-body" id="passwordSection">
                                 <div class="mb-3">
-                                    <div class="password-field-wrapper">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    <div class="input-group">
                                         <input type="password" class="form-control" id="current_password" name="current_password">
-                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('current_password')">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('current_password')">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <div class="password-field-wrapper">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <div class="input-group">
                                         <input type="password" class="form-control" id="new_password" name="new_password" onkeyup="checkPasswordStrength(this.value)">
-                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('new_password')">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('new_password')">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
-                                    <div class="password-strength-meter">
-                                        <div class="strength-meter-fill" id="strengthMeter"></div>
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div class="progress-bar" id="strengthMeter" role="progressbar" style="width: 0%"></div>
                                     </div>
-                                    <div class="strength-text" id="strengthText"></div>
+                                    <small class="text-muted" id="strengthText"></small>
                                 </div>
                                 <div class="mb-3">
-                                    <div class="password-field-wrapper">
+                                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                                    <div class="input-group">
                                         <input type="password" class="form-control" id="confirm_password" name="confirm_password">
-                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirm_password')">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('confirm_password')">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -139,7 +165,7 @@
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
     {% for message in messages %}
     <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header {% if message.tags %}bg-{{ message.tags }}{% endif %} text-white">
+        <div class="toast-header {% if message.tags %}bg-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}primary{% endif %}{% endif %} text-white">
             <i class="fas fa-info-circle me-2"></i>
             <strong class="me-auto">Notification</strong>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -199,23 +225,22 @@ function checkPasswordStrength(password) {
     if (hasNumbers) strength++;
     if (hasSpecialChar) strength++;
     
-    // Update UI
-    meter.className = 'strength-meter-fill';
-    switch (strength) {
-        case 0:
-        case 1:
-            meter.classList.add('strength-weak');
-            text.textContent = 'Weak password';
-            break;
-        case 2:
-        case 3:
-            meter.classList.add('strength-medium');
-            text.textContent = 'Medium password';
-            break;
-        case 4:
-            meter.classList.add('strength-strong');
-            text.textContent = 'Strong password';
-            break;
+    // Update UI based on strength
+    let percentage = (strength / 4) * 100;
+    meter.style.width = percentage + '%';
+    
+    // Remove all classes and add the appropriate one
+    meter.classList.remove('bg-danger', 'bg-warning', 'bg-success');
+    
+    if (strength <= 1) {
+        meter.classList.add('bg-danger');
+        text.textContent = 'Weak password';
+    } else if (strength <= 3) {
+        meter.classList.add('bg-warning');
+        text.textContent = 'Medium password';
+    } else {
+        meter.classList.add('bg-success');
+        text.textContent = 'Strong password';
     }
 }
 </script>

@@ -11,21 +11,19 @@
 <div class="container-fluid" data-aos="fade-in">
     
     <div class="row mb-4" data-aos="fade-up">
+       
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card shadow-sm">
-                    <div class="card-body p-4">
+                <div class="card">
+                    <div class="card-body p-5">
                         <div class="row align-items-center">
                             <div class="col-auto">
-                                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                                    <i class="fas fa-calendar text-primary fa-2x"></i>
+                                <div class="bg-primary bg-opacity-25 rounded-circle p-4">
+                                    <i class="fa-solid fa-users text-primary fa-3x fw-bold"></i>
                                 </div>
                             </div>
                             <div class="col">
-                                <h1 class="h3 mb-2">Event Calendar</h1>
-                                <p class="text-muted mb-0">
-                                    Manage and track events for your organization. Schedule meetings, training sessions, and other activities. View upcoming events and manage event details all in one place.
-                                </p>
+                                <h1 class="display-4 mb-0 fw-bolder">Event Calendar</h1>
                             </div>
                         </div>
                     </div>
@@ -54,8 +52,17 @@
                             </div>
                         </div>
                     </div>
-                    <button class="btn btn-primary add-event-btn px-4 py-2 mt-3" data-bs-toggle="modal" data-bs-target="#addEventModal">
-                        <i class="fas fa-plus-circle me-2"></i> Add Event
+                    <br>
+                    <button class="btn btn-primary position-relative py-2" data-bs-toggle="modal" data-bs-target="#addEventModal">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                <i class="fas fa-plus-circle text-white"></i>
+                            </div>
+                            <div class="text-start">
+                                <small class="d-block text-white-50">Add</small>
+                                <span class="fw-bold">Add Event</span>
+                            </div>
+                        </div>
                     </button>
                 </div>
             </div>
@@ -75,27 +82,53 @@
     <div class="row">
         <!-- LEFT SIDE: Event Cards Column -->
         <div class="col-md-5" data-aos="fade-up" data-aos-delay="100">
-            <!-- Tab Navigation -->
-            <ul class="nav nav-tabs mb-3" id="eventTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming-events" 
-                            type="button" role="tab" aria-controls="upcoming-events" aria-selected="true">
-                        <i class="fas fa-calendar-alt me-2"></i> Upcoming Events
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="flight-groups-tab" data-bs-toggle="tab" data-bs-target="#flight-groups-events" 
-                            type="button" role="tab" aria-controls="flight-groups-events" aria-selected="false">
-                        <i class="fas fa-layer-group me-2"></i> Events by Flight Group
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#event-history" 
-                            type="button" role="tab" aria-controls="event-history" aria-selected="false">
-                        <i class="fas fa-history me-2"></i> Event History
-                    </button>
-                </li>
-            </ul>
+            <!-- Nav Tabs -->
+            <div class="card shadow-sm">
+                <!-- Enhanced Tab Navigation -->
+                <div class="card-header bg-white p-0 border-bottom">
+                    <ul class="nav nav-tabs nav-fill border-0" id="eventTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active py-3 px-4" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming-events" type="button" role="tab">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                        <i class="fas fa-calendar-alt text-primary fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fs-4">Upcoming Events</h6>
+                                        <small class="text-muted fs-6">View upcoming events</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-3 px-4" id="flight-groups-tab" data-bs-toggle="tab" data-bs-target="#flight-groups-events" type="button" role="tab">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                        <i class="fas fa-layer-group text-primary fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fs-4">Events by Flight Group</h6>
+                                        <small class="text-muted fs-6">Group-specific events</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-3 px-4" id="history-tab" data-bs-toggle="tab" data-bs-target="#event-history" type="button" role="tab">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                        <i class="fas fa-history text-primary fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fs-4">Event History</h6>
+                                        <small class="text-muted fs-6">Past events archive</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
             
             <!-- Tab Content -->
             <div class="tab-content" id="eventTabsContent">
@@ -1523,6 +1556,46 @@
     
     .event-count {
         font-size: 0.7rem;
+    }
+}
+
+#eventTabs .nav-link {
+    border: none;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+#eventTabs .nav-link:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+#eventTabs .nav-link.active {
+    border: none;
+    background-color: transparent;
+}
+
+#eventTabs .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #0d6efd;
+    border-radius: 3px 3px 0 0;
+}
+
+#eventTabs .nav-link:not(.active) {
+    color: #6c757d;
+}
+
+@media (max-width: 768px) {
+    #eventTabs .nav-link {
+        padding: 1rem 0.5rem;
+    }
+    
+    #eventTabs small {
+        display: none;
     }
 }
 </style>

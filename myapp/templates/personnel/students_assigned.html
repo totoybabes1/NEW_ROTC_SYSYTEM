@@ -1,0 +1,321 @@
+{% extends 'personnel/base.html' %}
+{% load static %}
+
+{% block title %}Assigned Students{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="text-center logo-container">
+                                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 80px;">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="display-4 mb-0 fw-bolder">Assigned Students</h1>
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+    
+    <!-- Statistics Row with Accordion -->
+    <div class="accordion mb-4" id="statisticsAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#statsCollapse">
+                    <i class="fas fa-chart-bar me-2"></i>Student Statistics
+                </button>
+            </h2>
+            <div id="statsCollapse" class="accordion-collapse collapse show" data-bs-parent="#statisticsAccordion">
+                <div class="accordion-body">
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                                            <i class="fas fa-users fa-lg text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="text-muted text-uppercase fw-semibold mb-1">Total Students</h6>
+                                            <h2 class="mb-0 fw-bold">{{ total_students }}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% for course, students in students_by_course.items %}
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-success bg-opacity-10 p-3 rounded me-3">
+                                            <i class="fas fa-graduation-cap fa-lg text-success"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="text-muted text-uppercase fw-semibold mb-1">{{ course }}</h6>
+                                            <h2 class="mb-0 fw-bold">{{ students|length }}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <button type="button" class="btn btn-primary d-flex align-items-center" id="refreshStudentList">
+                <i class="fas fa-sync-alt me-2"></i>Refresh List
+            </button>
+        </div>
+    </div>
+
+    <!-- Students List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-primary">
+                        <i class="fas fa-user-graduate me-2"></i>Student Directory
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="studentsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student No.</th>
+                                    <th>Name</th>
+                                    <th>Course</th>
+                                    <th>Year</th>
+                                    <th>Gender</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in assigned_students %}
+                                <tr>
+                                    <td><span class="fw-medium">{{ student.student_no }}</span></td>
+                                    <td>{{ student.name }}</td>
+                                    <td>
+                                        <span class="badge bg-info bg-opacity-10 text-info">{{ student.course }}</span>
+                                    </td>
+                                    <td>{{ student.year }}</td>
+                                    <td>{{ student.gender }}</td>
+                                    <td>
+                                        {% if student.status == 'ACTIVE' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning">{{ student.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-primary btn-sm rounded-circle p-2 d-inline-flex align-items-center justify-content-center view-student" 
+                                                data-bs-toggle="modal" data-bs-target="#studentDetailsModal"
+                                                data-student-id="{{ student.id }}" style="width: 32px; height: 32px;">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+                                            <h5 class="text-muted">No students assigned yet</h5>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Details Modal -->
+<div class="modal fade" id="studentDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-id-card me-2"></i>Student Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center py-4" id="studentLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading student information...</p>
+                </div>
+                <div id="studentDetails" style="display: none;">
+                    <div class="mb-4 text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-user-graduate fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold mb-0" id="studentName"></h4>
+                        <p class="text-muted" id="studentNo"></p>
+                    </div>
+                    
+                    <div class="card bg-light border-0 mb-3">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="d-flex flex-column">
+                                        <span class="text-muted small">Course</span>
+                                        <span class="fw-medium" id="studentCourse"></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex flex-column">
+                                        <span class="text-muted small">Year</span>
+                                        <span class="fw-medium" id="studentYear"></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex flex-column">
+                                        <span class="text-muted small">Gender</span>
+                                        <span class="fw-medium" id="studentGender"></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex flex-column">
+                                        <span class="text-muted small">Status</span>
+                                        <span class="fw-medium" id="studentStatus"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-calendar-alt text-muted me-2"></i>
+                        <span class="text-muted">Assigned on </span>
+                        <span class="ms-1 fw-medium" id="assignedDate"></span>
+                    </div>
+                </div>
+                <div id="studentError" class="alert alert-danger" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    var table = $('#studentsTable').DataTable({
+        "pageLength": 10,
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        "order": [[1, "asc"]], // Sort by name
+        "language": {
+            "search": "",
+            "searchPlaceholder": "Search students...",
+            "lengthMenu": "Show _MENU_ entries",
+            "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+            "infoEmpty": "Showing 0 to 0 of 0 entries",
+            "infoFiltered": "(filtered from _MAX_ total entries)"
+        },
+        "dom": '<"top d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4"<"d-flex align-items-center"l><"search-container position-relative">f>rt<"bottom"ip>',
+        "responsive": true,
+        "initComplete": function() {
+            // Enhance search input with Bootstrap styling - BIGGER SIZE
+            $('.dataTables_filter input')
+                .removeClass('form-control-sm')
+                .addClass('form-control ps-5')
+                .css({
+                    'min-width': '350px',
+                    'height': '45px',
+                    'font-size': '1rem',
+                    'border-radius': '8px',
+                    'border': '2px solid #dee2e6',
+                    'box-shadow': 'none'
+                });
+            
+            // Add search icon - BIGGER SIZE
+            $('.dataTables_filter').addClass('position-relative')
+                .prepend('<i class="fas fa-search position-absolute text-primary" style="left: 15px; top: 14px; z-index: 1; font-size: 16px;"></i>');
+                
+            // Add a container with styling
+            $('.dataTables_filter').wrap('<div class="search-wrapper bg-light p-2 rounded"></div>');
+        }
+    });
+    
+    // View student details
+    $(document).on('click', '.view-student', function() {
+        const studentId = $(this).data('student-id');
+        
+        // Reset modal
+        $('#studentDetails').hide();
+        $('#studentError').hide();
+        $('#studentLoading').show();
+        
+        // Fetch student details
+        $.ajax({
+            url: `/personnel/student-details/${studentId}/`,
+            type: 'GET',
+            success: function(response) {
+                $('#studentLoading').hide();
+                
+                if (response.success) {
+                    // Populate student details
+                    $('#studentNo').text(response.student.student_no);
+                    $('#studentName').text(response.student.name);
+                    $('#studentCourse').text(response.student.course);
+                    $('#studentYear').text(response.student.year);
+                    $('#studentGender').text(response.student.gender);
+                    $('#studentStatus').text(response.student.status);
+                    $('#assignedDate').text(response.student.assigned_date);
+                    
+                    $('#studentDetails').show();
+                } else {
+                    $('#studentError').text(response.error || 'Failed to load student details');
+                    $('#studentError').show();
+                }
+            },
+            error: function() {
+                $('#studentLoading').hide();
+                $('#studentError').text('An error occurred while fetching student details');
+                $('#studentError').show();
+            }
+        });
+    });
+    
+    // Refresh student list
+    $('#refreshStudentList').on('click', function() {
+        location.reload();
+    });
+});
+</script>
+{% endblock %} 

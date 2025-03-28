@@ -4,228 +4,185 @@
 {% block title %}Admin Profile{% endblock %}
 
 {% block content %}
-<div class="profile-card">
-    <div class="profile-header">
-        <div class="profile-image-container">
-            {% if user.profile.profile_picture %}
-                <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture">
-            {% else %}
-                <div class="default-image">
-                    <i class="fas fa-user"></i>
+<div class="container py-5">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-25 rounded-circle p-4">
+                                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 64px; height: 64px;">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="display-4 mb-0 fw-bolder">Admin Profile</h1>
+                            <p class="text-primary fs-4 mb-0">Welcome, @{{ user.username }}!</p>
+                        </div>
+                       
+                    </div>
                 </div>
-            {% endif %}
-            <form method="POST" enctype="multipart/form-data" id="profile-picture-form">
-                {% csrf_token %}
-                <div class="upload-btn">
-                    <label for="profile-picture-input">
-                        <i class="fas fa-camera"></i>
-                    </label>
-                    <input type="file" name="profile_picture" id="profile-picture-input" accept="image/*">
-                </div>
-            </form>
+            </div>
         </div>
-        <h2>{{ user.username }}</h2>
     </div>
-
-    <div class="profile-body">
-        <form method="POST" class="profile-form">
-            {% csrf_token %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-            
-            <div class="form-field">
-                <i class="fas fa-envelope"></i>
-                <input type="email" name="email" value="{{ user.email }}" placeholder="Email">
+    <div class="row g-4">
+        <!-- Left Column - Profile Picture -->
+        <div class="col-lg-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-image me-2"></i>Profile Picture</h5>
+                </div>
+                <div class="card-body text-center p-4">
+                    <div class="position-relative d-inline-block mb-4">
+                        <div class="rounded-circle overflow-hidden border border-4 border-primary shadow-sm" style="width: 180px; height: 180px;">
+                            {% if user.profile.profile_picture %}
+                                <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="img-fluid w-100 h-100 object-fit-cover">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center w-100 h-100">
+                                    <i class="fas fa-user fa-4x text-secondary opacity-50"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <form method="POST" enctype="multipart/form-data" id="profile-picture-form">
+                            {% csrf_token %}
+                            <div class="position-absolute bottom-0 end-0">
+                                <label for="profile-picture-input" class="btn btn-primary btn-sm rounded-circle shadow-sm">
+                                    <i class="fas fa-camera"></i>
+                                </label>
+                                <input type="file" name="profile_picture" id="profile-picture-input" accept="image/*" class="d-none">
+                            </div>
+                        </form>
+                    </div>
+                    <h3 class="fw-bold text-primary">{{ user.username }}</h3>
+                    <p class="text-muted">Administrator</p>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-primary position-relative py-2 px-3">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                    <i class="fas fa-envelope text-white"></i>
+                                </div>
+                                <div class="text-start">
+                                    <small class="d-block text-white-50">View</small>
+                                    <span class="fw-bold">Messages</span>
+                                </div>
+                            </div>
+                        </button>
+                        <button class="btn btn-primary position-relative py-2 px-3">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                    <i class="fas fa-cog text-white"></i>
+                                </div>
+                                <div class="text-start">
+                                    <small class="d-block text-white-50">Manage</small>
+                                    <span class="fw-bold">Settings</span>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
-            
-            <div class="form-field">
-                <i class="fas fa-info-circle"></i>
-                <textarea name="bio" placeholder="Bio">{{ user.profile.bio }}</textarea>
+        </div>
+        
+        <!-- Right Column - Profile Information -->
+        <div class="col-lg-8">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Edit Profile</h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Profile Form -->
+                    <form method="POST" class="profile-form">
+                        {% csrf_token %}
+                        {% if messages %}
+                            <div class="mb-4">
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Username</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
+                                    <input type="text" value="{{ user.username }}" class="form-control" disabled>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Email Address</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-light"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" name="email" value="{{ user.email }}" placeholder="Email" class="form-control">
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Bio</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-light"><i class="fas fa-info-circle"></i></span>
+                                    <textarea name="bio" placeholder="Tell us about yourself" class="form-control" rows="4">{{ user.profile.bio }}</textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <hr class="my-3">
+                                <h5 class="mb-3">Change Password</h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">New Password</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-light"><i class="fas fa-lock"></i></span>
+                                    <input type="password" name="new_password" placeholder="New Password" class="form-control">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Confirm Password</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-light"><i class="fas fa-lock"></i></span>
+                                    <input type="password" name="confirm_password" placeholder="Confirm Password" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-primary position-relative py-2 px-3 me-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                        <i class="fas fa-undo text-white"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <small class="d-block text-white-50">Form</small>
+                                        <span class="fw-bold">Reset</span>
+                                    </div>
+                                </div>
+                            </button>
+                            <button type="submit" class="btn btn-primary position-relative py-2 px-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                        <i class="fas fa-save text-white"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <small class="d-block text-white-50">Profile</small>
+                                        <span class="fw-bold">Save Changes</span>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            
-            <div class="form-field">
-                <i class="fas fa-lock"></i>
-                <input type="password" name="new_password" placeholder="New Password">
-            </div>
-            
-            <div class="form-field">
-                <i class="fas fa-lock"></i>
-                <input type="password" name="confirm_password" placeholder="Confirm Password">
-            </div>
-            
-            <button type="submit" class="save-btn">
-                <i class="fas fa-save"></i> Save
-            </button>
-        </form>
+        </div>
     </div>
 </div>
-
-<style>
-    body {
-        background: #f5f7fa;
-        font-family: 'Poppins', sans-serif;
-    }
-
-    .profile-card {
-        max-width: 450px;
-        margin: 2rem auto;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-    }
-
-    .profile-header {
-        text-align: center;
-        padding: 2rem 1rem;
-        background: #ffffff;
-        color: #333;
-        border-bottom: 2px solid #eaeaea;
-    }
-
-    .profile-image-container {
-        position: relative;
-        width: 120px;
-        height: 120px;
-        margin: 0 auto 1rem;
-        border-radius: 50%;
-        overflow: hidden;
-        border: 3px solid #e0e0e0;
-    }
-
-    .profile-image-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .default-image {
-        width: 100%;
-        height: 100%;
-        background: #f0f0f0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .default-image i {
-        font-size: 3rem;
-        color: #b0b0b0;
-    }
-
-    .upload-btn {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        background: #3498db;
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        border: 2px solid white;
-        transition: 0.3s;
-    }
-
-    .upload-btn:hover {
-        background:rgb(0, 153, 255);
-    }
-
-    .upload-btn i {
-        color: white;
-        font-size: 1rem;
-    }
-
-    .upload-btn input[type="file"] {
-        display: none;
-    }
-
-    .profile-header h2 {
-        margin: 0;
-        font-size: 1.6rem;
-        font-weight: 600;
-    }
-
-    .profile-body {
-        padding: 1.8rem;
-    }
-
-    .form-field {
-        position: relative;
-        margin-bottom: 1.2rem;
-    }
-
-    .form-field i {
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #9aa0a6;
-    }
-
-    .form-field input,
-    .form-field textarea {
-        width: 100%;
-        padding: 0.8rem 0.8rem 0.8rem 2.5rem;
-        border: 1px solid #dcdfe6;
-        border-radius: 10px;
-        font-size: 1rem;
-        background: #f8f9fa;
-        transition: 0.3s;
-    }
-
-    .form-field input:focus,
-    .form-field textarea:focus {
-        border-color:rgb(0, 153, 255);
-        background: white;
-        outline: none;
-    }
-
-    .form-field textarea {
-        height: 80px;
-        resize: none;
-    }
-
-    .save-btn {
-        width: 100%;
-        padding: 0.8rem;
-        background: #3498db;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
-        font-size: 1rem;
-    }
-
-    .save-btn:hover {
-        background:rgb(0, 153, 255);
-    }
-
-    .alert {
-        padding: 0.8rem;
-        margin-bottom: 1rem;
-        border-radius: 8px;
-        font-size: 0.9rem;
-    }
-
-    .alert-success {
-        background: #eaf8ea;
-        color: #2d7d2d;
-    }
-
-    .alert-danger {
-        background: #fce8e6;
-        color: #d93025;
-    }
-
-</style>
 
 <script>
 document.getElementById('profile-picture-input').addEventListener('change', function() {

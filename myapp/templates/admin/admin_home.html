@@ -9,6 +9,14 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 <link rel="stylesheet" href="{% static 'css/admin_home.css' %}">
 
+<!-- Custom style to fix sidebar space issue -->
+<style>
+    /* Override main-content margin when user is not authenticated */
+    body:not(.authenticated) .main-content {
+        margin-left: 0 !important;
+    }
+</style>
+
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="hero-shapes">
@@ -86,6 +94,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Add authenticated class to body if user is logged in
+        {% if user.is_authenticated %}
+            document.body.classList.add('authenticated');
+        {% endif %}
+        
         AOS.init({
             duration: 800,
             easing: 'ease-in-out',

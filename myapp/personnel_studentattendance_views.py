@@ -17,43 +17,50 @@ def attendance_dashboard(request):
         # Get today's date
         today = timezone.now().date()
         
-        # Try to get today's attendance records safely
-        try:
-            today_attendance = StudentAttendance.objects.filter(
-                personnel=personnel,
-                date=today
-            )
-            
-            # Calculate stats
-            stats = {
-                'total_students': assignments.count(),
-                'present_today': today_attendance.filter(status='PRESENT').count(),
-                'late_today': today_attendance.filter(status='LATE').count(),
-                'absent_today': today_attendance.filter(status='ABSENT').count(),
-                'excused_today': today_attendance.filter(status='EXCUSED').count(),
-            }
-        except Exception as e:
-            # If there's an error, use empty stats
-            stats = {
-                'total_students': assignments.count(),
-                'present_today': 0,
-                'late_today': 0,
-                'absent_today': 0,
-                'excused_today': 0,
-            }
-            today_attendance = []
-            messages.error(request, f"Database error: {str(e)}. Please run migrations to fix this issue.")
+        # Get attendance statistics
+        total_students = assignments.count()
+        present_today = StudentAttendance.objects.filter(
+            student__in=[a.student for a in assignments],
+            personnel=personnel,
+            date=today,
+            is_activity=False,
+            status='PRESENT'
+        ).count()
         
-        # Get all assigned students for the dropdown
-        assigned_students = [assignment.student for assignment in assignments]
+        late_today = StudentAttendance.objects.filter(
+            student__in=[a.student for a in assignments],
+            personnel=personnel,
+            date=today,
+            is_activity=False,
+            status='LATE'
+        ).count()
+        
+        absent_today = StudentAttendance.objects.filter(
+            student__in=[a.student for a in assignments],
+            personnel=personnel,
+            date=today,
+            is_activity=False,
+            status='ABSENT'
+        ).count()
+        
+        # Get recent records (both attendance and activities)
+        recent_records = StudentAttendance.objects.filter(
+            personnel=personnel,
+            student__in=[a.student for a in assignments]
+        ).order_by('-date', '-created_at')[:20]
         
         context = {
             'personnel': personnel,
-            'stats': stats,
             'assignments': assignments,
-            'assigned_students': assigned_students,
-            'today_attendance': today_attendance,
+            'stats': {
+                'total_students': total_students,
+                'present_today': present_today,
+                'late_today': late_today,
+                'absent_today': absent_today,
+                'unrecorded': total_students - (present_today + late_today + absent_today)
+            },
             'today': today,
+            'recent_records': recent_records
         }
         
         return render(request, 'personnel/attendance_dashboard.html', context)
@@ -65,60 +72,93 @@ def attendance_dashboard(request):
 def record_attendance(request):
     if request.method == 'POST':
         try:
-            personnel = Personnel.objects.get(user=request.user)
-            student_id = request.POST.get('student_id')
-            date_str = request.POST.get('date')
-            status = request.POST.get('status')
-            time_in = request.POST.get('time_in', '')
-            time_out = request.POST.get('time_out', '')
-            remarks = request.POST.get('remarks', '')
+            data = json.loads(request.body)
+            student_id = data.get('student_id')
+            date_str = data.get('date')
+            time_in = data.get('time_in')
+            time_out = data.get('time_out')
+            status = data.get('status')
+            remarks = data.get('remarks')
             
-            # Validate required fields
-            if not all([student_id, date_str, status]):
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Missing required fields'
-                })
-            
-            # Get the student
-            student = StudentRecord.objects.get(id=student_id)
-            
-            # Verify this student is assigned to this personnel
-            if not PersonnelStudentAssignment.objects.filter(personnel=personnel, student=student).exists():
-                return JsonResponse({
-                    'success': False,
-                    'message': 'This student is not assigned to you'
-                })
-            
-            # Parse date
+            # Convert date string to date object
             date = datetime.strptime(date_str, '%Y-%m-%d').date()
             
-            # Check if record already exists for this student and date
-            attendance, created = StudentAttendance.objects.update_or_create(
+            # Get student
+            student = StudentRecord.objects.get(id=student_id)
+            
+            # Check if attendance record already exists for this student and date
+            attendance, created = StudentAttendance.objects.get_or_create(
                 student=student,
                 date=date,
+                is_activity=False,
                 defaults={
-                    'personnel': personnel,
-                    'status': status,
                     'time_in': time_in if time_in else None,
                     'time_out': time_out if time_out else None,
+                    'status': status,
                     'remarks': remarks
                 }
             )
             
+            if not created:
+                # Update existing record
+                attendance.time_in = time_in if time_in else None
+                attendance.time_out = time_out if time_out else None
+                attendance.status = status
+                attendance.remarks = remarks
+                attendance.save()
+            
             return JsonResponse({
                 'success': True,
-                'message': 'Attendance recorded successfully'
+                'message': 'Attendance recorded successfully',
+                'id': attendance.id
             })
-        except Personnel.DoesNotExist:
+        except Exception as e:
             return JsonResponse({
                 'success': False,
-                'message': 'Personnel not found'
+                'message': str(e)
             })
-        except StudentRecord.DoesNotExist:
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    })
+
+@login_required
+def record_activity(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            student_id = data.get('student_id')
+            date_str = data.get('date')
+            sf = data.get('sf')
+            cadet_sign = data.get('cadet_sign', '')
+            activity_description = data.get('activity_description')
+            merits = data.get('merits', 0)
+            demerits = data.get('demerits', 0)
+            
+            # Convert date string to date object
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            
+            # Get student
+            student = StudentRecord.objects.get(id=student_id)
+            
+            # Create activity record
+            activity = StudentAttendance.objects.create(
+                student=student,
+                date=date,
+                is_activity=True,
+                status='PRESENT',  # Default status for activities
+                sf=sf,
+                cadet_sign=cadet_sign,
+                activity_description=activity_description,
+                merits=merits,
+                demerits=demerits
+            )
+            
             return JsonResponse({
-                'success': False,
-                'message': 'Student not found'
+                'success': True,
+                'message': 'Activity recorded successfully',
+                'id': activity.id
             })
         except Exception as e:
             return JsonResponse({
@@ -170,10 +210,10 @@ def update_attendance(request):
         try:
             personnel = Personnel.objects.get(user=request.user)
             record_id = request.POST.get('record_id')
-            time_in = request.POST.get('time_in')
-            time_out = request.POST.get('time_out')
+            time_in = request.POST.get('time_in', '')
+            time_out = request.POST.get('time_out', '')
             status = request.POST.get('status')
-            remarks = request.POST.get('remarks')
+            remarks = request.POST.get('remarks', '')
             
             # Get the attendance record
             attendance = StudentAttendance.objects.get(id=record_id)
@@ -185,9 +225,13 @@ def update_attendance(request):
                     'message': 'You do not have permission to update this record'
                 })
             
-            # Update the record
-            attendance.time_in = time_in if time_in else None
-            attendance.time_out = time_out if time_out else None
+            # Debug information
+            print(f"Updating record {record_id}")
+            print(f"Time in: '{time_in}', Time out: '{time_out}'")
+            
+            # Update the record - handle empty strings properly
+            attendance.time_in = None if not time_in else time_in
+            attendance.time_out = None if not time_out else time_out
             attendance.status = status
             attendance.remarks = remarks
             attendance.save()
@@ -202,6 +246,8 @@ def update_attendance(request):
                 'message': 'Attendance record not found.'
             })
         except Exception as e:
+            import traceback
+            print(traceback.format_exc())
             return JsonResponse({
                 'success': False,
                 'message': str(e)
@@ -225,7 +271,7 @@ def view_attendance_history(request):
             status = request.GET.get('status')
             date_range = request.GET.get('dateRange')
             
-            # Base query
+            # Base query - only get records for this personnel
             attendance_records = StudentAttendance.objects.filter(personnel=personnel)
             
             # Apply filters if provided
@@ -239,13 +285,13 @@ def view_attendance_history(request):
                 # Parse date range and filter
                 try:
                     start_date, end_date = date_range.split(' - ')
-                    start = datetime.strptime(start_date, '%Y-%m-%d').date()
-                    end = datetime.strptime(end_date, '%Y-%m-%d').date()
+                    start = datetime.strptime(start_date, '%m/%d/%Y').date()
+                    end = datetime.strptime(end_date, '%m/%d/%Y').date()
                     attendance_records = attendance_records.filter(date__range=[start, end])
                 except ValueError:
                     pass  # Invalid date format, ignore filter
             
-            # Calculate stats
+            # Calculate stats based on filtered records
             stats = {
                 'total_records': attendance_records.count(),
                 'present_count': attendance_records.filter(status='PRESENT').count(),
@@ -257,10 +303,13 @@ def view_attendance_history(request):
             # Get all assigned students for the dropdown
             assigned_students = [assignment.student for assignment in assignments]
             
+            # Don't process records - pass them directly to the template
+            # This avoids any potential issues with the time_out field
+            
             context = {
                 'personnel': personnel,
                 'stats': stats,
-                'attendance_records': attendance_records,
+                'attendance_records': attendance_records,  # Pass the queryset directly
                 'assigned_students': assigned_students,
                 'assignments': assignments,
                 'filters': {
@@ -308,8 +357,8 @@ def get_student_attendance(request, student_id):
                 'id': record.id,
                 'date': record.date.strftime('%Y-%m-%d'),
                 'status': record.status,
-                'time_in': record.time_in.strftime('%H:%M') if record.time_in else None,
-                'time_out': record.time_out.strftime('%H:%M') if record.time_out else None,
+                'time_in': record.time_in if record.time_in else '',
+                'time_out': record.time_out if record.time_out else '',
                 'remarks': record.remarks
             })
         
@@ -326,7 +375,7 @@ def get_student_attendance(request, student_id):
         return JsonResponse({
             'success': False,
             'message': str(e)
-        }) 
+        })
 
 @login_required
 def batch_record_attendance(request):
@@ -334,61 +383,86 @@ def batch_record_attendance(request):
     if request.method == 'POST':
         try:
             personnel = Personnel.objects.get(user=request.user)
-            
-            # Parse JSON data from request body
             data = json.loads(request.body)
-            attendance_records = data.get('attendance_records', [])
+            student_ids = data.get('student_ids', [])
+            date_str = data.get('date')
+            status = data.get('status')
+            time_in = data.get('time_in', '')
+            time_out = data.get('time_out', '')
             
-            success_count = 0
-            error_count = 0
+            # Debug information
+            print(f"Batch recording for {len(student_ids)} students")
+            print(f"Time in: '{time_in}', Time out: '{time_out}'")
             
-            for record in attendance_records:
+            if not student_ids:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No students selected'
+                })
+            
+            # Validate date
+            try:
+                attendance_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid date format'
+                })
+            
+            # Process each student
+            created_count = 0
+            updated_count = 0
+            
+            # Convert empty strings to None for time fields
+            time_in_value = None if not time_in else time_in
+            time_out_value = None if not time_out else time_out
+            
+            for student_id in student_ids:
                 try:
-                    student_id = record.get('student_id')
-                    date_str = record.get('date')
-                    status = record.get('status')
-                    time_in = record.get('time_in')
-                    remarks = record.get('remarks', '')
-                    
-                    # Skip if missing required fields
-                    if not all([student_id, date_str, status]):
-                        error_count += 1
-                        continue
-                    
-                    # Get the student
                     student = StudentRecord.objects.get(id=student_id)
                     
-                    # Verify this student is assigned to this personnel
-                    if not PersonnelStudentAssignment.objects.filter(personnel=personnel, student=student).exists():
-                        error_count += 1
-                        continue
-                    
-                    # Parse date
-                    date = datetime.strptime(date_str, '%Y-%m-%d').date()
-                    
-                    # Update or create attendance record
-                    StudentAttendance.objects.update_or_create(
+                    # Check if attendance already exists
+                    existing_attendance = StudentAttendance.objects.filter(
                         student=student,
-                        date=date,
-                        defaults={
-                            'personnel': personnel,
-                            'status': status,
-                            'time_in': time_in if time_in else None,
-                            'time_out': None,  # Can be updated later
-                            'remarks': remarks
-                        }
-                    )
+                        personnel=personnel,
+                        date=attendance_date
+                    ).first()
                     
-                    success_count += 1
-                except Exception:
-                    error_count += 1
+                    if existing_attendance:
+                        # Update existing record
+                        existing_attendance.status = status
+                        
+                        # Only update time fields if provided
+                        if time_in:
+                            existing_attendance.time_in = time_in_value
+                        if time_out:
+                            existing_attendance.time_out = time_out_value
+                            
+                        existing_attendance.save()
+                        updated_count += 1
+                    else:
+                        # Create new record
+                        StudentAttendance.objects.create(
+                            student=student,
+                            personnel=personnel,
+                            date=attendance_date,
+                            status=status,
+                            time_in=time_in_value,
+                            time_out=time_out_value
+                        )
+                        created_count += 1
+                        
+                except StudentRecord.DoesNotExist:
+                    continue
             
             return JsonResponse({
                 'success': True,
-                'message': f'Successfully recorded {success_count} attendance records. {error_count} records had errors.'
+                'message': f'Successfully recorded attendance for {created_count} students and updated {updated_count} existing records.'
             })
             
         except Exception as e:
+            import traceback
+            print(traceback.format_exc())
             return JsonResponse({
                 'success': False,
                 'message': str(e)
@@ -517,3 +591,37 @@ def get_student_attendance_summary(request, student_id):
             'success': False,
             'message': str(e)
         })
+
+@login_required
+def view_students_assigned(request):
+    """View students assigned to the logged-in personnel"""
+    try:
+        personnel = Personnel.objects.get(user=request.user)
+        assignments = PersonnelStudentAssignment.objects.filter(personnel=personnel)
+        
+        # Get statistics
+        total_students = assignments.count()
+        
+        # Group students by course
+        students_by_course = {}
+        for assignment in assignments:
+            course = assignment.student.course
+            if course not in students_by_course:
+                students_by_course[course] = []
+            students_by_course[course].append(assignment.student)
+        
+        # Get all assigned students
+        assigned_students = [assignment.student for assignment in assignments]
+        
+        context = {
+            'personnel': personnel,
+            'assignments': assignments,
+            'assigned_students': assigned_students,
+            'total_students': total_students,
+            'students_by_course': students_by_course,
+        }
+        
+        return render(request, 'personnel/students_assigned.html', context)
+    except Personnel.DoesNotExist:
+        messages.error(request, "Personnel profile not found.")
+        return redirect('personnel_login')
