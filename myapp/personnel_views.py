@@ -6,6 +6,8 @@ from .models import Personnel, Profile, UserActivity
 from django.utils import timezone
 from datetime import timedelta, datetime
 from django.db.models import Count, Avg
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 def personnel_login(request):
     if request.user.is_authenticated:
@@ -31,20 +33,19 @@ def personnel_logout(request):
     logout(request)
     return redirect('personnel_login')
 
-@login_required(login_url='personnel_login')
+@cache_page(60 * 5)  # Cache for 5 minutes
 def personnel_dashboard(request):
-    personnel = Personnel.objects.get(user=request.user)
+    personnel = get_object_or_404(Personnel, user=request.user)
     
-    # Get existing data
-    recent_activities = UserActivity.objects.filter(user=request.user).order_by('-timestamp')[:5]
-    total_logins = UserActivity.objects.filter(user=request.user, activity_type='login').count()
+    # Check if it's an HTMX request
+    if request.headers.get('HX-Request'):
+        return render(request, 'personnel/dashboard_content.html', {
+            'personnel': personnel,
+        })
     
-    context = {
+    return render(request, 'personnel/dashboard.html', {
         'personnel': personnel,
-        'recent_activities': recent_activities,
-        'total_logins': total_logins,
-    }
-    return render(request, 'personnel/dashboard.html', context)
+    })
 
 @login_required(login_url='personnel_login')
 def personnel_profile(request):

@@ -1,0 +1,126 @@
+{% extends 'personnel/base.html' %}
+{% load static %}
+
+{% block title %}View Grades{% endblock %}
+
+{% block content %}
+<!-- Add min-height: 100vh to ensure full viewport height -->
+<div class="container-fluid py-4" style="min-height: 100vh;">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="text-center logo-container">
+                                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 80px;">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="h2 mb-0 fw-bold">Student Grades</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-2 text-primary"><i class="fas fa-download me-2"></i>Export Options</h5>
+                            <p class="text-muted mb-0">Download student grades in your preferred format</p>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <a href="{% url 'export_grades' format='pdf' %}" class="btn btn-primary position-relative py-2 px-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-white bg-opacity-25 p-2 me-2">
+                                        <i class="fas fa-file-pdf text-white"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <small class="d-block text-white-50">Download as</small>
+                                        <span class="fw-bold">PDF Format</span>
+                                    </div>
+                                </div>
+                            </a>
+                            <a href="{% url 'export_grades' format='excel' %}" class="btn btn-success position-relative py-2 px-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-white bg-opacity-25 p-2 me-2">
+                                        <i class="fas fa-file-excel text-white"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <small class="d-block text-white-50">Download as</small>
+                                        <span class="fw-bold">Excel Format</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Student Grades</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Period</th>
+                            <th>Attendance (30%)</th>
+                            <th>Military Aptitude (30%)</th>
+                            <th>Subject Proficiency (40%)</th>
+                            <th>Total Grade</th>
+                            <th>Date Computed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grade in grades %}
+                        <tr>
+                            <td>{{ grade.student.name }}</td>
+                            <td>{{ grade.period }}</td>
+                            <td>{{ grade.attendance_score }}</td>
+                            <td>{{ grade.military_aptitude }}</td>
+                            <td>{{ grade.subject_proficiency }}</td>
+                            <td><strong>{{ grade.total_grade }}</strong></td>
+                            <td>{{ grade.date_computed|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fas fa-clipboard fa-2x mb-3"></i>
+                                    <p>No grades computed yet</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container-fluid {
+        flex: 1;
+    }
+</style>
+{% endblock %} 

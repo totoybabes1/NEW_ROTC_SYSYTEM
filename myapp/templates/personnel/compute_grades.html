@@ -1,0 +1,310 @@
+{% extends 'personnel/base.html' %}
+{% load static %}
+
+{% block title %}Compute Grades{% endblock %}
+
+{% block content %}
+<!-- Add min-height: 100vh to ensure full viewport height -->
+<div class="container-fluid py-4" style="min-height: 100vh;">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="text-center logo-container">
+                                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 80px;">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="h2 mb-0 fw-bold">Grade Computation</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Main Form -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <!-- Student and Period Selection -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold h5">Student</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="studentSearch" placeholder="Search student...">
+                            <select class="form-select" name="student" id="studentSelect" required>
+                                <option value="">Select student...</option>
+                                {% for assignment in assignments %}
+                                <option value="{{ assignment.student.id }}" data-name="{{ assignment.student.name|lower }}">
+                                    {{ assignment.student.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="searchResults" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                        <div id="selectedStudent" class="form-text"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold h5">Grading Period</label>
+                        <input type="text" class="form-control" name="period" required placeholder="First Semester 2023-2024">
+                    </div>
+                </div>
+
+                <!-- Grade Components -->
+                <div class="row g-4">
+                    <!-- Attendance (30%) -->
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">Attendance (30%)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Days Present</label>
+                                    <input type="number" class="form-control" id="days_present" name="days_present" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Total Days</label>
+                                    <input type="number" class="form-control" id="total_days" name="total_days" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Score</label>
+                                    <input type="number" class="form-control bg-light" id="attendance_score" name="attendance" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Military Aptitude (30%) -->
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">Military Aptitude (30%)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Total Merits</label>
+                                    <input type="number" class="form-control bg-light" id="total_merits" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Total Demerits</label>
+                                    <input type="number" class="form-control bg-light" id="total_demerits" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Score</label>
+                                    <input type="number" class="form-control bg-light" id="military_score" name="military_aptitude" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subject Proficiency (40%) -->
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">Subject Proficiency (40%)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Score</label>
+                                    <input type="number" class="form-control" name="proficiency" id="proficiency_score" required min="0" max="100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Grade -->
+                <div class="card mt-4 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Total Grade</h5>
+                    </div>
+                    <div class="card-body">
+                        <input type="number" class="form-control form-control-lg bg-light" id="total_grade" readonly>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex justify-content-center">
+                    <button type="submit" class="btn btn-primary position-relative py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                <i class="fas fa-save text-white"></i>
+                            </div>
+                            <div class="text-start">
+                                <small class="d-block text-white-50">Submit</small>
+                                <span class="fw-bold">Save Grade</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container-fluid {
+        flex: 1;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const studentSearch = document.getElementById('studentSearch');
+    const studentSelect = document.getElementById('studentSelect');
+    const searchResults = document.getElementById('searchResults');
+    const selectedStudent = document.getElementById('selectedStudent');
+    const originalOptions = Array.from(studentSelect.options);
+
+    // Function to show search results
+    function showSearchResults(searchTerm) {
+        searchResults.innerHTML = '';
+        if (!searchTerm) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        const matchingOptions = originalOptions.filter(option => {
+            if (option.value === '') return false;
+            const studentName = option.getAttribute('data-name');
+            return studentName && studentName.includes(searchTerm.toLowerCase());
+        });
+
+        if (matchingOptions.length > 0) {
+            matchingOptions.forEach(option => {
+                const div = document.createElement('div');
+                div.className = 'p-2 cursor-pointer hover-bg-light';
+                div.style.cursor = 'pointer';
+                div.textContent = option.text;
+                div.addEventListener('mouseover', () => {
+                    div.style.backgroundColor = '#f8f9fa';
+                });
+                div.addEventListener('mouseout', () => {
+                    div.style.backgroundColor = '';
+                });
+                div.addEventListener('click', () => {
+                    studentSelect.value = option.value;
+                    studentSearch.value = option.text;
+                    selectedStudent.textContent = `Selected: ${option.text}`;
+                    searchResults.style.display = 'none';
+                    // Trigger the change event for the select
+                    studentSelect.dispatchEvent(new Event('change'));
+                });
+                searchResults.appendChild(div);
+            });
+            searchResults.style.display = 'block';
+        } else {
+            searchResults.style.display = 'none';
+        }
+    }
+
+    // Event listener for search input
+    studentSearch.addEventListener('input', function(e) {
+        showSearchResults(e.target.value);
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!studentSearch.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    // Handle keyboard navigation
+    studentSearch.addEventListener('keydown', function(e) {
+        const results = searchResults.children;
+        let currentFocus = -1;
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            
+            // Update focus
+            if (e.key === 'ArrowDown') {
+                currentFocus = Math.min(currentFocus + 1, results.length - 1);
+            } else {
+                currentFocus = Math.max(currentFocus - 1, 0);
+            }
+
+            // Update visual focus
+            Array.from(results).forEach((result, index) => {
+                if (index === currentFocus) {
+                    result.style.backgroundColor = '#f8f9fa';
+                } else {
+                    result.style.backgroundColor = '';
+                }
+            });
+        } else if (e.key === 'Enter' && currentFocus > -1) {
+            if (results[currentFocus]) {
+                results[currentFocus].click();
+            }
+        }
+    });
+
+    // Calculate attendance score
+    function calculateAttendance() {
+        const daysPresent = parseFloat(document.getElementById('days_present').value) || 0;
+        const totalDays = parseFloat(document.getElementById('total_days').value) || 1;
+        const score = (daysPresent / totalDays) * 100;
+        document.getElementById('attendance_score').value = score.toFixed(2);
+        calculateTotal();
+    }
+
+    // Calculate total grade
+    function calculateTotal() {
+        const attendance = parseFloat(document.getElementById('attendance_score').value) || 0;
+        const military = parseFloat(document.getElementById('military_score').value) || 0;
+        const proficiency = parseFloat(document.getElementById('proficiency_score').value) || 0;
+
+        const total = (attendance * 0.3) + (military * 0.3) + (proficiency * 0.4);
+        document.getElementById('total_grade').value = total.toFixed(2);
+    }
+
+    // Event listeners
+    document.getElementById('days_present').addEventListener('input', calculateAttendance);
+    document.getElementById('total_days').addEventListener('input', calculateAttendance);
+    document.getElementById('proficiency_score').addEventListener('input', calculateTotal);
+
+    // Student selection change handler
+    document.querySelector('select[name="student"]').addEventListener('change', function(e) {
+        const studentId = e.target.value;
+        if (studentId) {
+            // Fetch student's activity records
+            fetch(`/api/student-activities/${studentId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total_merits').value = data.total_merits;
+                    document.getElementById('total_demerits').value = data.total_demerits;
+                    document.getElementById('military_score').value = data.military_score;
+                    calculateTotal();
+                });
+        }
+    });
+});
+</script>
+{% endblock %} 

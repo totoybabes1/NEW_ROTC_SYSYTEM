@@ -8,12 +8,13 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<!-- Add min-height: 100vh to ensure full viewport height -->
+<div class="container-fluid py-4" style="min-height: 100vh;">
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-body p-5">
+                <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-auto">
                             <div class="text-center logo-container">
@@ -21,8 +22,7 @@
                             </div>
                         </div>
                         <div class="col">
-                            <h1 class="display-4 mb-0 fw-bolder">Assigned Students</h1>
-                           
+                            <h1 class="h2 mb-0 fw-bold">Assigned Students</h1>
                         </div>
                     </div>
                 </div>
@@ -226,6 +226,22 @@
         </div>
     </div>
 </div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container-fluid {
+        flex: 1;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}

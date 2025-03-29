@@ -1,0 +1,220 @@
+{% extends 'personnel/base.html' %}
+{% load static %}
+
+{% block title %}Activity Record{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="min-height: 100vh;">
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="text-center logo-container">
+                                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 80px;">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="h2 mb-0 fw-bold">Record Student Activity</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Record Student Activity</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="student" class="form-label">Student</label>
+                        <div class="position-relative">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="studentSearch" placeholder="Type to search student...">
+                                <select class="form-select" name="student" id="studentSelect" required>
+                                    <option value="">Select Student</option>
+                                    {% for assignment in assignments %}
+                                    <option value="{{ assignment.student.id }}" data-name="{{ assignment.student.name|lower }}">{{ assignment.student.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div id="searchResults" class="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style="display: none; max-height: 200px; overflow-y: auto; z-index: 1000;">
+                            </div>
+                            <div id="selectedStudent" class="form-text"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" name="date" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="merits" class="form-label">Merits</label>
+                        <input type="number" class="form-control" name="merits" value="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="demerits" class="form-label">Demerits</label>
+                        <input type="number" class="form-control" name="demerits" value="0">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="activity" class="form-label">Activity</label>
+                    <textarea class="form-control" name="activity" rows="3" required></textarea>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="cdt_sign" class="form-label">CDT Sign</label>
+                        <input type="text" class="form-control" name="cdt_sign">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="fl_sign" class="form-label">FL Sign</label>
+                        <input type="text" class="form-control" name="fl_sign">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="remarks" class="form-label">Remarks</label>
+                    <textarea class="form-control" name="remarks" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary position-relative py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                <i class="fas fa-save text-white"></i>
+                            </div>
+                            <div class="text-start">
+                                <small class="d-block text-white-50">Submit</small>
+                                <span class="fw-bold">Save Record</span>
+                            </div>
+                        </div>
+                    </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const studentSearch = document.getElementById('studentSearch');
+    const studentSelect = document.getElementById('studentSelect');
+    const searchResults = document.getElementById('searchResults');
+    const selectedStudent = document.getElementById('selectedStudent');
+    const originalOptions = Array.from(studentSelect.options);
+
+    // Function to show search results
+    function showSearchResults(searchTerm) {
+        searchResults.innerHTML = '';
+        if (!searchTerm) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        const matchingOptions = originalOptions.filter(option => {
+            if (option.value === '') return false;
+            const studentName = option.getAttribute('data-name');
+            return studentName && studentName.includes(searchTerm.toLowerCase());
+        });
+
+        if (matchingOptions.length > 0) {
+            matchingOptions.forEach(option => {
+                const div = document.createElement('div');
+                div.className = 'p-2 cursor-pointer hover-bg-light';
+                div.style.cursor = 'pointer';
+                div.textContent = option.text;
+                div.addEventListener('mouseover', () => {
+                    div.style.backgroundColor = '#f8f9fa';
+                });
+                div.addEventListener('mouseout', () => {
+                    div.style.backgroundColor = '';
+                });
+                div.addEventListener('click', () => {
+                    studentSelect.value = option.value;
+                    studentSearch.value = option.text;
+                    selectedStudent.textContent = `Selected: ${option.text}`;
+                    searchResults.style.display = 'none';
+                });
+                searchResults.appendChild(div);
+            });
+            searchResults.style.display = 'block';
+        } else {
+            searchResults.style.display = 'none';
+        }
+    }
+
+    // Event listener for search input
+    studentSearch.addEventListener('input', function(e) {
+        showSearchResults(e.target.value);
+    });
+
+    // Event listener for select change
+    studentSelect.addEventListener('change', function(e) {
+        const selectedOption = studentSelect.options[studentSelect.selectedIndex];
+        if (selectedOption.value) {
+            studentSearch.value = selectedOption.text;
+            selectedStudent.textContent = `Selected: ${selectedOption.text}`;
+        } else {
+            studentSearch.value = '';
+            selectedStudent.textContent = '';
+        }
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!studentSearch.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    // Handle keyboard navigation
+    studentSearch.addEventListener('keydown', function(e) {
+        const results = searchResults.children;
+        let currentFocus = -1;
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            
+            // Update focus
+            if (e.key === 'ArrowDown') {
+                currentFocus = Math.min(currentFocus + 1, results.length - 1);
+            } else {
+                currentFocus = Math.max(currentFocus - 1, 0);
+            }
+
+            // Update visual focus
+            Array.from(results).forEach((result, index) => {
+                if (index === currentFocus) {
+                    result.style.backgroundColor = '#f8f9fa';
+                } else {
+                    result.style.backgroundColor = '';
+                }
+            });
+        } else if (e.key === 'Enter' && currentFocus > -1) {
+            if (results[currentFocus]) {
+                results[currentFocus].click();
+            }
+        }
+    });
+});
+</script>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container-fluid {
+        flex: 1;
+    }
+</style>
+{% endblock %} 

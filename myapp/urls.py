@@ -1,5 +1,5 @@
 from django.urls import path
-from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views, personnel_student_views 
+from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views, personnel_student_views, personnel_activity_grading_views
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -72,4 +72,13 @@ urlpatterns = [
     path('personnel/assigned-students/', personnel_student_views.view_assigned_students, name='view_students_assigned'),
     path('personnel/student-details/<int:student_id>/', personnel_student_views.get_student_details, name='get_student_details'),
     path('personnel/filter-students/', personnel_student_views.filter_students, name='filter_students'),
+
+    # Activity and Grading URLs
+    path('personnel/activity-record/', personnel_activity_grading_views.activity_record, name='activity_record'),
+    path('personnel/compute-grades/', personnel_activity_grading_views.compute_grades, name='compute_grades'),
+    path('personnel/view-grades/', personnel_activity_grading_views.view_grades, name='view_grades'),
+    path('personnel/export-grades/<str:format>/', personnel_activity_grading_views.export_grades, name='export_grades'),
+    path('api/student-activities/<int:student_id>/', 
+         personnel_activity_grading_views.get_student_activities, 
+         name='get_student_activities'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -4,8 +4,8 @@
 {% block title %}Personnel Profile{% endblock %}
 
 {% block content %}
-
-<div class="container-fluid py-4">
+<!-- Add min-height: 100vh to ensure full viewport height -->
+<div class="container-fluid py-4" style="min-height: 100vh;">
     <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
@@ -181,6 +181,7 @@
 </div>
 {% endif %}
 
+
 <script>
 function togglePasswordVisibility(inputId) {
     const input = document.getElementById(inputId);
@@ -270,6 +271,22 @@ function checkPasswordStrength(password) {
     }
     .h5, h5 {
         font-size: 1.35rem;
+    }
+</style>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container-fluid {
+        flex: 1;
     }
 </style>
 {% endblock %} 

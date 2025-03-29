@@ -152,3 +152,56 @@ class StudentSpecialCase(models.Model):
     def __str__(self):
         return f"{self.student.name} - {self.get_case_type_display()}"
 
+# Activity Record Model
+class StudentActivity(models.Model):
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='activities')
+    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE)
+    date = models.DateField()
+    cdt_sign = models.CharField(max_length=100, blank=True, null=True)
+    activity = models.TextField()
+    merits = models.IntegerField(default=0)
+    demerits = models.IntegerField(default=0)
+    fl_sign = models.CharField(max_length=100, blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.student.name} - {self.date}"
+
+# Grade Computation Model
+class StudentGrade(models.Model):
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='grades')
+    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE)
+    period = models.CharField(max_length=50)  # e.g., "First Semester 2023-2024"
+    attendance_score = models.DecimalField(max_digits=5, decimal_places=2)
+    military_aptitude = models.DecimalField(max_digits=5, decimal_places=2)
+    subject_proficiency = models.DecimalField(max_digits=5, decimal_places=2)
+    total_grade = models.DecimalField(max_digits=5, decimal_places=2)
+    date_computed = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['student', 'period']
+        ordering = ['-date_computed']
+
+    def __str__(self):
+        return f"{self.student.name} - {self.period}"
+
+    def compute_grade(self):
+        # Attendance (30%)
+        attendance_weight = 0.30
+        
+        # Military Aptitude (30%)
+        military_weight = 0.30
+        
+        # Subject Proficiency (40%)
+        proficiency_weight = 0.40
+        
+        self.total_grade = (
+            self.attendance_score * attendance_weight +
+            self.military_aptitude * military_weight +
+            self.subject_proficiency * proficiency_weight
+        )
+        return self.total_grade
+
