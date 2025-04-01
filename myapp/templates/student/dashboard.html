@@ -1,0 +1,116 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Student Info Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                        <i class="fas fa-user fa-2x text-primary"></i>
+                    </div>
+                </div>
+                <div class="col">
+                    <h5 class="card-title mb-0">{{ student.name }}</h5>
+                    <p class="text-muted mb-0">Student No: {{ student.student_no }}</p>
+                    <p class="text-muted mb-0">Course: {{ student.course }} - Year {{ student.year }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row">
+        <!-- Merits Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-success">Total Merits</h6>
+                    <h2 class="mb-0">{{ total_merits }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demerits Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-danger">Total Demerits</h6>
+                    <h2 class="mb-0">{{ total_demerits }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Grade -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-primary">Latest Grade</h6>
+                    {% if grades %}
+                        <h2 class="mb-0">{{ grades.0.total_grade }}</h2>
+                        <small class="text-muted">{{ grades.0.period }}</small>
+                    {% else %}
+                        <p class="mb-0">No grades yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Rate -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-info">Recent Attendance</h6>
+                    {% if attendance %}
+                        <h2 class="mb-0">{{ attendance.0.get_status_display }}</h2>
+                        <small class="text-muted">{{ attendance.0.date }}</small>
+                    {% else %}
+                        <p class="mb-0">No attendance records</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Recent Activities</h5>
+        </div>
+        <div class="card-body">
+            {% if recent_activities %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Activity</th>
+                                <th>Merits</th>
+                                <th>Demerits</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.date }}</td>
+                                <td>{{ activity.activity }}</td>
+                                <td class="text-success">{{ activity.merits }}</td>
+                                <td class="text-danger">{{ activity.demerits }}</td>
+                                <td>{{ activity.remarks|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No recent activities</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

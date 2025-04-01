@@ -9,6 +9,10 @@
 <!-- Add AOS CSS -->
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
 
+<!-- Add Intro.js CSS -->
+<link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
+<link rel="stylesheet" href="https://unpkg.com/intro.js/themes/introjs-modern.css">
+
 <link rel="stylesheet" href="{% static 'css/admin_dashboard_design.css' %}">
 
 <!-- Add Chart.js -->
@@ -19,7 +23,7 @@
         <!-- Header -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card">
+                <div class="card" id="dashboardHeader">
                     <div class="card-body p-5">
                         <div class="row align-items-center">
                             <div class="col-auto">
@@ -32,7 +36,7 @@
                                 <p class="text-primary fs-4 mb-0">Welcome, @{{ user.username }}!</p>
                             </div>
                             <div class="col-auto text-end">
-                                <div class="card border-0 shadow-sm">
+                                <div class="card border-0 shadow-sm" id="dateTimeCard">
                                     <div class="card-body bg-light bg-gradient p-4">
                                         <div class="d-flex flex-column">
                                             <div class="mb-3">
@@ -81,7 +85,7 @@
                                                 <div class="row g-4">
                                                     <!-- Total Personnel -->
                                                     <div class="col-md-6">
-                                                        <div class="card h-100 shadow-sm border-0" style="background-color: #4361ee;">
+                                                        <div class="card h-100 shadow-sm border-0" style="background-color: #4361ee;" id="personnelCard">
                                                             <div class="card-body text-center text-white position-relative py-4">
                                                                 <div class="position-absolute end-0 top-0 mt-2 me-2 p-2 rounded-circle" style="background-color: rgba(255, 255, 255, 0.2);">
                                                                     <i class="fas fa-users fa-2x"></i>
@@ -98,7 +102,7 @@
 
                                                     <!-- Total Students -->
                                                     <div class="col-md-6">
-                                                        <div class="card h-100 shadow-sm border-0" style="background-color: #2ec4b6;">
+                                                        <div class="card h-100 shadow-sm border-0" style="background-color: #2ec4b6;" id="studentsCard">
                                                             <div class="card-body text-center text-white position-relative py-4">
                                                                 <div class="position-absolute end-0 top-0 mt-2 me-2 p-2 rounded-circle" style="background-color: rgba(255, 255, 255, 0.2);">
                                                                     <i class="fas fa-user-graduate fa-2x"></i>
@@ -115,7 +119,7 @@
 
                                                     <!-- Flight Groups -->
                                                     <div class="col-md-6">
-                                                        <div class="card h-100 shadow-sm border-0" style="background-color: #ff6b6b;">
+                                                        <div class="card h-100 shadow-sm border-0" style="background-color: #ff6b6b;" id="flightGroupsCard">
                                                             <div class="card-body text-center text-white position-relative py-4">
                                                                 <div class="position-absolute end-0 top-0 mt-2 me-2 p-2 rounded-circle" style="background-color: rgba(255, 255, 255, 0.2);">
                                                                     <i class="fas fa-layer-group fa-2x"></i>
@@ -132,7 +136,7 @@
 
                                                     <!-- Assigned Students -->
                                                     <div class="col-md-6">
-                                                        <div class="card h-100 shadow-sm border-0" style="background-color: #7209b7;">
+                                                        <div class="card h-100 shadow-sm border-0" style="background-color: #7209b7;" id="assignedStudentsCard">
                                                             <div class="card-body text-center text-white position-relative py-4">
                                                                 <div class="position-absolute end-0 top-0 mt-2 me-2 p-2 rounded-circle" style="background-color: rgba(255, 255, 255, 0.2);">
                                                                     <i class="fas fa-user-check fa-2x"></i>
@@ -151,7 +155,7 @@
 
                                             <!-- Chart Column -->
                                             <div class="col-md-6">
-                                                <div class="card h-100">
+                                                <div class="card h-100" id="chartCard">
                                                     <div class="card-header py-4 bg-light">
                                                         <div class="d-flex align-items-center">
                                                             <i class="fas fa-chart-pie text-primary me-3 fa-2x"></i>
@@ -179,7 +183,7 @@
 
             <!-- Event Calendar Section -->
             <div class="col-12 mb-4">
-                <div class="card shadow-sm mb-4">
+                <div class="card shadow-sm mb-4" id="calendarSection">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                         <h5 class="mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i> Event Calendar</h5>
                         <div>
@@ -238,6 +242,13 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Tour button -->
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+            <button id="startTourBtn" class="btn btn-primary rounded-circle shadow-sm" style="width: 50px; height: 50px;">
+                <i class="fas fa-question"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Chart.js initialization -->
@@ -281,7 +292,10 @@
         </div>
     </div>
 
-   
+    <!-- Add Intro.js script -->
+    <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
+    <!-- Add AOS script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -368,8 +382,112 @@
                     eventDetailsModal.show();
                 });
             });
+            
+            // Initialize Intro.js tour
+            const startTour = () => {
+                introJs().setOptions({
+                    steps: [
+                        {
+                            element: document.getElementById('dashboardHeader'),
+                            intro: "Welcome to the Admin Dashboard! This is your central hub for managing the ROTC system.",
+                            position: 'bottom'
+                        },
+                        {
+                            element: document.getElementById('dateTimeCard'),
+                            intro: "Here you can see the current date and time for easy reference.",
+                            position: 'left'
+                        },
+                        {
+                            element: document.getElementById('personnelCard'),
+                            intro: "This card shows the total number of personnel in the system, including administrators and staff.",
+                            position: 'right'
+                        },
+                        {
+                            element: document.getElementById('studentsCard'),
+                            intro: "Here you can see the total number of students enrolled in the ROTC program.",
+                            position: 'left'
+                        },
+                        {
+                            element: document.getElementById('flightGroupsCard'),
+                            intro: "This displays the number of flight groups that have been created for organizing students.",
+                            position: 'right'
+                        },
+                        {
+                            element: document.getElementById('assignedStudentsCard'),
+                            intro: "This shows how many students have been assigned to flight groups.",
+                            position: 'left'
+                        },
+                        {
+                            element: document.getElementById('chartCard'),
+                            intro: "This chart visualizes the distribution between assigned and unassigned students.",
+                            position: 'left'
+                        },
+                        {
+                            element: document.getElementById('calendarSection'),
+                            intro: "The event calendar shows all scheduled events. Click on a date with events to see details.",
+                            position: 'top'
+                        },
+                        {
+                            element: document.getElementById('startTourBtn'),
+                            intro: "You can restart this tour anytime by clicking this help button.",
+                            position: 'left'
+                        }
+                    ],
+                    showBullets: true,
+                    showProgress: true,
+                    disableInteraction: false,
+                    doneLabel: "Got it!",
+                    nextLabel: "Next →",
+                    prevLabel: "← Back",
+                    tooltipClass: "customTooltip",
+                    highlightClass: "customHighlight"
+                }).start();
+            };
+            
+            // Add event listener to the tour button
+            document.getElementById('startTourBtn').addEventListener('click', startTour);
+            
+            // Check if this is the first visit to the dashboard
+            if (!localStorage.getItem('dashboardTourShown')) {
+                // Start the tour after a short delay to ensure all elements are loaded
+                setTimeout(startTour, 1000);
+                localStorage.setItem('dashboardTourShown', 'true');
+            }
+            
+            // Initialize AOS
+            AOS.init({
+                once: true,
+                duration: 800,
+                easing: 'ease-in-out'
+            });
         });
     </script>
+
+    <style>
+        /* Custom styles for Intro.js */
+        .customTooltip {
+            background-color: #2c3e50;
+            border-radius: 10px;
+        }
+        
+        .customHighlight {
+            box-shadow: 0 0 0 5px rgba(33, 150, 243, 0.5);
+        }
+        
+        /* Style for the tour button */
+        #startTourBtn {
+            transition: all 0.3s ease;
+        }
+        
+        #startTourBtn:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Make sure the intro.js tooltips are visible */
+        .introjs-tooltip {
+            min-width: 300px;
+        }
+    </style>
 
 {% else %}
     <p>You do not have permission to access this page.</p>

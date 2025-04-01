@@ -131,7 +131,27 @@ class PersonnelStudentAssignment(models.Model):
     def __str__(self):
         return f"{self.student.name} assigned to {self.personnel.first_name} {self.personnel.last_name}"
 
-# StudentAttendance model with all required fields
+# Student Attendance Model
+class StudentAttendance(models.Model):
+    ATTENDANCE_STATUS = [
+        ('present', 'Present'),
+        ('absent', 'Absent'),
+        ('late', 'Late'),
+        ('excused', 'Excused')
+    ]
+    
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='attendance_records')
+    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE)
+    date = models.DateField()
+    status = models.CharField(max_length=10, choices=ATTENDANCE_STATUS)
+    remarks = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        unique_together = ['student', 'personnel', 'date']
+        ordering = ['-date']
+    
+    def __str__(self):
+        return f"{self.student.name} - {self.date} - {self.get_status_display()}"
 
 # Add this new model for special cases
 class StudentSpecialCase(models.Model):

@@ -4,37 +4,126 @@
 {% block title %}Personnel Login{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/personnel_login.css' %}">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Add AOS CSS -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-<div class="container login-container">
-    <div class="row justify-content-center">
-        <div class="col-md-5 col-lg-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="text-center logo-container">
-                        <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid">
-                        <h2>Welcome Back</h2>
-                    </div>
-                    <form method="POST" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        <div class="input-group">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="username" name="username" placeholder="Username" required>
-                            <label for="username">Username</label>
-                        </div>
-                        <div class="input-group">
-                            <i class="fas fa-lock"></i>
-                            <input type="password" id="password" name="password" placeholder="Password" required>
-                            <label for="password">Password</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            Sign In <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </form>
-                </div>
+<div class="container-fluid vh-100 d-flex justify-content-center align-items-center p-0 m-0" style="background-color: #dcdcdc;">
+    <div class="card shadow-sm" style="width: 340px;" id="loginCard" data-aos="zoom-in" data-aos-duration="800">
+        <div class="card-body p-5 w-60 border-end-0 rounded-start-3">
+            <div class="text-center mb-5" style="background-color: #f8f9fa !important; padding: 20px; border-radius: 10px;" id="logoSection" data-aos="fade-down" data-aos-delay="200">
+                <!-- Add your logo image here -->
+                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid mb-4" style="max-height: 100px;">
+                <img src="{% static 'img/LOGO3.jpeg' %}" alt="Logo" class="img-fluid mb-4" style="max-height: 100px;">
+                <h2 class="fw-bold">Welcome Back</h2>
+                <small class="d-block text-black-50">Personnel</small>
             </div>
+            
+            <form method="POST" id="loginForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="mb-4 input-group" id="usernameGroup" data-aos="fade-up" data-aos-delay="400">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-3">
+                        <i class="fas fa-user text-secondary"></i>
+                    </span>
+                    <div class="form-floating flex-grow-1">
+                        <input type="text" class="form-control border-start-0 rounded-end-3" id="username" name="username" placeholder="Username" required>
+                        <label for="username">Username</label>
+                    </div>
+                </div>
+                <div class="mb-5 input-group" id="passwordGroup" data-aos="fade-up" data-aos-delay="600">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-3">
+                        <i class="fas fa-lock text-secondary"></i>
+                    </span>
+                    <div class="form-floating flex-grow-1 position-relative">
+                        <input type="password" class="form-control border-start-0 rounded-end-3" id="password" name="password" placeholder="Password" required>
+                        <label for="password">Password</label>
+                        <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-secondary border-0 password-toggle" style="z-index: 5;" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-3 mb-4 rounded-3" id="loginButton" data-aos="fade-up" data-aos-delay="800">
+                    Sign In <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </form>
+
+            {% if messages %}
+                <div class="mt-4" id="messagesSection" data-aos="fade-in" data-aos-delay="900">
+                    {% for message in messages %}
+                        <div class="alert alert-danger rounded-3">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
+<!-- Add AOS script -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize AOS
+        AOS.init({
+            once: true,
+            duration: 800,
+            easing: 'ease-in-out'
+        });
+        
+        // Password visibility toggle
+        document.querySelector('.password-toggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        });
+        
+        // Ensure the body doesn't have the authenticated class on login page
+        document.body.classList.remove('authenticated');
+        
+        // Remove any sidebar or main-content margins that might be in the base template
+        document.querySelectorAll('.main-content').forEach(el => {
+            el.style.marginLeft = '0';
+            el.style.padding = '0';
+        });
+    });
+    
+    document.querySelector('form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        let submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Signing in...';
+        setTimeout(() => {
+            this.submit();
+        }, 500);
+    });
+</script>
+
+<style>
+    /* Additional styles for AOS animations */
+    [data-aos] {
+        pointer-events: none;
+    }
+    
+    [data-aos].aos-animate {
+        pointer-events: auto;
+    }
+    
+    /* Add a subtle background pattern */
+    .container-fluid {
+        background-image: linear-gradient(to right, rgba(220, 220, 220, 0.5) 1px, transparent 1px),
+                          linear-gradient(to bottom, rgba(220, 220, 220, 0.5) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+</style>
 {% endblock %}

@@ -1,5 +1,5 @@
 from django.urls import path
-from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views, personnel_student_views, personnel_activity_grading_views
+from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views, personnel_student_views, personnel_activity_grading_views, student_attendance_views, student_views
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -81,4 +81,16 @@ urlpatterns = [
     path('api/student-activities/<int:student_id>/', 
          personnel_activity_grading_views.get_student_activities, 
          name='get_student_activities'),
+
+    # Attendance URLs
+    path('personnel/record-attendance/', student_attendance_views.record_attendance, name='record_attendance'),
+    path('personnel/view-attendance/', student_attendance_views.view_attendance, name='view_attendance'),
+    path('api/student-attendance/<int:student_id>/', 
+         student_attendance_views.get_student_attendance, 
+         name='get_student_attendance'),
+
+    # Student URLs
+    path('student/login/', student_views.student_login, name='student_login'),
+    path('student/dashboard/', student_views.student_dashboard, name='student_dashboard'),
+    path('student/logout/', student_views.student_logout, name='student_logout'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -268,11 +268,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Calculate attendance score
     function calculateAttendance() {
-        const daysPresent = parseFloat(document.getElementById('days_present').value) || 0;
-        const totalDays = parseFloat(document.getElementById('total_days').value) || 1;
-        const score = (daysPresent / totalDays) * 100;
-        document.getElementById('attendance_score').value = score.toFixed(2);
-        calculateTotal();
+        const studentId = document.querySelector('select[name="student"]').value;
+        
+        if (studentId) {
+            // Fetch student's attendance data
+            fetch(`/api/student-attendance/${studentId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('total_days').value = data.total_days;
+                        document.getElementById('days_present').value = data.days_present;
+                        document.getElementById('attendance_score').value = data.attendance_percentage;
+                        calculateTotal();
+                    }
+                });
+        } else {
+            const daysPresent = parseFloat(document.getElementById('days_present').value) || 0;
+            const totalDays = parseFloat(document.getElementById('total_days').value) || 1;
+            const score = (daysPresent / totalDays) * 100;
+            document.getElementById('attendance_score').value = score.toFixed(2);
+            calculateTotal();
+        }
     }
 
     // Calculate total grade
@@ -302,6 +318,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('total_demerits').value = data.total_demerits;
                     document.getElementById('military_score').value = data.military_score;
                     calculateTotal();
+                });
+            
+            // Fetch student's attendance data
+            fetch(`/api/student-attendance/${studentId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('total_days').value = data.total_days;
+                        document.getElementById('days_present').value = data.days_present;
+                        document.getElementById('attendance_score').value = data.attendance_percentage;
+                        calculateTotal();
+                    }
                 });
         }
     });

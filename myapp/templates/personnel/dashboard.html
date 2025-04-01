@@ -125,6 +125,42 @@
                                 </div>
                             </div>
                         </a>
+                        <!-- New Quick Action Button for Recording Attendance -->
+                        <a href="{% url 'record_attendance' %}" class="btn btn-primary position-relative py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                    <i class="fas fa-clipboard-check text-white"></i>
+                                </div>
+                                <div class="text-start">
+                                    <small class="d-block text-white-50">Record</small>
+                                    <span class="fw-bold">Attendance</span>
+                                </div>
+                            </div>
+                        </a>
+                        <!-- New Quick Action Button for Activity Record -->
+                        <a href="{% url 'activity_record' %}" class="btn btn-primary position-relative py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                    <i class="fas fa-tasks text-white"></i>
+                                </div>
+                                <div class="text-start">
+                                    <small class="d-block text-white-50">Record</small>
+                                    <span class="fw-bold">Activities</span>
+                                </div>
+                            </div>
+                        </a>
+                        <!-- New Quick Action Button for Grade Computation -->
+                        <a href="{% url 'compute_grades' %}" class="btn btn-primary position-relative py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                    <i class="fas fa-calculator text-white"></i>
+                                </div>
+                                <div class="text-start">
+                                    <small class="d-block text-white-50">Compute</small>
+                                    <span class="fw-bold">Grades</span>
+                                </div>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,518 @@
+{% extends 'personnel/base.html' %}
+{% load static %}
+
+{% block title %}View Attendance Records{% endblock %}
+
+{% block content %}
+<!-- Add min-height: 100vh to ensure full viewport height -->
+<div class="container-fluid py-4" style="min-height: 100vh;" data-aos="fade-in">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card" data-aos="fade-down" data-aos-delay="100">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="text-center logo-container">
+                                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 80px;">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="h2 mb-0 fw-bold">Attendance Records</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Records -->
+    <div class="card shadow-sm" data-aos="fade-up" data-aos-delay="200">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="mb-2 mb-md-0"><i class="fas fa-clipboard-list me-2"></i> Student Attendance History</h5>
+            <a href="{% url 'record_attendance' %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus me-1"></i> Record New Attendance
+            </a>
+        </div>
+        <div class="card-body">
+            <!-- Student Search Section -->
+            <div class="row mb-4">
+                <div class="col-12 col-md-4">
+                    <label for="student" class="form-label">Search by Student</label>
+                    <div class="position-relative">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="studentSearch" placeholder="Type to search student...">
+                            <select class="form-select" name="student" id="studentSelect">
+                                <option value="">All Students</option>
+                                {% if attendance_records %}
+                                    {% for record in attendance_records %}
+                                        <option value="{{ record.student.id }}" data-name="{{ record.student.name|lower }}">{{ record.student.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div id="searchResults" class="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style="display: none; max-height: 200px; overflow-y: auto; z-index: 1000;">
+                        </div>
+                        <div id="selectedStudent" class="form-text"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="attendanceTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Student No.</th>
+                            <th>Name</th>
+                            <th>Course</th>
+                            <th>Status</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if attendance_records %}
+                            {% for record in attendance_records %}
+                            <tr>
+                                <td>{{ record.date|date:"F d, Y" }}</td>
+                                <td>{{ record.student.student_no }}</td>
+                                <td>{{ record.student.name }}</td>
+                                <td>{{ record.student.course }}</td>
+                                <td>
+                                    {% if record.status == 'present' %}
+                                        <span class="badge bg-success">Present</span>
+                                    {% elif record.status == 'absent' %}
+                                        <span class="badge bg-danger">Absent</span>
+                                    {% elif record.status == 'late' %}
+                                        <span class="badge bg-warning text-dark">Late</span>
+                                    {% elif record.status == 'excused' %}
+                                        <span class="badge bg-info">Excused</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ record.remarks|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                                        <p class="mb-0 text-muted">No attendance records found.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Add pagination container -->
+        <div class="card-footer" id="paginationContainer">
+            <nav aria-label="Attendance records pagination">
+                <ul class="pagination justify-content-center mb-0" id="paginationControls">
+                    <!-- Pagination controls will be inserted here by JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container-fluid {
+        flex: 1;
+    }
+    
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+        .card-header {
+            text-align: center;
+        }
+        
+        .card-header .btn {
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+        
+        .table {
+            font-size: 0.85rem;
+        }
+        
+        .badge {
+            display: block;
+            width: 100%;
+        }
+    }
+</style>
+
+<!-- Add AOS CSS and JS -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+        
+        // Student search functionality
+        const studentSearch = document.getElementById('studentSearch');
+        const studentSelect = document.getElementById('studentSelect');
+        const searchResults = document.getElementById('searchResults');
+        const attendanceTable = document.getElementById('attendanceTable');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const paginationControls = document.getElementById('paginationControls');
+        
+        // Pagination variables
+        let currentPage = 1;
+        const rowsPerPage = 10;
+        let filteredRows = [];
+        
+        // Remove duplicate students from select
+        const uniqueStudents = new Map();
+        Array.from(studentSelect.options).forEach(option => {
+            if (option.value && !uniqueStudents.has(option.value)) {
+                uniqueStudents.set(option.value, option);
+            }
+        });
+        
+        // Clear and rebuild select with unique students
+        while (studentSelect.options.length > 1) {
+            studentSelect.remove(1);
+        }
+        
+        uniqueStudents.forEach(option => {
+            studentSelect.add(option.cloneNode(true));
+        });
+        
+        // Direct DOM filtering and pagination function
+        function filterTableByStudent(studentName) {
+            const rows = attendanceTable.querySelectorAll('tbody tr');
+            filteredRows = [];
+            
+            // First determine which rows should be visible based on filter
+            rows.forEach(row => {
+                if (!studentName) {
+                    // Show all rows if no student name provided
+                    row.style.display = 'none'; // Hide initially, will show based on pagination
+                    filteredRows.push(row);
+                } else {
+                    // Convert to lowercase for case-insensitive comparison
+                    const nameCell = row.cells[2];
+                    if (!nameCell) return;
+                    
+                    const name = nameCell.textContent.toLowerCase();
+                    
+                    // Add to filtered rows if matches
+                    if (name.includes(studentName.toLowerCase())) {
+                        row.style.display = 'none'; // Hide initially, will show based on pagination
+                        filteredRows.push(row);
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+            
+            // Then update pagination and display current page
+            updatePagination();
+            showPage(currentPage);
+        }
+        
+        // Function to update pagination controls
+        function updatePagination() {
+            // Clear pagination controls
+            paginationControls.innerHTML = '';
+            
+            // Calculate total pages
+            const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+            
+            // Don't show pagination if there's only one page or no results
+            if (totalPages <= 1) {
+                paginationContainer.style.display = 'none';
+                return;
+            }
+            
+            paginationContainer.style.display = 'block';
+            
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            const prevLink = document.createElement('a');
+            prevLink.className = 'page-link';
+            prevLink.href = '#';
+            prevLink.setAttribute('aria-label', 'Previous');
+            prevLink.innerHTML = '<span aria-hidden="true">&laquo;</span>';
+            prevLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    showPage(currentPage - 1);
+                }
+            });
+            prevLi.appendChild(prevLink);
+            paginationControls.appendChild(prevLi);
+            
+            // Page numbers
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            // Adjust start page if we're near the end
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            // First page button if not visible
+            if (startPage > 1) {
+                const firstLi = document.createElement('li');
+                firstLi.className = 'page-item';
+                const firstLink = document.createElement('a');
+                firstLink.className = 'page-link';
+                firstLink.href = '#';
+                firstLink.textContent = '1';
+                firstLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage(1);
+                });
+                firstLi.appendChild(firstLink);
+                paginationControls.appendChild(firstLi);
+                
+                // Ellipsis if needed
+                if (startPage > 2) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    const ellipsisSpan = document.createElement('span');
+                    ellipsisSpan.className = 'page-link';
+                    ellipsisSpan.innerHTML = '&hellip;';
+                    ellipsisLi.appendChild(ellipsisSpan);
+                    paginationControls.appendChild(ellipsisLi);
+                }
+            }
+            
+            // Page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                const pageLink = document.createElement('a');
+                pageLink.className = 'page-link';
+                pageLink.href = '#';
+                pageLink.textContent = i;
+                pageLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage(i);
+                });
+                pageLi.appendChild(pageLink);
+                paginationControls.appendChild(pageLi);
+            }
+            
+            // Last page button if not visible
+            if (endPage < totalPages) {
+                // Ellipsis if needed
+                if (endPage < totalPages - 1) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    const ellipsisSpan = document.createElement('span');
+                    ellipsisSpan.className = 'page-link';
+                    ellipsisSpan.innerHTML = '&hellip;';
+                    ellipsisLi.appendChild(ellipsisSpan);
+                    paginationControls.appendChild(ellipsisLi);
+                }
+                
+                const lastLi = document.createElement('li');
+                lastLi.className = 'page-item';
+                const lastLink = document.createElement('a');
+                lastLink.className = 'page-link';
+                lastLink.href = '#';
+                lastLink.textContent = totalPages;
+                lastLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage(totalPages);
+                });
+                lastLi.appendChild(lastLink);
+                paginationControls.appendChild(lastLi);
+            }
+            
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            const nextLink = document.createElement('a');
+            nextLink.className = 'page-link';
+            nextLink.href = '#';
+            nextLink.setAttribute('aria-label', 'Next');
+            nextLink.innerHTML = '<span aria-hidden="true">&raquo;</span>';
+            nextLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    showPage(currentPage + 1);
+                }
+            });
+            nextLi.appendChild(nextLink);
+            paginationControls.appendChild(nextLi);
+        }
+        
+        // Function to show a specific page
+        function showPage(pageNum) {
+            currentPage = pageNum;
+            
+            // Hide all rows first
+            filteredRows.forEach(row => {
+                row.style.display = 'none';
+            });
+            
+            // Calculate start and end indices for current page
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, filteredRows.length);
+            
+            // Show rows for current page
+            for (let i = startIndex; i < endIndex; i++) {
+                if (filteredRows[i]) {
+                    filteredRows[i].style.display = '';
+                }
+            }
+            
+            // Update pagination controls
+            updatePagination();
+            
+            // Scroll to top of table
+            attendanceTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // Initialize pagination with all rows
+        filterTableByStudent('');
+        
+        // Filter the dropdown options based on search input
+        studentSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const options = studentSelect.options;
+            
+            // Clear previous results
+            searchResults.innerHTML = '';
+            
+            if (searchTerm.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            let results = [];
+            
+            // Filter options based on search term
+            for (let i = 1; i < options.length; i++) {
+                const option = options[i];
+                const studentName = option.dataset.name;
+                
+                if (studentName && studentName.includes(searchTerm)) {
+                    results.push({
+                        id: option.value,
+                        name: option.text
+                    });
+                }
+            }
+            
+            // Display results
+            if (results.length > 0) {
+                results.forEach(result => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'p-2 border-bottom search-result';
+                    resultItem.textContent = result.name;
+                    resultItem.style.cursor = 'pointer';
+                    resultItem.dataset.id = result.id;
+                    
+                    resultItem.addEventListener('click', function() {
+                        studentSelect.value = this.dataset.id;
+                        studentSearch.value = this.textContent;
+                        searchResults.style.display = 'none';
+                        
+                        // Filter the table based on selected student
+                        filterTableByStudent(this.textContent);
+                    });
+                    
+                    searchResults.appendChild(resultItem);
+                });
+                
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        });
+        
+        // Handle select change
+        studentSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                studentSearch.value = selectedOption.text;
+                
+                // Filter the table based on selected student
+                filterTableByStudent(selectedOption.text);
+            } else {
+                studentSearch.value = '';
+                
+                // Clear filter
+                filterTableByStudent('');
+            }
+        });
+        
+        // Add a button to clear the filter
+        const searchContainer = document.querySelector('.col-md-4');
+        const clearButton = document.createElement('button');
+        clearButton.className = 'btn btn-sm btn-outline-secondary mt-2';
+        clearButton.innerHTML = '<i class="fas fa-times me-1"></i> Clear Filter';
+        clearButton.addEventListener('click', function() {
+            studentSelect.value = '';
+            studentSearch.value = '';
+            filterTableByStudent('');
+        });
+        searchContainer.appendChild(clearButton);
+        
+        // Close search results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!studentSearch.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+        
+        // Initialize DataTable if jQuery and DataTables are available
+        if (typeof $ !== 'undefined' && $.fn.DataTable) {
+            const dataTable = $('#attendanceTable').DataTable({
+                order: [[0, 'desc']], // Sort by date descending
+                pageLength: 10,
+                language: {
+                    search: "Search records:",
+                    lengthMenu: "Show _MENU_ records per page",
+                    info: "Showing _START_ to _END_ of _TOTAL_ records",
+                    infoEmpty: "Showing 0 to 0 of 0 records",
+                    infoFiltered: "(filtered from _MAX_ total records)"
+                }
+            });
+            
+            // Hide our custom pagination when DataTables is active
+            paginationContainer.style.display = 'none';
+            
+            // Override our direct DOM filtering with DataTables API if available
+            const originalFilterFunction = filterTableByStudent;
+            filterTableByStudent = function(studentName) {
+                if (dataTable) {
+                    if (!studentName) {
+                        dataTable.search('').columns().search('').draw();
+                    } else {
+                        dataTable.search('').columns().search('').draw();
+                        dataTable.search(studentName).draw();
+                    }
+                } else {
+                    // Fall back to direct DOM filtering if DataTables isn't working
+                    originalFilterFunction(studentName);
+                }
+            };
+        }
+    });
+</script>
+{% endblock %} 

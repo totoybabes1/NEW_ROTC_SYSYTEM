@@ -1,0 +1,578 @@
+{% extends 'personnel/base.html' %}
+{% load static %}
+
+{% block title %}Record Attendance{% endblock %}
+
+{% block content %}
+<!-- Add min-height: 100vh to ensure full viewport height -->
+<div class="container-fluid py-4" style="min-height: 100vh;">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="text-center logo-container">
+                                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 80px;">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="h2 mb-0 fw-bold">Record Attendance</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="row mb-4">
+        <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Attendance Form -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="date" class="form-label">Attendance Date</label>
+                            <input type="date" class="form-control" id="date" name="date" value="{{ today }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="studentSearch" class="form-label">Search Students</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="studentSearch" placeholder="Type to search student...">
+                                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="position-relative">
+                                <ul class="list-group position-absolute w-100 mt-1" id="searchResults" style="display: none; max-height: 200px; overflow-y: auto; z-index: 1000;">
+                                    <!-- Search results will appear here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Two-Column Layout for Present/Absent -->
+                <div class="row mb-4">
+                    <!-- Present Students Column -->
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <div class="card h-100 border-success">
+                            <div class="card-header bg-success bg-opacity-10 d-flex justify-content-between align-items-center flex-wrap">
+                                <h5 class="mb-2 mb-sm-0 text-success">
+                                    <i class="fas fa-check-circle me-2"></i> Present Students
+                                    <span class="badge bg-success ms-2" id="presentCount">0</span>
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-outline-success" id="markAllPresent">
+                                    Mark All Present
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush" id="presentList" style="max-height: 400px; overflow-y: auto;">
+                                    <!-- Present students will be added here dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Absent Students Column -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-danger">
+                            <div class="card-header bg-danger bg-opacity-10 d-flex justify-content-between align-items-center flex-wrap">
+                                <h5 class="mb-2 mb-sm-0 text-danger">
+                                    <i class="fas fa-times-circle me-2"></i> Absent Students
+                                    <span class="badge bg-danger ms-2" id="absentCount">0</span>
+                                </h5>
+                                <div class="d-flex flex-wrap mt-2 mt-sm-0">
+                                    <button type="button" class="btn btn-sm btn-outline-warning me-2 mb-2 mb-sm-0" id="markAllLate">
+                                        Mark All Late
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="markAllAbsent">
+                                        Mark All Absent
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush" id="absentList" style="max-height: 400px; overflow-y: auto;">
+                                    <!-- Absent students will be added here dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hidden inputs to store attendance data -->
+                <div id="attendanceData">
+                    {% for assignment in assignments %}
+                    <input type="hidden" name="status_{{ assignment.student.id }}" id="status_input_{{ assignment.student.id }}" value="present">
+                    <input type="hidden" name="remarks_{{ assignment.student.id }}" id="remarks_input_{{ assignment.student.id }}" value="">
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-4 d-flex justify-content-between flex-column flex-sm-row">
+                    <button type="button" class="btn btn-outline-secondary position-relative py-2 mb-3 mb-sm-0" id="resetAttendance">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-secondary bg-opacity-25 p-1 me-2">
+                                <i class="fas fa-redo text-secondary"></i>
+                            </div>
+                            <div class="text-start">
+                                <small class="d-block text-secondary">Reset</small>
+                                <span class="fw-bold">Attendance</span>
+                            </div>
+                        </div>
+                    </button>
+                    <button type="submit" class="btn btn-primary position-relative py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                <i class="fas fa-save text-white"></i>
+                            </div>
+                            <div class="text-start">
+                                <small class="d-block text-white-50">Save</small>
+                                <span class="fw-bold">Attendance</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container-fluid {
+        flex: 1;
+    }
+    
+    .student-item {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .student-item:hover {
+        background-color: rgba(0,0,0,0.05);
+    }
+    
+    .student-item .badge {
+        transition: all 0.2s;
+    }
+    
+    .student-item:hover .badge {
+        transform: scale(1.1);
+    }
+    
+    .student-item.highlighted {
+        animation: highlight-pulse 1s;
+    }
+    
+    @keyframes highlight-pulse {
+        0% { background-color: rgba(255, 255, 0, 0.3); }
+        100% { background-color: transparent; }
+    }
+    
+    .student-actions {
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.2s;
+    }
+    
+    .student-item:hover .student-actions {
+        visibility: visible;
+        opacity: 1;
+    }
+    
+
+    /* Mobile responsive styles */
+    @media (max-width: 767.98px) {
+        #searchResults {
+            width: calc(100% - 20px) !important;
+            max-width: 100%;
+        }
+        
+        .student-actions {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .card-header {
+            padding: 0.75rem;
+        }
+        
+        .student-item {
+            padding: 0.75rem;
+        }
+        
+        h1.h2 {
+            font-size: 1.5rem;
+        }
+        
+        .logo-container img {
+            width: 60px !important;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements
+    const studentSearch = document.getElementById('studentSearch');
+    const clearSearch = document.getElementById('clearSearch');
+    const searchResults = document.getElementById('searchResults');
+    const presentList = document.getElementById('presentList');
+    const absentList = document.getElementById('absentList');
+    const presentCount = document.getElementById('presentCount');
+    const absentCount = document.getElementById('absentCount');
+    const markAllPresent = document.getElementById('markAllPresent');
+    const markAllAbsent = document.getElementById('markAllAbsent');
+    const markAllLate = document.getElementById('markAllLate');
+    const resetAttendance = document.getElementById('resetAttendance');
+    
+    // Store all student items for search functionality
+    let allStudentItems = [];
+    
+    // Initialize attendance
+    function initializeAttendance() {
+        // Clear lists
+        presentList.innerHTML = '';
+        absentList.innerHTML = '';
+        allStudentItems = [];
+        
+        // Get all students from hidden inputs
+        const hiddenInputs = document.querySelectorAll('input[id^="status_input_"]');
+        
+        hiddenInputs.forEach(input => {
+            const studentId = input.id.replace('status_input_', '');
+            input.value = 'present'; // Reset to present
+            
+            // Create student item
+            createStudentItem(studentId);
+        });
+        
+        updateCounts();
+    }
+    
+    // Create student item
+    function createStudentItem(studentId) {
+        // Get student data from assignments
+        {% for assignment in assignments %}
+        if ("{{ assignment.student.id }}" === studentId) {
+            const item = document.createElement('div');
+            item.className = 'list-group-item student-item d-flex justify-content-between align-items-center flex-wrap';
+            item.dataset.id = "{{ assignment.student.id }}";
+            item.dataset.name = "{{ assignment.student.name|lower }}";
+            item.dataset.studentNo = "{{ assignment.student.student_number|lower }}";
+            
+            // Add click event to toggle between present and absent
+            item.addEventListener('click', function() {
+                if (this.parentElement === presentList) {
+                    moveToAbsent(this.dataset.id);
+                } else {
+                    moveToPresent(this.dataset.id);
+                }
+            });
+            
+            // Student info
+            const studentInfo = document.createElement('div');
+            studentInfo.className = 'mb-2 mb-md-0';
+            studentInfo.innerHTML = `
+                <span class="fw-bold">{{ assignment.student.name }}</span>
+                <div class="text-muted small">{{ assignment.student.student_number }}</div>
+                <div class="text-muted small">{{ assignment.student.course }} - {{ assignment.student.year_level }}</div>
+            `;
+            
+            // Action buttons
+            const actions = document.createElement('div');
+            actions.className = 'student-actions';
+            
+            const absentBtn = document.createElement('button');
+            absentBtn.type = 'button';
+            absentBtn.className = 'btn btn-sm btn-danger me-1';
+            absentBtn.innerHTML = '<i class="fas fa-times"></i>';
+            absentBtn.title = 'Mark as Absent';
+            absentBtn.onclick = function(e) {
+                e.stopPropagation();
+                moveToAbsent(studentId, 'absent');
+            };
+            
+            const lateBtn = document.createElement('button');
+            lateBtn.type = 'button';
+            lateBtn.className = 'btn btn-sm btn-warning';
+            lateBtn.innerHTML = '<i class="fas fa-clock"></i>';
+            lateBtn.title = 'Mark as Late';
+            lateBtn.onclick = function(e) {
+                e.stopPropagation();
+                moveToAbsent(studentId, 'late');
+            };
+            
+            actions.appendChild(absentBtn);
+            actions.appendChild(lateBtn);
+            
+            item.appendChild(studentInfo);
+            item.appendChild(actions);
+            
+            presentList.appendChild(item);
+            
+            // Add to allStudentItems array for search functionality
+            allStudentItems.push({
+                id: "{{ assignment.student.id }}",
+                name: "{{ assignment.student.name }}",
+                studentNo: "{{ assignment.student.student_number }}",
+                element: item
+            });
+            
+            return;
+        }
+        {% endfor %}
+    }
+    
+    // Move student to present list
+    function moveToPresent(studentId) {
+        const item = document.querySelector(`.student-item[data-id="${studentId}"]`);
+        if (item && item.parentElement !== presentList) {
+            // Update actions
+            const actionsElement = item.querySelector('.student-actions');
+            actionsElement.innerHTML = '';
+            
+            const absentBtn = document.createElement('button');
+            absentBtn.type = 'button';
+            absentBtn.className = 'btn btn-sm btn-danger me-1';
+            absentBtn.innerHTML = '<i class="fas fa-times"></i>';
+            absentBtn.title = 'Mark as Absent';
+            absentBtn.onclick = function(e) {
+                e.stopPropagation();
+                moveToAbsent(studentId, 'absent');
+            };
+            
+            const lateBtn = document.createElement('button');
+            lateBtn.type = 'button';
+            lateBtn.className = 'btn btn-sm btn-warning';
+            lateBtn.innerHTML = '<i class="fas fa-clock"></i>';
+            lateBtn.title = 'Mark as Late';
+            lateBtn.onclick = function(e) {
+                e.stopPropagation();
+                moveToAbsent(studentId, 'late');
+            };
+            
+            actionsElement.appendChild(absentBtn);
+            actionsElement.appendChild(lateBtn);
+            
+            // Remove status badge if exists
+            const badge = item.querySelector('.badge');
+            if (badge) {
+                badge.remove();
+            }
+            
+            // Move to present list
+            presentList.appendChild(item);
+            item.classList.add('highlighted');
+            setTimeout(() => item.classList.remove('highlighted'), 1000);
+            
+            // Update hidden input
+            document.getElementById(`status_input_${studentId}`).value = 'present';
+            
+            updateCounts();
+        }
+    }
+    
+    // Move student to absent list
+    function moveToAbsent(studentId, status = 'absent') {
+        const studentItem = document.querySelector(`.student-item[data-id="${studentId}"]`);
+        if (!studentItem) return;
+        
+        // Update status input
+        const statusInput = document.getElementById(`status_input_${studentId}`);
+        statusInput.value = status;
+        
+        // Move to absent list
+        if (studentItem.parentElement === presentList) {
+            absentList.appendChild(studentItem);
+        }
+        
+        // Update visual status
+        studentItem.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'text-white');
+        if (status === 'absent') {
+            studentItem.classList.add('bg-danger', 'text-white');
+        } else if (status === 'late') {
+            studentItem.classList.add('bg-warning');
+        }
+        
+        updateCounts();
+    }
+    
+    // Update counters
+    function updateCounts() {
+        presentCount.textContent = presentList.children.length;
+        absentCount.textContent = absentList.children.length;
+    }
+    
+    // Function to show search results
+    function showSearchResults(searchTerm) {
+        searchResults.innerHTML = '';
+        if (!searchTerm) {
+            searchResults.style.display = 'none';
+            return;
+        }
+        
+        searchTerm = searchTerm.toLowerCase().trim();
+        
+        const matchingStudents = allStudentItems.filter(student => 
+            student.name.toLowerCase().includes(searchTerm) || 
+            student.studentNo.toLowerCase().includes(searchTerm)
+        );
+        
+        if (matchingStudents.length > 0) {
+            matchingStudents.forEach(student => {
+                const item = document.createElement('li');
+                item.className = 'list-group-item list-group-item-action py-2';
+                item.innerHTML = `<div class="fw-bold">${student.name}</div><small class="text-muted">${student.studentNo}</small>`;
+                
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Highlight the student in the list
+                    const studentElement = student.element;
+                    studentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    studentElement.classList.add('bg-light');
+                    setTimeout(() => studentElement.classList.remove('bg-light'), 2000);
+                    
+                    // Clear search
+                    studentSearch.value = '';
+                    searchResults.style.display = 'none';
+                });
+                
+                searchResults.appendChild(item);
+            });
+            searchResults.style.display = 'block';
+        } else {
+            const item = document.createElement('li');
+            item.className = 'list-group-item text-center text-muted py-2';
+            item.textContent = 'No students found';
+            searchResults.appendChild(item);
+            searchResults.style.display = 'block';
+        }
+    }
+    
+    // Search functionality
+    studentSearch.addEventListener('input', function() {
+        showSearchResults(this.value);
+    });
+    
+    // Clear search
+    clearSearch.addEventListener('click', function() {
+        studentSearch.value = '';
+        searchResults.style.display = 'none';
+    });
+    
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!studentSearch.contains(e.target) && !searchResults.contains(e.target) && !clearSearch.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+    
+    // Handle keyboard navigation
+    studentSearch.addEventListener('keydown', function(e) {
+        const results = searchResults.querySelectorAll('.list-group-item-action');
+        if (results.length === 0) return;
+        
+        let currentFocus = -1;
+        
+        // Find currently focused item
+        for (let i = 0; i < results.length; i++) {
+            if (results[i].classList.contains('active')) {
+                currentFocus = i;
+                break;
+            }
+        }
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            
+            // Remove active class from all items
+            results.forEach(item => item.classList.remove('active'));
+            
+            // Update focus
+            if (e.key === 'ArrowDown') {
+                currentFocus = (currentFocus + 1) % results.length;
+            } else {
+                currentFocus = (currentFocus - 1 + results.length) % results.length;
+            }
+
+            // Add active class to focused item
+            results[currentFocus].classList.add('active');
+            results[currentFocus].scrollIntoView({ block: 'nearest' });
+            
+        } else if (e.key === 'Enter' && currentFocus > -1 && searchResults.style.display !== 'none') {
+            e.preventDefault();
+            if (results[currentFocus]) {
+                results[currentFocus].click();
+            }
+        }
+    });
+    
+    // Mark all present
+    markAllPresent.addEventListener('click', function() {
+        if (confirm('Mark all visible students as present?')) {
+            document.querySelectorAll('#absentList .student-item:not([style*="display: none"])').forEach(item => {
+                moveToPresent(item.dataset.id);
+            });
+        }
+    });
+    
+    // Mark all absent
+    markAllAbsent.addEventListener('click', function() {
+        if (confirm('Mark all visible students as absent?')) {
+            document.querySelectorAll('#presentList .student-item:not([style*="display: none"])').forEach(item => {
+                moveToAbsent(item.dataset.id, 'absent');
+            });
+        }
+    });
+    
+    // Mark all late
+    markAllLate.addEventListener('click', function() {
+        const studentItems = document.querySelectorAll('.student-item');
+        studentItems.forEach(item => {
+            const studentId = item.dataset.id;
+            moveToAbsent(studentId, 'late');
+        });
+        updateCounts();
+    });
+    
+    // Reset attendance
+    resetAttendance.addEventListener('click', function() {
+        if (confirm('Reset all attendance data?')) {
+            initializeAttendance();
+        }
+    });
+    
+    // Initialize on page load
+    initializeAttendance();
+});
+</script>
+{% endblock %} 

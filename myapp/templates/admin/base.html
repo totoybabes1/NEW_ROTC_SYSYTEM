@@ -156,7 +156,7 @@
         <div class="container-fluid py-3">
             <!-- Breadcrumb -->
             {% if user.is_authenticated %}
-            <nav aria-label="breadcrumb">
+            <nav aria-label="breadcrumb" {% if request.path == '/admin/' or request.path == '/admin/home/' %}style="display: none;"{% endif %}>
                 <ol class="breadcrumb bg-light p-2 rounded">
                     <li class="breadcrumb-item">
                         <a href="{% url 'home' %}"><i class="fas fa-home"></i></a>

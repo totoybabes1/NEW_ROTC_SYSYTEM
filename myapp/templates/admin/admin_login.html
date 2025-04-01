@@ -2,67 +2,215 @@
 {% block title %}Login - Admin{% endblock %}
 {% load static %}
 {% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link rel="stylesheet" href="{% static 'css/admin_login.css' %}">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Add Intro.js CSS -->
+<link href="https://unpkg.com/intro.js/minified/introjs.min.css" rel="stylesheet">
+<link href="https://unpkg.com/intro.js/themes/introjs-modern.css" rel="stylesheet">
+<!-- Add AOS CSS -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-<!-- Custom style to fix sidebar space issue -->
-<style>
-    /* Override main-content margin for login page */
-    body .main-content {
-        margin-left: 0 !important;
-    }
-</style>
-
-<div class="login-container d-flex justify-content-center align-items-center">
-    <div class="card">
-        <div class="card-body">
-            <div class="logo-container text-center">
+<div class="container-fluid vh-100 d-flex justify-content-center align-items-center p-0 m-0" style="background-color: #dcdcdc;">
+    <div class="card shadow-sm" style="width: 340px;" id="loginCard" data-aos="zoom-in" data-aos-duration="800">
+        <div class="card-body p-5 w-60 border-end-0 rounded-start-3">
+            <div class="text-center mb-5" style="background-color: #f8f9fa !important; padding: 20px; border-radius: 10px;" id="logoSection" data-aos="fade-down" data-aos-delay="200">
                 <!-- Add your logo image here -->
-                <img src="{% static 'img/LOGO.png' %}" alt="Logo">
+                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid mb-4" style="max-height: 100px;">
+                <img src="{% static 'img/LOGO3.jpeg' %}" alt="Logo" class="img-fluid mb-4" style="max-height: 100px;">
+                <h2 class="fw-bold">Welcome Back</h2>
+                <small class="d-block text-black-50">Administrator</small>
             </div>
-            <h2 class="text-center">Welcome Back</h2>
             
-            <form method="post">
+            <form method="post" id="loginForm">
                 {% csrf_token %}
-                <div class="input-group">
-                    <input type="text" id="username" name="username" placeholder="Username" required>
-                    <label for="username">Username</label>
-                    <i class="fas fa-user"></i>
+                <div class="mb-4 input-group" id="usernameGroup" data-aos="fade-up" data-aos-delay="400">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-3">
+                        <i class="fas fa-user text-secondary"></i>
+                    </span>
+                    <div class="form-floating flex-grow-1">
+                        <input type="text" class="form-control border-start-0 rounded-end-3" id="username" name="username" placeholder="Username" required>
+                        <label for="username">Username</label>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <input type="password" id="password" name="password" placeholder="Password" required>
-                    <label for="password">Password</label>
-                    <i class="fas fa-lock"></i>
+                <div class="mb-5 input-group" id="passwordGroup" data-aos="fade-up" data-aos-delay="600">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-3">
+                        <i class="fas fa-lock text-secondary"></i>
+                    </span>
+                    <div class="form-floating flex-grow-1 position-relative">
+                        <input type="password" class="form-control border-start-0 rounded-end-3" id="password" name="password" placeholder="Password" required>
+                        <label for="password">Password</label>
+                        <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-secondary border-0 password-toggle" style="z-index: 5;" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="btn-primary">
-                    Login <i class="fas fa-arrow-right"></i>
+                <button type="submit" class="btn btn-primary w-100 py-3 mb-4 rounded-3" id="loginButton" data-aos="fade-up" data-aos-delay="800">
+                    Login <i class="fas fa-arrow-right ms-2"></i>
                 </button>
+                <a href="{% url 'home' %}" class="text-secondary hover-primary" data-aos="fade-up" data-aos-delay="600" style="color: #6c757d; text-decoration: none; transition: color 0.3s;">Back to Home</a>
             </form>
 
             {% if messages %}
-                <div class="mt-3">
+                <div class="mt-4" id="messagesSection" data-aos="fade-in" data-aos-delay="900">
                     {% for message in messages %}
-                        <div class="alert alert-danger">{{ message }}</div>
+                        <div class="alert alert-danger rounded-3">{{ message }}</div>
                     {% endfor %}
                 </div>
             {% endif %}
+            
+            <!-- Tour button -->
+            <div class="text-center mt-3" data-aos="fade-up" data-aos-delay="1000">
+                <button id="startTourBtn" class="btn btn-sm btn-outline-secondary rounded-pill">
+                    <i class="fas fa-question-circle me-1"></i> Need help?
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Add Intro.js script -->
+<script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
+<!-- Add AOS script -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize AOS
+        AOS.init({
+            once: true,
+            duration: 800,
+            easing: 'ease-in-out'
+        });
+        
+        // Password visibility toggle
+        document.querySelector('.password-toggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        });
+        
         // Ensure the body doesn't have the authenticated class on login page
         document.body.classList.remove('authenticated');
+        
+        // Remove any sidebar or main-content margins that might be in the base template
+        document.querySelectorAll('.main-content').forEach(el => {
+            el.style.marginLeft = '0';
+            el.style.padding = '0';
+        });
+        
+        // Initialize Intro.js tour
+        const startTour = () => {
+            introJs().setOptions({
+                steps: [
+                    {
+                        element: document.getElementById('loginCard'),
+                        intro: "Welcome to the ROTC Management System Admin Login. This secure portal gives you access to the administrative features.",
+                        position: 'right'
+                    },
+                    {
+                        element: document.getElementById('logoSection'),
+                        intro: "This is the ROTC Management System. As an administrator, you'll have access to all management features.",
+                        position: 'bottom'
+                    },
+                    {
+                        element: document.getElementById('usernameGroup'),
+                        intro: "Enter your administrator username here.",
+                        position: 'bottom'
+                    },
+                    {
+                        element: document.getElementById('passwordGroup'),
+                        intro: "Enter your secure password here. Make sure it's strong and kept confidential.",
+                        position: 'top'
+                    },
+                    {
+                        element: document.getElementById('loginButton'),
+                        intro: "Click here to log in and access the admin dashboard.",
+                        position: 'top'
+                    }
+                ],
+                showBullets: true,
+                showProgress: true,
+                disableInteraction: false,
+                doneLabel: "Got it!",
+                nextLabel: "Next →",
+                prevLabel: "← Back",
+                tooltipClass: "customTooltip",
+                highlightClass: "customHighlight"
+            }).start();
+        };
+        
+        // Add event listener to the tour button
+        document.getElementById('startTourBtn').addEventListener('click', startTour);
+        
+        // Check if this is the first visit to the login page
+        if (!localStorage.getItem('loginTourShown')) {
+            // Wait for animations to complete before starting the tour
+            setTimeout(startTour, 1500);
+            localStorage.setItem('loginTourShown', 'true');
+        }
     });
     
     document.querySelector('form').addEventListener('submit', function(event) {
         event.preventDefault();
-        this.classList.add('submitted');
+        let submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Logging in...';
         setTimeout(() => {
             this.submit();
         }, 500);
     });
 </script>
+
+<style>
+    /* Custom styles for Intro.js */
+    .customTooltip {
+        background-color: #2c3e50;
+        border-radius: 10px;
+    }
+    
+    .customHighlight {
+        box-shadow: 0 0 0 5px rgba(33, 150, 243, 0.5);
+    }
+    
+    /* Style for the tour button */
+    #startTourBtn {
+        transition: all 0.3s ease;
+    }
+    
+    #startTourBtn:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    /* Make sure the intro.js tooltips are visible */
+    .introjs-tooltip {
+        min-width: 250px;
+    }
+    
+    /* Additional styles for AOS animations */
+    [data-aos] {
+        pointer-events: none;
+    }
+    
+    [data-aos].aos-animate {
+        pointer-events: auto;
+    }
+    
+    /* Add a subtle background pattern */
+    .container-fluid {
+        background-image: linear-gradient(to right, rgba(220, 220, 220, 0.5) 1px, transparent 1px),
+                          linear-gradient(to bottom, rgba(220, 220, 220, 0.5) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+</style>
 {% endblock %}

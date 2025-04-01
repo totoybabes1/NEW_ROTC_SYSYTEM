@@ -2,14 +2,12 @@
 {% load static %}
 
 {% block title %}Assigned Students{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
 {% endblock %}
 
 {% block content %}
-<!-- Add min-height: 100vh to ensure full viewport height -->
-<div class="container-fluid py-4" style="min-height: 100vh;">
+<div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
@@ -17,7 +15,7 @@
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-auto">
-                            <div class="text-center logo-container">
+                            <div class="text-center">
                                 <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 80px;">
                             </div>
                         </div>
@@ -30,7 +28,6 @@
         </div>
     </div>
    
-    
     <!-- Statistics Row with Accordion -->
     <div class="row mb-4">
         <div class="col-12 col-lg-3 order-lg-2">
@@ -81,7 +78,7 @@
         </div>
         
         <div class="col-12 col-lg-9 order-lg-1">
-            <!-- Your existing refresh button and students table code goes here -->
+            <!-- Refresh button -->
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <button type="button" class="btn btn-primary d-flex align-items-center" id="refreshStudentList">
@@ -93,11 +90,60 @@
             <!-- Students List -->
             <div class="card shadow-sm">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-primary">
-                        <i class="fas fa-user-graduate me-2"></i>Student Directory
-                    </h5>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold text-primary">
+                            <i class="fas fa-user-graduate me-2"></i>Student Directory
+                        </h5>
+                        <span class="badge bg-primary fs-6">{{ assigned_students|length }} Total</span>
+                    </div>
                 </div>
                 <div class="card-body">
+                    <!-- Search and filter controls -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" 
+                                           id="studentSearch" 
+                                           class="form-control" 
+                                           placeholder="Search students...">
+                                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
+                                </div>
+                                <div id="searchResults" class="position-absolute w-100 bg-white border rounded-bottom shadow-sm" 
+                                     style="display: none; max-height: 200px; overflow-y: auto; z-index: 1000;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-sort"></i>
+                                </span>
+                                <select id="sortSelect" class="form-select">
+                                    <option value="1_asc">Name (A-Z)</option>
+                                    <option value="1_desc">Name (Z-A)</option>
+                                    <option value="2_asc">Course (A-Z)</option>
+                                    <option value="2_desc">Course (Z-A)</option>
+                                </select>
+
+                                <span class="input-group-text bg-transparent">
+                                    <i class="fas fa-filter"></i>
+                                </span>
+                                <select id="statusFilter" class="form-select">
+                                    <option value="">All Status</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="INACTIVE">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Students Table -->
                     <div class="table-responsive">
                         <table class="table table-hover align-middle" id="studentsTable">
                             <thead class="table-light">
@@ -108,32 +154,30 @@
                                     <th>Year</th>
                                     <th>Gender</th>
                                     <th>Status</th>
-                                    <th class="text-center">Actions</th>
+                                    <th>Assigned To</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for student in assigned_students %}
-                                <tr>
-                                    <td><span class="fw-medium">{{ student.student_no }}</span></td>
-                                    <td>{{ student.name }}</td>
-                                    <td>
-                                        <span class="badge bg-info bg-opacity-10 text-info">{{ student.course }}</span>
-                                    </td>
+                                <tr data-name="{{ student.name|lower }}" data-student-id="{{ student.id }}">
+                                    <td>{{ student.student_no }}</td>
+                                    <td class="fw-semibold">{{ student.name }}</td>
+                                    <td><span class="badge bg-info bg-opacity-10 text-info">{{ student.course }}</span></td>
                                     <td>{{ student.year }}</td>
                                     <td>{{ student.gender }}</td>
                                     <td>
-                                        {% if student.status == 'ACTIVE' %}
-                                        <span class="badge bg-success bg-opacity-10 text-success">Active</span>
-                                        {% else %}
-                                        <span class="badge bg-warning bg-opacity-10 text-warning">{{ student.status }}</span>
-                                        {% endif %}
+                                        <span class="badge {% if student.status == 'ACTIVE' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %}">
+                                            {{ student.status }}
+                                        </span>
                                     </td>
-                                    <td class="text-center">
-                                        <button type="button" class="btn btn-primary btn-sm rounded-circle p-2 d-inline-flex align-items-center justify-content-center view-student" 
-                                                data-bs-toggle="modal" data-bs-target="#studentDetailsModal"
-                                                data-student-id="{{ student.id }}" style="width: 32px; height: 32px;">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+                                    <td>
+                                        {% if student.assigned_personnel.first %}
+                                        <span class="badge bg-primary-subtle text-primary">
+                                            {{ student.assigned_personnel.first.personnel.first_name }} {{ student.assigned_personnel.first.personnel.last_name }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">Not Assigned</span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -149,99 +193,20 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- No results message -->
+                    <div id="noResults" class="text-center py-4 d-none">
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No matching students found</h5>
+                            <p class="text-muted">Try adjusting your search criteria</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Student Details Modal -->
-<div class="modal fade" id="studentDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-id-card me-2"></i>Student Details
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="text-center py-4" id="studentLoading">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-3 text-muted">Loading student information...</p>
-                </div>
-                <div id="studentDetails" style="display: none;">
-                    <div class="mb-4 text-center">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 80px; height: 80px;">
-                            <i class="fas fa-user-graduate fa-2x"></i>
-                        </div>
-                        <h4 class="fw-bold mb-0" id="studentName"></h4>
-                        <p class="text-muted" id="studentNo"></p>
-                    </div>
-                    
-                    <div class="card bg-light border-0 mb-3">
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <div class="d-flex flex-column">
-                                        <span class="text-muted small">Course</span>
-                                        <span class="fw-medium" id="studentCourse"></span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex flex-column">
-                                        <span class="text-muted small">Year</span>
-                                        <span class="fw-medium" id="studentYear"></span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex flex-column">
-                                        <span class="text-muted small">Gender</span>
-                                        <span class="fw-medium" id="studentGender"></span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex flex-column">
-                                        <span class="text-muted small">Status</span>
-                                        <span class="fw-medium" id="studentStatus"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-calendar-alt text-muted me-2"></i>
-                        <span class="text-muted">Assigned on </span>
-                        <span class="ms-1 fw-medium" id="assignedDate"></span>
-                    </div>
-                </div>
-                <div id="studentError" class="alert alert-danger" style="display: none;"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    html, body {
-        height: 100%;
-        margin: 0;
-    }
-    
-    body {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .container-fluid {
-        flex: 1;
-    }
-</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -249,88 +214,163 @@
 <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 <script>
 $(document).ready(function() {
-    // Initialize DataTable
+    // Initialize DataTable with proper configuration
     var table = $('#studentsTable').DataTable({
+        "paging": true,
         "pageLength": 10,
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        "order": [[1, "asc"]], // Sort by name
+        "ordering": true,
+        "order": [[1, "asc"]], // Default sort by name (column 1)
+        "searching": false,  // Disable DataTable's built-in search
+        "responsive": true,
+        "dom": '<"top"l><"clear">rt<"bottom"ip><"clear">',  // Removed 'f' to hide default search box
         "language": {
-            "search": "",
-            "searchPlaceholder": "Search students...",
             "lengthMenu": "Show _MENU_ entries",
             "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-            "infoEmpty": "Showing 0 to 0 of 0 entries",
-            "infoFiltered": "(filtered from _MAX_ total entries)"
-        },
-        "dom": '<"top d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4"<"d-flex align-items-center"l><"search-container position-relative">f>rt<"bottom"ip>',
-        "responsive": true,
-        "initComplete": function() {
-            // Enhance search input with Bootstrap styling - BIGGER SIZE
-            $('.dataTables_filter input')
-                .removeClass('form-control-sm')
-                .addClass('form-control ps-5')
-                .css({
-                    'min-width': '350px',
-                    'height': '45px',
-                    'font-size': '1rem',
-                    'border-radius': '8px',
-                    'border': '2px solid #dee2e6',
-                    'box-shadow': 'none'
-                });
-            
-            // Add search icon - BIGGER SIZE
-            $('.dataTables_filter').addClass('position-relative')
-                .prepend('<i class="fas fa-search position-absolute text-primary" style="left: 15px; top: 14px; z-index: 1; font-size: 16px;"></i>');
-                
-            // Add a container with styling
-            $('.dataTables_filter').wrap('<div class="search-wrapper bg-light p-2 rounded"></div>');
+            "infoEmpty": "No entries available",
+            "zeroRecords": "No matching records found",
+            "emptyTable": "No data available in table"
         }
     });
     
-    // View student details
-    $(document).on('click', '.view-student', function() {
-        const studentId = $(this).data('student-id');
+    // Enhanced search functionality with dropdown
+    const studentSearch = document.getElementById('studentSearch');
+    const searchResults = document.getElementById('searchResults');
+    const tableRows = document.querySelectorAll('#studentsTable tbody tr');
+    
+    // Function to show search results
+    function showSearchResults(searchTerm) {
+        searchResults.innerHTML = '';
+        if (!searchTerm) {
+            searchResults.style.display = 'none';
+            return;
+        }
         
-        // Reset modal
-        $('#studentDetails').hide();
-        $('#studentError').hide();
-        $('#studentLoading').show();
-        
-        // Fetch student details
-        $.ajax({
-            url: `/personnel/student-details/${studentId}/`,
-            type: 'GET',
-            success: function(response) {
-                $('#studentLoading').hide();
-                
-                if (response.success) {
-                    // Populate student details
-                    $('#studentNo').text(response.student.student_no);
-                    $('#studentName').text(response.student.name);
-                    $('#studentCourse').text(response.student.course);
-                    $('#studentYear').text(response.student.year);
-                    $('#studentGender').text(response.student.gender);
-                    $('#studentStatus').text(response.student.status);
-                    $('#assignedDate').text(response.student.assigned_date);
-                    
-                    $('#studentDetails').show();
-                } else {
-                    $('#studentError').text(response.error || 'Failed to load student details');
-                    $('#studentError').show();
-                }
-            },
-            error: function() {
-                $('#studentLoading').hide();
-                $('#studentError').text('An error occurred while fetching student details');
-                $('#studentError').show();
-            }
+        searchTerm = searchTerm.toLowerCase();
+        const matchingRows = Array.from(tableRows).filter(row => {
+            const studentName = row.getAttribute('data-name');
+            return studentName && studentName.includes(searchTerm);
         });
+        
+        if (matchingRows.length > 0) {
+            matchingRows.forEach(row => {
+                const studentName = row.querySelector('td:nth-child(2)').textContent;
+                const studentId = row.getAttribute('data-student-id');
+                const studentNo = row.querySelector('td:nth-child(1)').textContent;
+                
+                const div = document.createElement('div');
+                div.className = 'p-2 cursor-pointer hover-bg-light';
+                div.style.cursor = 'pointer';
+                div.innerHTML = `<strong>${studentName}</strong> <small class="text-muted">(${studentNo})</small>`;
+                
+                div.addEventListener('mouseover', () => {
+                    div.style.backgroundColor = '#f8f9fa';
+                });
+                div.addEventListener('mouseout', () => {
+                    div.style.backgroundColor = '';
+                });
+                div.addEventListener('click', () => {
+                    studentSearch.value = studentName;
+                    searchResults.style.display = 'none';
+                    
+                    // Apply search to DataTable
+                    table.search(studentName).draw();
+                });
+                searchResults.appendChild(div);
+            });
+            searchResults.style.display = 'block';
+        } else {
+            const div = document.createElement('div');
+            div.className = 'p-2 text-muted';
+            div.textContent = 'No matching students found';
+            searchResults.appendChild(div);
+            searchResults.style.display = 'block';
+        }
+    }
+    
+    // Event listener for search input
+    studentSearch.addEventListener('input', function(e) {
+        const searchTerm = e.target.value;
+        showSearchResults(searchTerm);
+        
+        // Apply custom search to DataTable
+        table.search(searchTerm).draw();
+        
+        // Show/hide no results message
+        setTimeout(function() {
+            if (table.page.info().recordsDisplay === 0) {
+                $('#noResults').removeClass('d-none');
+                $('#studentsTable_wrapper').addClass('d-none');
+            } else {
+                $('#noResults').addClass('d-none');
+                $('#studentsTable_wrapper').removeClass('d-none');
+            }
+        }, 100);
     });
     
-    // Refresh student list
+    // Clear search button
+    $('#clearSearch').on('click', function() {
+        $('#studentSearch').val('');
+        table.search('').draw();
+        searchResults.style.display = 'none';
+        $('#noResults').addClass('d-none');
+        $('#studentsTable_wrapper').removeClass('d-none');
+    });
+    
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!studentSearch.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+    
+    // Status filter
+    $('#statusFilter').on('change', function() {
+        var status = $(this).val();
+        
+        // Clear previous custom filters
+        $.fn.dataTable.ext.search.pop();
+        
+        if (status !== '') {
+            // Use a custom function for more precise filtering
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                var rowStatus = data[5]; // Status is in column 5
+                return rowStatus.includes(status);
+            });
+        }
+        
+        table.draw();
+        
+        // Check for no results
+        if (table.page.info().recordsDisplay === 0) {
+            $('#noResults').removeClass('d-none');
+            $('#studentsTable_wrapper').addClass('d-none');
+        } else {
+            $('#noResults').addClass('d-none');
+            $('#studentsTable_wrapper').removeClass('d-none');
+        }
+    });
+    
+    // Sort functionality
+    $('#sortSelect').on('change', function() {
+        var val = $(this).val().split('_');
+        var columnIndex = parseInt(val[0]);
+        var direction = val[1];
+        table.order([columnIndex, direction]).draw();
+    });
+    
+    // Refresh button
     $('#refreshStudentList').on('click', function() {
         location.reload();
     });
+    
+    // Initial check for no results
+    if (table.page.info().recordsDisplay === 0) {
+        $('#noResults').removeClass('d-none');
+        $('#studentsTable_wrapper').addClass('d-none');
+    } else {
+        $('#noResults').addClass('d-none');
+    }
 });
 </script>
-{% endblock %} 
+{% endblock %}

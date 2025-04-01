@@ -4,155 +4,459 @@
 {% block title %}ROTC Management System{% endblock %}
 
 {% block content %}
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-<style>
-    @font-face {
-        font-family: 'AdiHaus';
-        src: url('https://assets.codepen.io/6060109/adihaus_regular.ttf') format('truetype');
-        font-weight: normal;
-        font-style: normal;
-    }
-    
-    @font-face {
-        font-family: "AdiHaus";
-        src: url("https://assets.codepen.io/6060109/adihaus_bold.ttf") format("truetype");
-        font-weight: bold;
-        font-style: normal;
-    }
-    
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: "AdiHaus", sans-serif;
-    }
-    
-    :root {
-        --theme-color-black: #333333;
-        --theme-color-white: #FEFFFF;
-        --bootstrap-primary: #0d6efd;
-        --bootstrap-primary-dark: #0b5ed7;
-    }
-    
-    body {
-        background-color: var(--theme-color-white);
-        min-height: 100vh;
-        overflow-x: hidden;
-    }
-    
-    .split-container {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .text-content {
-        padding: 2rem 2.5rem;
-        max-width: 500px;
-        margin: 0 auto;
-    }
-    
-    .hero-title {
-        color: var(--bootstrap-primary);
-        font-weight: 800;
-        font-size: 4.5rem;
-        margin-bottom: 1rem;
-        line-height: 1;
-        text-transform: uppercase;
-    }
-    
-    .hero-subtitle {
-        color: var(--theme-color-black);
-        line-height: 1.6;
-        margin-bottom: 2rem;
-        font-size: 1.1rem;
-    }
-    
-    
-    .image-content {
-        width: 100%;
-        height: 300px;
-        overflow: hidden;
-    }
-    
-    .image-content img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-    
-    @media only screen and (min-width: 768px) {
-        .split-container {
-            flex-direction: row;
-            min-height: 100vh;
-        }
-        
-        .text-content {
-            width: 45%;
-            max-width: none;
-            padding: 3rem 3.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        
-        .hero-title {
-            font-size: 5rem;
-        }
-        
-        .image-content {
-            width: 55%;
-            height: 100vh;
-            position: relative;
-        }
-        
-        .image-content img {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 20% 100%);
-        }
-        
-        .email-form {
-            max-width: 500px;
-        }
-    }
-</style>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<!-- Add Intro.js CSS -->
+<link href="https://unpkg.com/intro.js/minified/introjs.min.css" rel="stylesheet">
+<link href="https://unpkg.com/intro.js/themes/introjs-modern.css" rel="stylesheet">
 
-<div class="split-container">
-    <div class="text-content">
-        <h1 class="hero-title">ROTC Management System</h1>
-        <p class="hero-subtitle">
-            A modern system for managing your ROTC program. Track personnel, 
-            schedule training, and handle resources all in one place. Simple tools 
-            to help commanders and staff focus on developing future military leaders.
-        </p>
-        
-        {% if user.is_authenticated %}
-            <a href="{% url 'admin_dashboard' %}" class="btn-cta">
-                <span>Go to Dashboard</span>
-                <i class="fas fa-arrow-right"></i>
-            </a>
-        {% else %}
-            
-            <a href="{% url 'login' %}" class="btn-cta">
-                <span>Get Started</span>
-                <i class="fas fa-arrow-right"></i>
-            </a>
-        {% endif %}
-    </div>
+<!-- Main container with no padding -->
+<div class="container-fluid p-0">
+    <!-- Modern header with gradient background -->
+    <header class="bg-dark py-3 px-4 shadow-sm">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3" data-aos="fade-right" data-aos-duration="800">
+                <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="45" class="rounded-circle bg-white p-1">
+                <div class="fw-bold fs-4 text-white text-uppercase">ROTC Management System</div>
+            </div>
+            {% if user.is_authenticated %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 d-none d-md-inline-flex align-items-center gap-2" data-aos="fade-left" data-aos-duration="800">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            {% endif %}
+        </div>
+    </header>
     
-    <div class="image-content">
-        <img src="{% static 'img/norsuwall.jpg' %}" alt="ROTC Management System">
-    </div>
+    <!-- Hero section with improved visual hierarchy -->
+    <section class="position-relative d-flex align-items-center justify-content-center text-white" style="height: 600px; overflow: hidden;">
+        <div class="position-absolute top-0 start-0 w-100 h-100">
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-75" style="z-index: 1;"></div>
+            <img src="{% static 'img/WALL.jpg' %}" alt="ROTC Background" class="w-100 h-100" 
+                 style="object-fit: cover; filter: blur(5px) brightness(0.8); transform: scale(1.05);">
+        </div>
+        
+        <div class="position-relative text-center px-4 py-5" style="max-width: 900px; z-index: 2;">
+            <div class="d-flex justify-content-center gap-4 mb-5" data-aos="zoom-in" data-aos-duration="1200">
+                <img src="{% static 'img/LOGO.png' %}" alt="NORSU ROTC Logo" 
+                     class="rounded-circle border border-5 border-primary p-2 shadow-lg bg-white" 
+                     style="width: 200px; height: 200px; object-fit: contain;">
+                <img src="{% static 'img/LOGO3.jpeg' %}" alt="NORSU ROTC Additional Logo" 
+                     class="rounded-circle border border-5 border-primary p-2 shadow-lg bg-white d-none d-md-block" 
+                     style="width: 200px; height: 200px; object-fit: contain;">
+            </div>
+            <h1 class="display-4 fw-bold mb-3 text-white text-shadow" data-aos="fade-up" data-aos-delay="300">ROTC Management System</h1>
+            <p class="lead mb-5 mx-auto fw-normal" style="max-width: 700px; font-size: 1.25rem;" data-aos="fade-up" data-aos-delay="500">
+                A comprehensive platform for managing your ROTC program. Track personnel, 
+                schedule training, and handle resources all in one place.
+            </p>
+            
+            {% if user.is_authenticated %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg d-inline-flex align-items-center gap-2" data-aos="fade-up" data-aos-delay="700">
+                    <span class="fw-bold">Go to Dashboard</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg d-inline-flex align-items-center gap-2" data-aos="fade-up" data-aos-delay="700">
+                    <span class="fw-bold">Get Started</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            {% endif %}
+        </div>
+    </section>
+    
+    <!-- Features section with improved cards -->
+    <section class="py-5 bg-light">
+        <div class="container py-4">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h6 class="text-primary fw-bold text-uppercase">Core Features</h6>
+                <h2 class="display-5 fw-bold mb-4">What We Offer</h2>
+                <div class="mx-auto bg-primary" style="width: 100px; height: 4px; border-radius: 2px;"></div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                        <div class="card-body p-0">
+                            <div class="bg-primary text-white p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-users fs-4"></i>
+                                    </div>
+                                    <h5 class="card-title mb-0 fw-bold">Student Records</h5>
+                                </div>
+                                <p class="card-text opacity-75">Streamlined management of student information and records.</p>
+                            </div>
+                            <div class="p-4">
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Student profiles</span>
+                                    </li>
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Daily attendance</span>
+                                    </li>
+                                    <li class="d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Contact info</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+                        <div class="card-body p-0">
+                            <div class="bg-primary text-white p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-calendar-check fs-4"></i>
+                                    </div>
+                                    <h5 class="card-title mb-0 fw-bold">Class Schedule</h5>
+                                </div>
+                                <p class="card-text opacity-75">Easy scheduling and monitoring of ROTC activities.</p>
+                            </div>
+                            <div class="p-4">
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Class calendar</span>
+                                    </li>
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Training plans</span>
+                                    </li>
+                                    <li class="d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Alerts</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden" data-aos="fade-up" data-aos-delay="300">
+                        <div class="card-body p-0">
+                            <div class="bg-primary text-white p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-clipboard-list fs-4"></i>
+                                    </div>
+                                    <h5 class="card-title mb-0 fw-bold">Grading System</h5>
+                                </div>
+                                <p class="card-text opacity-75">Simple and efficient grade management for students.</p>
+                            </div>
+                            <div class="p-4">
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Grade records</span>
+                                    </li>
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Performance tracking</span>
+                                    </li>
+                                    <li class="d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Awards system</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden" data-aos="fade-up" data-aos-delay="400">
+                        <div class="card-body p-0">
+                            <div class="bg-primary text-white p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-user-tie fs-4"></i>
+                                    </div>
+                                    <h5 class="card-title mb-0 fw-bold">Personnel Management</h5>
+                                </div>
+                                <p class="card-text opacity-75">Efficient management of ROTC personnel and staff.</p>
+                            </div>
+                            <div class="p-4">
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Staff profiles</span>
+                                    </li>
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Role assignment</span>
+                                    </li>
+                                    <li class="d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <span>Performance reviews</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Gallery section with improved carousel -->
+    <section class="py-5 bg-white">
+        <div class="container py-4">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h6 class="text-primary fw-bold text-uppercase">Visual Showcase</h6>
+                <h2 class="display-5 fw-bold mb-4">Gallery</h2>
+                <div class="mx-auto bg-primary" style="width: 100px; height: 4px; border-radius: 2px;"></div>
+            </div>
+            
+            <div class="position-relative mx-auto rounded-4 overflow-hidden shadow-lg" style="max-width: 1200px; height: 600px;" data-aos="zoom-in">
+                <div id="galleryCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                    <div class="carousel-inner h-100">
+                        <div class="carousel-item active h-100">
+                            <img src="{% static 'img/img22.jpg' %}" alt="ROTC Wall" class="d-block w-100 h-100" style="object-fit: cover;">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                                <h5 class="fw-bold">ROTC Training</h5>
+                                <p>Building leadership and discipline through structured training.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item h-100">
+                            <img src="{% static 'img/img11.jpg' %}" alt="ROTC Logo" class="d-block w-100 h-100" style="object-fit: cover;">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                                <h5 class="fw-bold">ROTC Emblem</h5>
+                                <p>Symbol of honor, duty, and service.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item h-100">
+                            <img src="{% static 'img/img33.jpg' %}" alt="Norsu Wall" class="d-block w-100 h-100" style="object-fit: cover;">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                                <h5 class="fw-bold">Campus Facilities</h5>
+                                <p>Modern facilities supporting ROTC activities.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item h-100">
+                            <img src="{% static 'img/img44.jpg' %}" alt="Norsu Wall" class="d-block w-100 h-100" style="object-fit: cover;">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                                <h5 class="fw-bold">Field Training</h5>
+                                <p>Practical exercises to develop tactical skills.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#galleryCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#galleryCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="0" class="active rounded-circle" style="width: 12px; height: 12px;" aria-current="true" aria-label="Slide 1"></button>
+                        <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="1" class="rounded-circle" style="width: 12px; height: 12px;" aria-label="Slide 2"></button>
+                        <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="2" class="rounded-circle" style="width: 12px; height: 12px;" aria-label="Slide 3"></button>
+                        <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="3" class="rounded-circle" style="width: 12px; height: 12px;" aria-label="Slide 4"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Call to action section -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container py-4 text-center" data-aos="fade-up">
+            <h2 class="fw-bold mb-4">Ready to get started?</h2>
+            <p class="lead mb-4 mx-auto" style="max-width: 700px;">
+                Join our ROTC Management System today and experience a more efficient way to manage your ROTC program.
+            </p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-light btn-lg px-5 py-3 rounded-pill shadow d-inline-flex align-items-center gap-2">
+                    <span class="fw-bold">Go to Dashboard</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-light btn-lg px-5 py-3 rounded-pill shadow d-inline-flex align-items-center gap-2">
+                    <span class="fw-bold">Get Started</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            {% endif %}
+        </div>
+    </section>
+    
+    <!-- Footer with improved design -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+                        <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="40" class="me-3">
+                        <div>
+                            <div class="fw-bold">ROTC Management System</div>
+                            <div class="small text-muted">© 2023 All rights reserved.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="d-flex gap-3 justify-content-center justify-content-md-end">
+                        <a href="#" class="text-white fs-5"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 </div>
+
+<!-- Add Intro.js script before your custom script -->
+<script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Add admin-home class to body for specific styling
+        document.body.classList.add('admin-home');
+        
+        // Remove padding from parent containers
+        const mainContent = document.getElementById('mainContent');
+        if (mainContent) {
+            mainContent.classList.add('p-0', 'm-0');
+            
+            // Find the container-fluid inside mainContent and remove its padding
+            const containerFluid = mainContent.querySelector('.container-fluid');
+            if (containerFluid) {
+                containerFluid.classList.add('p-0', 'm-0');
+                containerFluid.style.maxWidth = '100%';
+            }
+        }
+
         {% if user.is_authenticated %}
             document.body.classList.add('authenticated');
         {% endif %}
+        
+        // Initialize Bootstrap carousel
+        const carousel = new bootstrap.Carousel(document.getElementById('galleryCarousel'), {
+            interval: 5000,
+            wrap: true
+        });
+        
+        // Initialize AOS (Animate On Scroll)
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+        
+        // Initialize Intro.js tour
+        const startTour = () => {
+            introJs().setOptions({
+                steps: [
+                    {
+                        element: document.querySelector('header'),
+                        intro: "Welcome to the ROTC Management System! This is the main navigation area.",
+                        position: 'bottom'
+                    },
+                    {
+                        element: document.querySelector('.hero-section') || document.querySelector('section:first-of-type'),
+                        intro: "This is our main dashboard where you can access all the features of the ROTC Management System.",
+                        position: 'bottom'
+                    },
+                    {
+                        element: document.querySelector('.features-section') || document.querySelector('section:nth-of-type(2)'),
+                        intro: "Explore our core features designed to streamline ROTC program management.",
+                        position: 'top'
+                    },
+                    {
+                        element: document.querySelector('.gallery-section') || document.querySelector('section:nth-of-type(3)'),
+                        intro: "Browse through our gallery to see ROTC activities and events.",
+                        position: 'top'
+                    },
+                    {
+                        element: document.querySelector('.cta-section') || document.querySelector('section:nth-of-type(4)'),
+                        intro: "Ready to get started? Click here to access the dashboard or login.",
+                        position: 'top'
+                    }
+                ],
+                showBullets: true,
+                showProgress: true,
+                disableInteraction: false,
+                doneLabel: "Got it!",
+                nextLabel: "Next →",
+                prevLabel: "← Back",
+                tooltipClass: "customTooltip",
+                highlightClass: "customHighlight"
+            }).start();
+        };
+        
+        // Add a tour button to the header
+        const headerDiv = document.querySelector('header .d-flex');
+        if (headerDiv) {
+            const tourButton = document.createElement('button');
+            tourButton.className = 'btn btn-sm btn-outline-light rounded-pill ms-3 d-flex align-items-center gap-2';
+            tourButton.innerHTML = '<i class="fas fa-question-circle"></i><span class="d-none d-md-inline">Take a Tour</span>';
+            tourButton.setAttribute('data-aos', 'fade-left');
+            tourButton.setAttribute('data-aos-duration', '800');
+            tourButton.onclick = startTour;
+            headerDiv.appendChild(tourButton);
+        }
+        
+        // Check if this is the first visit and start tour automatically
+        if (!localStorage.getItem('tourShown')) {
+            // Wait for animations to complete
+            setTimeout(startTour, 1500);
+            localStorage.setItem('tourShown', 'true');
+        }
     });
 </script>
+
+<style>
+    /* Minimal custom styles that can't be achieved with Bootstrap alone */
+    .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    
+    /* Fix spacing issues with base template - only for admin home */
+    body.admin-home .main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    body.admin-home .main-content .container-fluid {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100%;
+    }
+    
+    /* Hide the navbar for admin home page */
+    body.admin-home .navbar {
+        display: none;
+    }
+    
+    /* Hide breadcrumb specifically for admin home page */
+    body.admin-home .breadcrumb {
+        display: none;
+    }
+    
+    /* Custom styles for Intro.js */
+    .customTooltip {
+        background-color: #2c3e50;
+        border-radius: 10px;
+    }
+    
+    .customHighlight {
+        box-shadow: 0 0 0 5px rgba(33, 150, 243, 0.5);
+    }
+    
+    /* Style for the tour button */
+    .btn-outline-light:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+</style>
 {% endblock %}
