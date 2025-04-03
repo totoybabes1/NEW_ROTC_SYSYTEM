@@ -60,31 +60,24 @@
                                         <!-- Action Buttons Grid -->
                                         <div class="col-12 col-lg-2">
                                             <div class="d-grid gap-2">
-                                                <button class="btn btn-primary position-relative py-2" data-bs-toggle="modal" data-bs-target="#autoAssignModal">
+                                                <button type="button" 
+                                                        class="btn btn-primary position-relative py-2"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#manualSpecialAssignmentModal">
                                                     <div class="d-flex align-items-center">
                                                         <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
-                                                            <i class="fas fa-magic text-white"></i>
+                                                            <i class="fas fa-user-plus text-white"></i>
                                                         </div>
                                                         <div class="text-start">
-                                                            <small class="d-block text-white-50">Auto</small>
-                                                            <span class="fw-bold">Auto-Assign</span>
+                                                            <small class="d-block text-white-50">Special</small>
+                                                            <span class="fw-bold">Assignment</span>
                                                         </div>
                                                     </div>
                                                 </button>
 
-                                                <button class="btn btn-primary position-relative py-2" data-bs-toggle="modal" data-bs-target="#specialAssignmentModal">
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
-                                                            <i class="fas fa-user-tag text-white"></i>
-                                                        </div>
-                                                        <div class="text-start">
-                                                            <small class="d-block text-white-50">Handle</small>
-                                                            <span class="fw-bold">Special Cases</span>
-                                                        </div>
-                                                    </div>
-                                                </button>
-
-                                                <button class="btn btn-danger position-relative py-2" data-bs-toggle="modal" data-bs-target="#resetAssignmentsModal">
+                                                <button class="btn btn-danger position-relative py-2" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#resetAssignmentsModal">
                                                     <div class="d-flex align-items-center">
                                                         <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
                                                             <i class="fas fa-undo-alt text-white"></i>
@@ -206,233 +199,6 @@
                     {% endif %}
                 </div>
             </div>
-
-            <!-- Add this after the Quick Actions and Stats cards, before the Messages section -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="accordion" id="specialCasesAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#specialCasesContent" aria-expanded="true" aria-controls="specialCasesContent">
-                                    <i class="fas fa-user-tag me-2"></i>Special Cases Overview
-                                </button>
-                            </h2>
-                            <div id="specialCasesContent" class="accordion-collapse collapse show" data-bs-parent="#specialCasesAccordion">
-                                <div class="accordion-body p-0">
-                                    <div class="card shadow-sm border-0">
-                                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                            <div class="d-flex align-items-center gap-3">
-                                                <h6 class="m-0 font-weight-bold text-primary">
-                                                    <i class="fas fa-user-tag me-2"></i>Special Cases Overview
-                                                </h6>
-                                                <!-- Bulk Actions Dropdown - Initially Hidden -->
-                                                <div id="bulkActionsDropdown" class="ms-3" style="display: none;">
-                                                    <button class="btn btn-danger btn-sm" id="deleteSelectedCases">
-                                                        <i class="fas fa-trash-alt me-2"></i>Remove Selected Cases
-                                                        <span class="selected-count badge bg-white text-danger ms-1">0</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-3">
-                                                <!-- Search Input -->
-                                                <div class="input-group shadow-sm" style="width: 450px;">
-                                                    <span class="input-group-text bg-primary text-white border-0" style="font-size: 1.1rem;">
-                                                        <i class="fas fa-search"></i>
-                                                    </span>
-                                                    <input type="text" 
-                                                           id="specialCasesSearchInput" 
-                                                           class="form-control border-0" 
-                                                           placeholder="Search special cases..."
-                                                           style="font-size: 1.1rem; padding: 0.75rem 1rem;">
-                                                </div>
-                                                
-                                                <!-- Personnel Filter Dropdown -->
-                                                <div class="input-group shadow-sm" style="width: 250px;">
-                                                    <span class="input-group-text bg-primary text-white border-0" style="font-size: 1.1rem;">
-                                                        <i class="fas fa-user-check"></i>
-                                                    </span>
-                                                    <select id="specialCasesPersonnelFilter" class="form-select border-0" style="font-size: 1.1rem; padding: 0.75rem 1rem;">
-                                                        <option value="">All Handlers</option>
-                                                        {% for personnel in personnel_list %}
-                                                            <option value="{{ personnel.id }}">{{ personnel.first_name }} {{ personnel.last_name }}</option>
-                                                        {% endfor %}
-                                                        <option value="no-handler">No Handler Assigned</option>
-                                                    </select>
-                                                </div>
-                                                
-                                                <!-- Add Special Case button -->
-                                                <button type="button" 
-                                                        class="btn btn-outline-primary" 
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#specialAssignmentModal">
-                                                    <i class="fas fa-plus me-2"></i>Add Special Case
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div class="card-body">
-                                            <div class="table-responsive">
-                                                <table class="table table-hover" id="specialCasesTable">
-                                                    <thead>
-                                                        <tr class="align-middle">
-                                                            <th class="py-3">
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input" type="checkbox" id="selectAllCases">
-                                                                </div>
-                                                            </th>
-                                                            <th class="py-3">Student ID</th>
-                                                            <th class="py-3">Name</th>
-                                                            <th class="py-3">Case Type</th>
-                                                            <th class="py-3">Handler/Personnel</th>
-                                                            <th class="py-3">Gender</th>
-                                                            <th class="py-3">Course</th>
-                                                            <th class="py-3">Notes</th>
-                                                            <th class="py-3">Date Added</th>
-                                                            <th class="py-3">Actions</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for case in special_cases %}
-                                                        <tr>
-                                                            <td>
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input case-checkbox" 
-                                                                           type="checkbox" 
-                                                                           value="{{ case.id }}"
-                                                                           data-student-name="{{ case.student.name }}">
-                                                                </div>
-                                                            </td>
-                                                            <td>{{ case.student.student_no }}</td>
-                                                            <td>
-                                                                <div class="d-flex align-items-center">
-                                                                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                                        {{ case.student.name|first }}
-                                                                    </div>
-                                                                    {{ case.student.name }}
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                {% if case.case_type == 'band' %}
-                                                                    <span class="badge bg-primary">Band Member</span>
-                                                                {% elif case.case_type == 'office' %}
-                                                                    <span class="badge bg-success">Office Worker</span>
-                                                                {% else %}
-                                                                    <span class="badge bg-info">Other Gender</span>
-                                                                {% endif %}
-                                                            </td>
-                                                            <td>
-                                                                {% if case.handler %}
-                                                                    <div class="d-flex align-items-center" data-handler-id="{{ case.handler.id }}">
-                                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                                            {{ case.handler.first_name|first }}{{ case.handler.last_name|first }}
-                                                                        </div>
-                                                                        <div>
-                                                                            <div class="fw-bold">{{ case.handler.first_name }} {{ case.handler.last_name }}</div>
-                                                                            <div class="small text-muted">{{ case.handler.position }}</div>
-                                                                        </div>
-                                                                    </div>
-                                                                {% elif case.handler_name %}
-                                                                    <div class="d-flex align-items-center">
-                                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                                            {{ case.handler_name|first }}
-                                                                        </div>
-                                                                        <div>
-                                                                            <div class="fw-bold">{{ case.handler_name }}</div>
-                                                                        </div>
-                                                                    </div>
-                                                                {% else %}
-                                                                    <span class="text-muted">No handler assigned</span>
-                                                                {% endif %}
-                                                            </td>
-                                                            <td>
-                                                                {% if case.student.gender == 'M' %}
-                                                                    <span class="badge bg-primary">Male</span>
-                                                                {% else %}
-                                                                    <span class="badge bg-danger">Female</span>
-                                                                {% endif %}
-                                                            </td>
-                                                            <td>{{ case.student.course }}</td>
-                                                            <td>
-                                                                {% if case.notes %}
-                                                                    <span class="text-muted" data-bs-toggle="tooltip" title="{{ case.notes }}">
-                                                                        {{ case.notes|truncatechars:30 }}
-                                                                    </span>
-                                                                {% else %}
-                                                                    <span class="text-muted">-</span>
-                                                                {% endif %}
-                                                            </td>
-                                                            <td>{{ case.created_at|date:"M d, Y" }}</td>
-                                                            <td>
-                                                                <div class="btn-group">
-                                                                    <button type="button" 
-                                                                            class="btn btn-outline-primary"
-                                                                            data-bs-toggle="modal"
-                                                                            data-bs-target="#editSpecialCaseModal"
-                                                                            data-case-id="{{ case.id }}"
-                                                                            data-student-id="{{ case.student.id }}"
-                                                                            data-student-name="{{ case.student.name }}"
-                                                                            data-case-type="{{ case.case_type }}"
-                                                                            data-handler-id="{% if case.handler %}{{ case.handler.id }}{% endif %}"
-                                                                            data-handler-name="{% if case.handler_name %}{{ case.handler_name }}{% endif %}"
-                                                                            data-notes="{{ case.notes }}"
-                                                                            style="padding: 8px 16px;">
-                                                                        <i class="fas fa-edit me-2"></i>Edit
-                                                                    </button>
-                                                                    <a href="{% url 'remove_special_case' case_id=case.id %}" 
-                                                                       class="btn btn-outline-danger"
-                                                                       onclick="return confirm('Are you sure you want to remove this special case?')"
-                                                                       style="padding: 8px 16px;">
-                                                                        <i class="fas fa-trash me-2"></i>Delete
-                                                                    </a>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                        {% empty %}
-                                                        <tr>
-                                                            <td colspan="10" class="text-center py-4">
-                                                                <div class="text-muted">
-                                                                    <i class="fas fa-info-circle me-2"></i>No special cases recorded yet
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            
-                                            <!-- Add Pagination -->
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <div class="small text-muted">
-                                                    Showing <span id="specialCasesStartRecord">1</span> to <span id="specialCasesEndRecord">10</span> of <span id="specialCasesTotalRecords">{{ special_cases|length }}</span> entries
-                                                </div>
-                                                <nav aria-label="Special cases pagination">
-                                                    <ul class="pagination pagination-sm" id="specialCasesPagination">
-                                                        <li class="page-item" id="specialCasesPrevPage">
-                                                            <a class="page-link" href="#" aria-label="Previous">
-                                                                <span aria-hidden="true">&laquo;</span>
-                                                            </a>
-                                                        </li>
-                                                        <div id="specialCasesPageNumbers" class="d-flex">
-                                                            <!-- Page numbers will be inserted here by JavaScript -->
-                                                        </div>
-                                                        <li class="page-item" id="specialCasesNextPage">
-                                                            <a class="page-link" href="#" aria-label="Next">
-                                                                <span aria-hidden="true">&raquo;</span>
-                                                            </a>
-                                                        </li>
-                                                    </ul>
-                                                </nav>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-           
 
             <!-- Nav Tabs -->
             <div class="card shadow-sm">
@@ -922,7 +688,6 @@
                                             <th class="py-3">Year</th>
                                             <th class="py-3">Status</th>
                                             <th class="py-3">Upload Date</th>
-                                            <th class="py-3">Special Case</th>
                                             <th class="py-3">Actions</th>
                                         </tr>
                                     </thead>
@@ -960,18 +725,6 @@
                                             </td>
                                             <td>{{ student.upload_date|date:"M d, Y" }}</td>
                                             <td>
-                                                {% if student.special_case %}
-                                                    <span class="badge bg-warning">
-                                                        {{ student.special_case.get_case_type_display }}
-                                                        {% if student.special_case.handler_name %}
-                                                            <br>Handler: {{ student.special_case.handler_name }}
-                                                        {% endif %}
-                                                    </span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary">None</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
                                                 <div class="btn-group">
                                                     <button type="button" 
                                                             class="btn btn-outline-primary unassigned-assign-btn"
@@ -984,15 +737,6 @@
                                                             data-student-year="{{ student.year }}"
                                                             style="padding: 8px 16px;">
                                                         <i class="fas fa-user-plus me-2"></i>Assign
-                                                    </button>
-                                                    <button type="button" 
-                                                            class="btn btn-outline-warning"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#specialAssignmentModal"
-                                                            data-student-id="{{ student.id }}"
-                                                            data-student-name="{{ student.name }}"
-                                                            style="padding: 8px 16px;">
-                                                        <i class="fas fa-user-tag me-2"></i>Special Case
                                                     </button>
                                                 </div>
                                             </td>
@@ -1268,11 +1012,7 @@
                             </select>
                         </div>
 
-                        <!-- Gender Match Warning -->
-                        <div id="newReassignGenderMismatch" class="alert alert-warning d-none">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Warning: New personnel and student genders do not match
-                        </div>
+                     
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -1285,208 +1025,31 @@
         </div>
     </div>
 
-    <!-- Reset Assignments Confirmation Modal -->
+    <!-- Reset Assignments Modal -->
     <div class="modal fade" id="resetAssignmentsModal" tabindex="-1" aria-labelledby="resetAssignmentsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="resetAssignmentsModalLabel">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Reset All Assignments
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        <strong>Warning:</strong> This action will remove ALL student assignments from ALL personnel.
-                    </div>
-                    <p>Are you sure you want to reset all assignments? This action cannot be undone.</p>
-                    <p class="mb-0"><strong>Total assignments to be removed:</strong> <span id="totalAssignmentsCount">{{ total_assignments }}</span></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Cancel
-                    </button>
-                    <form action="{% url 'reset_all_assignments' %}" method="POST">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-undo-alt me-2"></i>Reset All Assignments
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Special Assignment Modal -->
-    <div class="modal fade" id="specialAssignmentModal" tabindex="-1" aria-labelledby="specialAssignmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="specialAssignmentModalLabel">Special Case Assignments</h5>
+                    <h5 class="modal-title" id="resetAssignmentsModalLabel">Reset All Assignments</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{% url 'handle_special_cases' %}" method="post">
+                <form action="{% url 'reset_all_assignments' %}" method="post">
                     {% csrf_token %}
                     <div class="modal-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Manage students with special assignments (band members, office workers) or gender preferences.
-                            These students will be excluded from automatic assignment.
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Warning:</strong> This will remove all student assignments and special cases. This action cannot be undone.
                         </div>
-
-                        <!-- Modified Search Bar -->
-                        <div class="mb-3">
-                            <div class="input-group">
-                                <span class="input-group-text bg-primary text-white">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                                <input type="text" 
-                                       id="modalSpecialCaseSearch" 
-                                       class="form-control" 
-                                       placeholder="Search students by name or ID...">
-                            </div>
-                        </div>
-
-                        <!-- Student Selection -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Select Students:</label>
-                            <select class="form-select" id="specialCaseStudents" name="student_ids" multiple size="6">
-                                {% for student in unassigned_students %}
-                                    <option value="{{ student.id }}" 
-                                            data-search-text="{{ student.name|lower }} {{ student.student_no|lower }}"
-                                            data-gender="{{ student.gender }}"
-                                            {% if student.special_assignment %}selected{% endif %}>
-                                        {{ student.name }} ({{ student.student_no }})
-                                    </option>
-                                {% endfor %}
-                                {% for assignment in all_assignments %}
-                                    <option value="{{ assignment.student.id }}"
-                                            data-search-text="{{ assignment.student.name|lower }} {{ assignment.student.student_no|lower }}"
-                                            data-gender="{{ assignment.student.gender }}"
-                                            {% if assignment.student.special_assignment %}selected{% endif %}>
-                                        {{ assignment.student.name }} ({{ assignment.student.student_no }}) - Currently Assigned
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <div class="form-text">Hold Ctrl/Cmd to select multiple students</div>
-                        </div>
-
-                        <!-- Special Case Type -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Special Case Type:</label>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="special_case_type" id="bandMember" value="band">
-                                <label class="form-check-label" for="bandMember">
-                                    Band Member
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="special_case_type" id="officeWorker" value="office">
-                                <label class="form-check-label" for="officeWorker">
-                                    Office Worker
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="special_case_type" id="otherGender" value="other_gender">
-                                <label class="form-check-label" for="otherGender">
-                                    Other Gender Preference
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Handler Selection Dropdown (replacing the text input) -->
-                        <div class="mb-4">
-                            <label for="specialCaseHandler" class="form-label fw-bold">Select Handler:</label>
-                            <select class="form-select" id="specialCaseHandler" name="handler_id">
-                                <option value="">-- No handler (optional) --</option>
-                                {% for personnel in personnel_list %}
-                                    <option value="{{ personnel.id }}">
-                                        {{ personnel.first_name }} {{ personnel.last_name }} ({{ personnel.position }})
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <div class="form-text">Select the personnel who will handle this special case</div>
-                        </div>
-
-                        <!-- Notes -->
-                        <div class="mb-3">
-                            <label for="specialCaseNotes" class="form-label fw-bold">Notes:</label>
-                            <textarea class="form-control" id="specialCaseNotes" name="notes" rows="3" 
-                                      placeholder="Add any relevant notes about this special case..."></textarea>
-                        </div>
-
-                        <!-- Current Special Cases Table -->
-                        <div class="mt-4">
-                            <h6 class="mb-3">Current Special Cases:</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Student</th>
-                                            <th>Type</th>
-                                            <th>Handler</th>
-                                            <th>Notes</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for case in special_cases %}
-                                        <tr>
-                                            <td>{{ case.student.name }}</td>
-                                            <td>
-                                                <span class="badge bg-{% if case.case_type == 'band' %}primary{% elif case.case_type == 'office' %}success{% else %}info{% endif %}">
-                                                    {{ case.get_case_type_display }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {% if case.handler %}
-                                                    <div class="d-flex align-items-center" data-handler-id="{{ case.handler.id }}">
-                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                            {{ case.handler.first_name|first }}{{ case.handler.last_name|first }}
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-bold">{{ case.handler.first_name }} {{ case.handler.last_name }}</div>
-                                                            <div class="small text-muted">{{ case.handler.position }}</div>
-                                                        </div>
-                                                    </div>
-                                                {% elif case.handler_name %}
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                            {{ case.handler_name|first }}
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-bold">{{ case.handler_name }}</div>
-                                                        </div>
-                                                    </div>
-                                                {% else %}
-                                                    <span class="text-muted">No handler assigned</span>
-                                                {% endif %}
-                                            </td>
-                                            <td class="small">{{ case.notes|truncatechars:50 }}</td>
-                                            <td>
-                                                <button type="button" class="btn btn-sm btn-outline-danger remove-special-case" 
-                                                        data-case-id="{{ case.id }}">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        {% empty %}
-                                        <tr>
-                                            <td colspan="5" class="text-center text-muted">
-                                                No special cases recorded
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <p class="mb-0">Currently:</p>
+                        <ul>
+                            <li><strong>{{ total_assignments }}</strong> active assignments</li>
+                            <li><strong>{{ special_cases.count }}</strong> special cases</li>
+                        </ul>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i> Save Special Cases
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-1"></i> Reset Everything
                         </button>
                     </div>
                 </form>
@@ -1606,53 +1169,67 @@
         </div>
     </div>
 
-    <!-- Add this modal for editing special cases -->
-    <div class="modal fade" id="editSpecialCaseModal" tabindex="-1" aria-labelledby="editSpecialCaseModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+   
+
+    <!-- Keep only the Manual Special Assignment Modal -->
+    <div class="modal fade" id="manualSpecialAssignmentModal" tabindex="-1" aria-labelledby="manualSpecialAssignmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editSpecialCaseModalLabel">Edit Special Case</h5>
+                    <h5 class="modal-title" id="manualSpecialAssignmentModalLabel">
+                        <i class="fas fa-user-tag me-2"></i>Special Case Assignment
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{% url 'handle_special_cases' %}" method="post">
+                <form action="{% url 'manual_special_case_assignment' %}" method="post">
                     {% csrf_token %}
-                    <input type="hidden" id="editCaseId" name="case_id">
                     <div class="modal-body">
-                        <!-- Student Info (Read-only) -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Student:</label>
-                            <input type="hidden" id="editStudentId" name="student_ids">
-                            <div class="form-control bg-light" id="editStudentName" readonly></div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Manage students with special assignments (band members, office workers) or gender preferences.
+                            These students will be excluded from automatic assignment.
                         </div>
-                        
-                        <!-- Special Case Type -->
+
+                        <!-- Student Selection with Search -->
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Special Case Type:</label>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="special_case_type" id="editBandMember" value="band">
-                                <label class="form-check-label" for="editBandMember">
-                                    Band Member
-                                </label>
+                            <label class="form-label">Select Students</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-primary text-white">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" 
+                                       id="studentSearchInput" 
+                                       class="form-control" 
+                                       placeholder="Search students...">
                             </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="special_case_type" id="editOfficeWorker" value="office">
-                                <label class="form-check-label" for="editOfficeWorker">
-                                    Office Worker
-                                </label>
+                            <select name="student_ids[]" 
+                                    class="form-select" 
+                                    id="multiStudentSelect" 
+                                    multiple 
+                                    size="8"
+                                    required>
+                                {% for student in unassigned_students %}
+                                    <option value="{{ student.id }}" 
+                                            data-gender="{{ student.gender }}"
+                                            data-course="{{ student.course }}"
+                                            data-search-text="{{ student.name|lower }} {{ student.student_no|lower }}">
+                                        {{ student.name }} ({{ student.student_no }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                Hold Ctrl (Windows) or Command (Mac) to select multiple students
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="special_case_type" id="editOtherGender" value="other_gender">
-                                <label class="form-check-label" for="editOtherGender">
-                                    Other Gender Preference
-                                </label>
+                            <div class="mt-2">
+                                <span class="badge bg-primary" id="selectedCount">0 students selected</span>
                             </div>
                         </div>
-                        
-                        <!-- Handler Selection -->
+
+                        <!-- Personnel Selection -->
                         <div class="mb-3">
-                            <label for="editHandler" class="form-label fw-bold">Handler:</label>
-                            <select class="form-select" id="editHandler" name="handler_id">
-                                <option value="">-- No handler (optional) --</option>
+                            <label class="form-label">Assign to Personnel</label>
+                            <select name="personnel_id" class="form-select" required>
+                                <option value="">Choose personnel...</option>
                                 {% for personnel in personnel_list %}
                                     <option value="{{ personnel.id }}">
                                         {{ personnel.first_name }} {{ personnel.last_name }} ({{ personnel.position }})
@@ -1660,23 +1237,35 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        
+
+                        <!-- Case Type -->
+                        <div class="mb-3">
+                            <label class="form-label">Special Case Type</label>
+                            <select name="case_type" class="form-select" required>
+                                <option value="band">Band Member</option>
+                                <option value="office">Office Worker</option>
+                                <option value="other_gender">Other Gender Preference</option>
+                            </select>
+                        </div>
+
                         <!-- Notes -->
                         <div class="mb-3">
-                            <label for="editNotes" class="form-label fw-bold">Notes:</label>
-                            <textarea class="form-control" id="editNotes" name="notes" rows="3"></textarea>
+                            <label class="form-label">Notes (Optional)</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Add any relevant notes..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i> Update Special Case
+                            <i class="fas fa-user-plus me-2"></i>Create Special Case Assignment
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+   
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1844,7 +1433,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupPagination('personnelTable', 'personnelSearchInput');
     setupPagination('studentAssignmentTable', 'studentAssignmentSearchInput');
     setupPagination('unassignedTable', 'unassignedSearchInput');
-    setupPagination('specialCasesTable', 'specialCasesSearchInput');
     
     // Handle tab changes to refresh pagination
     const assignmentTabs = document.getElementById('assignmentTabs');
@@ -1864,87 +1452,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Special Cases Table Search Enhancement
-    const specialCasesSearchInput = document.getElementById('specialCasesSearchInput');
-    if (specialCasesSearchInput) {
-        specialCasesSearchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#specialCasesTable tbody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.classList.toggle('d-none', !text.includes(searchTerm));
-            });
-            
-            // Refresh pagination after search
-            setupPagination('specialCasesTable', 'specialCasesSearchInput');
-        });
-    }
-    
-    // Handle Select All Functionality for Special Cases
-    const selectAllCases = document.getElementById('selectAllCases');
-    if (selectAllCases) {
-        selectAllCases.addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.case-checkbox:not([style*="display: none"])');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-            updateSelectedCount();
-        });
-    }
-    
-    // Update selected count for special cases
-    function updateSelectedCount() {
-        const selectedCount = document.querySelectorAll('.case-checkbox:checked').length;
-        const countDisplay = document.querySelector('.selected-count');
-        if (countDisplay) {
-            countDisplay.textContent = selectedCount;
-        }
-        
-        // Show/hide bulk actions dropdown
-        const bulkActionsDropdown = document.getElementById('bulkActionsDropdown');
-        if (bulkActionsDropdown) {
-            bulkActionsDropdown.style.display = selectedCount > 0 ? 'block' : 'none';
-        }
-    }
-    
-    // Add event listeners to all case checkboxes
-    document.querySelectorAll('.case-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', updateSelectedCount);
-    });
-    
     // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
-
-    // Add new function for Special Case modal search
-    const modalSearchInput = document.getElementById('modalSpecialCaseSearch');
-    const specialCaseSelect = document.getElementById('specialCaseStudents');
-    
-    if (modalSearchInput && specialCaseSelect) {
-        modalSearchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            const options = specialCaseSelect.options;
-            
-            for (let option of options) {
-                const searchText = option.getAttribute('data-search-text') || '';
-                const matchesSearch = searchText.includes(searchTerm);
-                option.style.display = matchesSearch ? '' : 'none';
-            }
-        });
-        
-        // Clear search when modal is hidden
-        const specialAssignmentModal = document.getElementById('specialAssignmentModal');
-        specialAssignmentModal.addEventListener('hidden.bs.modal', function () {
-            modalSearchInput.value = '';
-            const options = specialCaseSelect.options;
-            for (let option of options) {
-                option.style.display = '';
-            }
-        });
-    }
 
     // Initialize variables for Unassigned Students Assignment Modal
     const unassignedModal = document.getElementById('unassignedAssignModal');
@@ -2096,63 +1608,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                   (personnelGender === 'Female' && studentGender === 'F');
                 newReassignGenderMismatch.classList.toggle('d-none', genderMatch);
             }
-        });
-    }
-
-    // Initialize variables for edit special case modal
-    const editSpecialCaseModal = document.getElementById('editSpecialCaseModal');
-    const editStudentId = document.getElementById('editStudentId');
-    const editStudentName = document.getElementById('editStudentName');
-    const editStudentDetails = document.getElementById('editStudentDetails');
-    const editStudentInitials = document.getElementById('editStudentInitials');
-    const editCaseType = document.getElementById('editCaseType');
-    const editHandlerName = document.getElementById('editHandlerName');
-    const editNotes = document.getElementById('editNotes');
-
-    // Handle edit button clicks in the Special Cases Overview table
-    const editSpecialCaseButtons = document.querySelectorAll('[data-bs-target="#editSpecialCaseModal"]');
-    editSpecialCaseButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Get data from button attributes
-            const studentId = this.getAttribute('data-student-id');
-            const studentName = this.getAttribute('data-student-name');
-            const caseType = this.getAttribute('data-case-type');
-            const handlerName = this.getAttribute('data-handler-name') || '';
-            const notes = this.getAttribute('data-notes') || '';
-            const studentNo = this.closest('tr').querySelector('td:first-child').textContent;
-
-            // Update modal content
-            editStudentId.value = studentId;
-            editStudentName.textContent = studentName;
-            editStudentDetails.textContent = `ID: ${studentNo}`;
-            editStudentInitials.textContent = studentName.split(' ').map(n => n[0]).join('');
-            editCaseType.value = caseType;
-            editHandlerName.value = handlerName;
-            editNotes.value = notes;
-        });
-    });
-
-    // Form submission handling
-    const editSpecialCaseForm = document.getElementById('editSpecialCaseForm');
-    if (editSpecialCaseForm) {
-        editSpecialCaseForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Create array with single student ID for consistency with backend
-            const studentIds = [editStudentId.value];
-            this.elements['student_ids'].value = studentIds;
-            
-            this.submit();
-        });
-    }
-
-    // Reset form when modal is hidden
-    if (editSpecialCaseModal) {
-        editSpecialCaseModal.addEventListener('hidden.bs.modal', function() {
-            editSpecialCaseForm.reset();
-            editStudentName.textContent = '';
-            editStudentDetails.textContent = '';
-            editStudentInitials.textContent = '';
         });
     }
 
@@ -2365,99 +1820,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('personnelNextPage').classList.toggle('disabled', page === Math.ceil(visibleRows.length / itemsPerPage));
     }
 
-    // Special Cases Personnel Filter
-    const specialCasesPersonnelFilter = document.getElementById('specialCasesPersonnelFilter');
-    if (specialCasesPersonnelFilter) {
-        specialCasesPersonnelFilter.addEventListener('change', function() {
-            const selectedPersonnelId = this.value;
-            const specialCasesTable = document.getElementById('specialCasesTable');
-            const rows = specialCasesTable.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                // Skip the "no special cases" row if it exists
-                if (row.querySelector('td[colspan]')) {
-                    // Only show this row if there are no visible rows after filtering
-                    return;
-                }
-                
-                // Get handler information from the row
-                const handlerCell = row.querySelector('td:nth-child(5)');
-                const handlerInfo = handlerCell ? handlerCell.textContent.trim() : '';
-                
-                if (selectedPersonnelId === '') {
-                    // Show all rows when "All Handlers" is selected
-                    row.style.display = '';
-                } else if (selectedPersonnelId === 'no-handler') {
-                    // Show only rows with no handler assigned
-                    row.style.display = handlerInfo.includes('No handler assigned') ? '' : 'none';
-                } else {
-                    // Check if the handler ID is in the row's data attributes
-                    const handlerLink = row.querySelector('td:nth-child(5) [data-handler-id]');
-                    const rowHandlerId = handlerLink ? handlerLink.getAttribute('data-handler-id') : '';
-                    
-                    row.style.display = rowHandlerId === selectedPersonnelId ? '' : 'none';
-                }
-            });
-            
-            // Update the "no special cases" row visibility
-            const visibleRows = Array.from(rows).filter(row => !row.querySelector('td[colspan]') && row.style.display !== 'none');
-            const noSpecialCasesRow = Array.from(rows).find(row => row.querySelector('td[colspan]'));
-            
-            if (noSpecialCasesRow) {
-                noSpecialCasesRow.style.display = visibleRows.length === 0 ? '' : 'none';
-            }
-            
-            // Reset pagination to first page and update counts
-            updateSpecialCasesPagination();
-        });
-    }
-
-    // Function to update special cases pagination after filtering
-    function updateSpecialCasesPagination() {
-        const specialCasesTable = document.getElementById('specialCasesTable');
-        const rows = specialCasesTable.querySelectorAll('tbody tr');
-        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
-        
-        // Update the counts
-        const startRecord = document.getElementById('specialCasesStartRecord');
-        const endRecord = document.getElementById('specialCasesEndRecord');
-        const totalRecords = document.getElementById('specialCasesTotalRecords');
-        
-        if (startRecord && endRecord && totalRecords) {
-            const visibleCount = visibleRows.length;
-            startRecord.textContent = visibleCount > 0 ? '1' : '0';
-            endRecord.textContent = Math.min(10, visibleCount);
-            totalRecords.textContent = visibleCount;
-        }
-        
-        // Update pagination buttons
-        const pageNumbers = document.getElementById('specialCasesPageNumbers');
-        const prevPage = document.getElementById('specialCasesPrevPage');
-        const nextPage = document.getElementById('specialCasesNextPage');
-        
-        if (pageNumbers) {
-            pageNumbers.innerHTML = '';
-            const totalPages = Math.ceil(visibleRows.length / 10);
-            
-            for (let i = 1; i <= totalPages; i++) {
-                const li = document.createElement('li');
-                li.className = `page-item ${i === 1 ? 'active' : ''}`;
-                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-                li.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showSpecialCasesPage(i);
-                });
-                pageNumbers.appendChild(li);
-            }
-        }
-        
-        if (prevPage) prevPage.classList.toggle('disabled', true);
-        if (nextPage) nextPage.classList.toggle('disabled', visibleRows.length <= 10);
-        
-        // Show first page
-        showSpecialCasesPage(1);
-    }
-
     // Function to show a specific page of special cases
     function showSpecialCasesPage(page) {
         const table = document.getElementById('specialCasesTable');
@@ -2523,6 +1885,34 @@ document.addEventListener('DOMContentLoaded', function() {
             maxLimitValue.textContent = this.value;
         });
     }
+
+    // Get the elements
+    const studentSearchInput = document.getElementById('studentSearchInput');
+    const multiStudentSelect = document.getElementById('multiStudentSelect');
+    const selectedCount = document.getElementById('selectedCount');
+
+    // Function to update selected count
+    function updateSelectedCount() {
+        const count = multiStudentSelect.selectedOptions.length;
+        selectedCount.textContent = `${count} student${count !== 1 ? 's' : ''} selected`;
+    }
+
+    // Add event listener for selection changes
+    multiStudentSelect.addEventListener('change', updateSelectedCount);
+
+    // Add event listener for search input
+    studentSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        Array.from(multiStudentSelect.options).forEach(option => {
+            const searchText = option.getAttribute('data-search-text');
+            const matchesSearch = !searchTerm || searchText.includes(searchTerm);
+            option.style.display = matchesSearch ? '' : 'none';
+        });
+    });
+
+    // Initialize selected count
+    updateSelectedCount();
 });
 </script>
 {% endblock %} 

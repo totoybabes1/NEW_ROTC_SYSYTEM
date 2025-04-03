@@ -5,8 +5,9 @@ from django.contrib import messages
 from myapp.models import Personnel, FlightGroup, Profile, StudentRecord, UserActivity, PersonnelStudentAssignment, EventFlightGroup, Announcement
 from django.http import JsonResponse
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import calendar as cal
+import json
 
 
 def home(request):
@@ -87,19 +88,25 @@ def admin_dashboard(request):
     # Sort activities by timestamp
     profile_activities.sort(key=lambda x: x['timestamp'], reverse=True)
     
-    # Add calendar data
     # Get current year and month (default to current)
-    year = int(request.GET.get('year', datetime.now().year))
-    month = int(request.GET.get('month', datetime.now().month))
+    today = date.today()
+    year = int(request.GET.get('year', today.year))
+    month = int(request.GET.get('month', today.month))
     
-    # Calculate previous and next month
+    # Create calendar
+    cal_obj = cal.Calendar(firstweekday=cal.SUNDAY)
+    
+    # Get month name
+    month_name = cal.month_name[month]
+    
+    # Calculate previous and next month/year
     if month == 1:
         prev_month = 12
         prev_year = year - 1
     else:
         prev_month = month - 1
         prev_year = year
-        
+
     if month == 12:
         next_month = 1
         next_year = year + 1
@@ -107,82 +114,58 @@ def admin_dashboard(request):
         next_month = month + 1
         next_year = year
     
-    # Get month name
-    month_name = cal.month_name[month]
+    # Create calendar dates
+    month_dates = []
+    for week in cal_obj.monthdays2calendar(year, month):
+        week_dates = []
+        for day, weekday in week:
+            if day == 0:
+                week_dates.append({
+                    'empty': True,
+                    'day': '',
+                    'weekday': weekday,
+                })
+            else:
+                current_date = date(year, month, day)
+                week_dates.append({
+                    'empty': False,
+                    'day': day,
+                    'date': current_date.strftime('%Y-%m-%d'),
+                    'weekday': weekday,
+                    'today': current_date == today
+                })
+        month_dates.append(week_dates)
     
-    # Get day names
-    day_names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    
-    # Create calendar
-    cal_obj = cal.monthcalendar(year, month)
-    
-    # Get first and last day of the month
-    first_day = datetime(year, month, 1)
+    # Get events for the displayed month
+    start_date = datetime(year, month, 1)
     if month == 12:
-        last_day = datetime(year + 1, 1, 1) - timedelta(days=1)
+        end_date = datetime(year + 1, 1, 1)
     else:
-        last_day = datetime(year, month + 1, 1) - timedelta(days=1)
+        end_date = datetime(year, month + 1, 1)
     
-    # Get events for this month
     events = Announcement.objects.filter(
         is_event=True,
-        event_date__gte=first_day,
-        event_date__lt=last_day + timedelta(days=1)
+        event_date__gte=start_date,
+        event_date__lt=end_date
     ).order_by('event_date')
     
     # Format events for the calendar
     event_data = []
     for event in events:
-        # Get all flight groups for this event
         event_flight_groups = EventFlightGroup.objects.filter(event=event)
         flight_group_names = [efg.flight_group.name for efg in event_flight_groups]
         
-        # If no event_flight_groups exist, use the primary flight_group
         if not flight_group_names and event.flight_group:
             flight_group_names = [event.flight_group.name]
-        
+            
         event_data.append({
             'id': event.id,
             'title': event.title,
-            'content': event.content,
             'date': event.event_date.strftime('%Y-%m-%d'),
-            'flight_groups': flight_group_names,
-            'color': '#' + ''.join([hex(ord(c) % 16)[2:] for c in event.title[:3]]) + '8c9'
+            'flight_group': ", ".join(flight_group_names),
+            'content': event.content
         })
-    
-    # Create calendar weeks with events
-    today = datetime.now().date()
-    calendar_weeks = []
-    
-    for week in cal_obj:
-        week_days = []
-        for day_num in week:
-            if day_num == 0:
-                # Day is not part of this month
-                week_days.append({
-                    'day': '',
-                    'date': '',
-                    'events': [],
-                    'current_month': False,
-                    'today': False
-                })
-            else:
-                # Create date string
-                date_obj = datetime(year, month, day_num).date()
-                date_str = date_obj.strftime('%Y-%m-%d')
-                
-                # Get events for this day
-                day_events = [e for e in event_data if e['date'] == date_str]
-                
-                week_days.append({
-                    'day': day_num,
-                    'date': date_str,
-                    'events': day_events,
-                    'current_month': True,
-                    'today': date_obj == today
-                })
-        calendar_weeks.append(week_days)
-    
+
     context = {
         'stats': current_stats,
         'group_names': group_names,
@@ -191,38 +174,58 @@ def admin_dashboard(request):
         'profile_activities': profile_activities[:10],
         
         # Calendar context
-        'year': year,
-        'month': month,
+        'calendar': month_dates,
         'month_name': month_name,
+        'year': year,
         'prev_month': prev_month,
         'prev_year': prev_year,
         'next_month': next_month,
         'next_year': next_year,
-        'day_names': day_names,
-        'calendar_weeks': calendar_weeks,
-        'event_data': event_data,
+        'events': event_data,
+        'events_json': json.dumps(event_data)
     }
 
     return render(request, 'admin/admin_dashboard.html', context)
 
 def admin_login(request):
     if request.user.is_authenticated:
-        return redirect('admin_dashboard')
+        # Check user type and redirect accordingly
+        if hasattr(request.user, 'personnel'):
+            return redirect('personnel_dashboard')
+        elif hasattr(request.user, 'studentrecord'):
+            return redirect('student_dashboard')
+        elif request.user.is_staff:
+            return redirect('admin_dashboard')
         
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
+        
         if user is not None:
             login(request, user)
-            return redirect('home')
+            # Determine user type and redirect accordingly
+            if hasattr(user, 'personnel'):
+                return redirect('personnel_dashboard')
+            elif hasattr(user, 'studentrecord'):
+                return redirect('student_dashboard')
+            elif user.is_staff:
+                return redirect('admin_dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
+            
     return render(request, 'admin/admin_login.html')
 
 def admin_logout(request):
+    if request.user.is_authenticated:
+        # Record logout activity
+        UserActivity.objects.create(
+            user=request.user,
+            activity_type='logout'
+        )
     logout(request)
-    return redirect('home')  # Changed to redirect to home instead of login
+    messages.success(request, 'You have been successfully logged out.')
+    return redirect('home')
 
 @login_required(login_url='login')
 def get_activities(request):

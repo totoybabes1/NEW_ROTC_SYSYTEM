@@ -5,177 +5,296 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Page Header -->
-     <!-- Page Header -->
-     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body p-5">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <div class="bg-primary bg-opacity-25 rounded-circle p-4">
-                                <i class="fa-solid fa-graduation-cap text-primary fa-3x fw-bold"></i>
+    <div class="row">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body p-5">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="bg-primary bg-opacity-25 rounded-circle p-4">
+                                    <i class="fa-solid fa-graduation-cap text-primary fa-3x fw-bold"></i>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <h1 class="display-4 mb-0 fw-bolder">Student Records</h1>
                             </div>
                         </div>
-                        <div class="col">
-                            <h1 class="display-4 mb-0 fw-bolder">Student Records</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Left Column -->
+        <div class="col-md-4">
+            <!-- Search Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h3 class="mb-0 text-dark">
+                        <i class="fas fa-search me-2"></i>Search Students
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info border-0 d-flex align-items-center mb-4">
+                        <i class="fas fa-info-circle text-info fa-2x me-3"></i>
+                        <div>
+                            <h6 class="alert-heading mb-1">Quick Search</h6>
+                            <p class="mb-0 small">Enter a student number, name, or course to filter the records below. The search will update results as you type.</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Search Card -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="alert alert-light border mb-3">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-search text-primary me-3"></i>
-                    <div>
-                        <h6 class="mb-1">Search Students</h6>
-                        <p class="mb-0">Enter a student number, name, or course to filter the records below. The search will update results as you type.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="input-group">
-                <input type="text" id="searchInput" class="form-control" 
-                    placeholder="Search by student number, name, or course...">
-                <button class="btn btn-primary" type="button" id="searchButton">
-                    Search
-                </button>
-            </div>
-        </div>
-    </div>
-
-            <!-- Messages -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-info alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-    <!-- Student Records Card -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-light d-flex justify-content-center align-items-center p-4">
-            <h3 class="mb-0 me-4"><i class="fas fa-history me-3 fa-lg"></i>Student Records</h3>
-            <a href="{% url 'upload_excel' %}" class="btn btn-outline-primary btn-lg"><i class="fas fa-table me-2"></i>Go Back to Upload Excel</a>
-        </div>
-        <div class="card-body">
-            <!-- Description section -->
-            <div class="alert alert-light border mb-4">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-info-circle text-primary me-3 fa-lg"></i>
-                    <div>
-                        <h6 class="mb-1">About Student Records</h6>
-                        <p class="mb-0">This table displays comprehensive student information including student numbers, names, gender, courses, and year levels. You can view, edit, or delete records using the action buttons. Use the search bar above to quickly find specific students.</p>
+                    <div class="input-group input-group-lg shadow-sm">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-primary"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control border-start-0" 
+                            placeholder="Search by student number, name, or course..."
+                            aria-label="Search students">
+                        
                     </div>
                 </div>
             </div>
 
-            {% if students %}
-                <div class="table-responsive">
-                    <table class="table table-hover" id="studentTable">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Student No.</th>
-                                <th>Name</th>
-                                <th>Gender</th>
-                                <th>Course</th>
-                                <th>Year</th>
-                                <th>Status</th>
-                                <th>Upload Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for student in students %}
-                            <tr class="student-row">
-                                <td>{{ student.student_no }}</td>
-                                <td>{{ student.name }}</td>
-                                <td>{{ student.get_gender_display }}</td>
-                                <td>{{ student.course }}</td>
-                                <td>{{ student.year }}</td>
-                                <td>
-                                    {% if student.status == 'ACTIVE' %}
+            <!-- Semester Management Card -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Semester Management</h5>
+                        <button class="btn btn-primary position-relative py-2" data-bs-toggle="modal" data-bs-target="#semesterModal">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                    <i class="fas fa-plus-circle text-white"></i>
+                                </div>
+                                <div class="text-start">
+                                    <small class="d-block text-white-50">Add</small>
+                                    <span class="fw-bold">Add New Semester</span>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <!-- Semester List -->
+                    <div class="table-responsive mb-3">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Semester</th>
+                                    <th>Academic Year</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sem in semester_years %}
+                                <tr>
+                                    <td>{{ sem.get_semester_display }}</td>
+                                    <td>{{ sem.academic_year }}</td>
+                                    <td>
+                                        {% if sem.is_active %}
                                         <span class="badge bg-success">Active</span>
-                                    {% else %}
+                                        {% else %}
                                         <span class="badge bg-secondary">Inactive</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ student.upload_date|date:"d M Y H:i" }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-info view-btn" 
-                                                data-id="{{ student.id }}"
-                                                data-student-no="{{ student.student_no }}"
-                                                data-name="{{ student.name }}"
-                                                data-gender="{{ student.get_gender_display }}"
-                                                data-course="{{ student.course }}"
-                                                data-year="{{ student.year }}"
-                                                data-status="{{ student.status }}"
-                                                data-upload-date="{{ student.upload_date|date:'d M Y H:i' }}"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#viewModal">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-primary edit-btn" 
-                                                data-id="{{ student.id }}"
-                                                data-student-no="{{ student.student_no }}"
-                                                data-name="{{ student.name }}"
-                                                data-gender="{{ student.gender }}"
-                                                data-course="{{ student.course }}"
-                                                data-year="{{ student.year }}"
-                                                data-status="{{ student.status }}"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editModal">
-                                            <i class="fa-solid fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger delete-btn"
-                                                data-id="{{ student.id }}"
-                                                data-name="{{ student.name }}"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteModal">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Pagination -->
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div>
-                        <p class="text-muted mb-0">Showing <span id="startRecord">1</span> to <span id="endRecord">10</span> of <span id="totalRecords">0</span> records</p>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form action="{% url 'toggle_semester_status' %}" method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="semester_id" value="{{ sem.id }}">
+                                            {% if sem.is_active %}
+                                            <button type="submit" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-pause me-1"></i>Deactivate
+                                            </button>
+                                            {% else %}
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="fas fa-play me-1"></i>Activate
+                                            </button>
+                                            {% endif %}
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    <nav aria-label="Student records pagination">
-                        <ul class="pagination mb-0">
-                            <li class="page-item disabled" id="prevPage">
-                                <a class="page-link" href="#" aria-label="Previous">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#" data-page="1">1</a></li>
-                            <li class="page-item" id="nextPage">
-                                <a class="page-link" href="#" aria-label="Next">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
+                    
+                    <!-- Batch Assign Section -->
+                    <form id="assignSemesterForm" action="{% url 'assign_semester_to_students' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-4">
+                                <select class="form-select" name="semester_year_id" required>
+                                    <option value="">Select Semester</option>
+                                    {% for sem in semester_years %}
+                                    <option value="{{ sem.id }}">{{ sem }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-success position-relative py-2" id="assignSemesterBtn" disabled>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
+                                            <i class="fas fa-users text-white"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <small class="d-block text-white-50">Assign</small>
+                                            <span class="fw-bold">Selected Students</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            {% else %}
-                <div class="alert alert-info">
-                    <i class="fa-solid fa-info-circle me-2"></i>
-                    <p class="text-muted mb-0">No student records found.</p>
-                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-8">
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
             {% endif %}
+
+            <!-- Student Records Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-start align-items-center p-4">
+                    <h3 class="mb-0 me-4"><i class="fas fa-history me-3 fa-lg"></i>Student Records</h3>
+                    <a href="{% url 'upload_excel' %}" class="btn btn-outline-primary btn-lg"><i class="fas fa-table me-2"></i>Go Back to Upload Excel</a>
+                </div>
+                <div class="card-body">
+                    <!-- Description section -->
+                    <div class="alert alert-light border mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle text-primary me-3 fa-lg"></i>
+                            <div>
+                                <h6 class="mb-1">About Student Records</h6>
+                                <p class="mb-0">This table displays comprehensive student information including student numbers, names, gender, courses, and year levels. You can view, edit, or delete records using the action buttons. Use the search bar above to quickly find specific students.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if students %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle" id="studentTable" style="font-size: 1.1rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="py-3">
+                                            <input type="checkbox" id="selectAllStudents" class="form-check-input">
+                                        </th>
+                                        <th class="py-3">Student No.</th>
+                                        <th class="py-3">Name</th>
+                                        <th class="py-3">Gender</th>
+                                        <th class="py-3">Course</th>
+                                        <th class="py-3">Year</th>
+                                        <th class="py-3">Status</th>
+                                        <th class="py-3">Upload Date</th>
+                                        <th class="py-3">Semester</th>
+                                        <th class="py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in students|dictsort:"semester_year.is_active" reversed %}
+                                    <tr class="student-row">
+                                        <td class="py-3">
+                                            <input type="checkbox" class="student-checkbox form-check-input" name="student_ids[]" value="{{ student.id }}">
+                                        </td>
+                                        <td class="py-3">{{ student.student_no }}</td>
+                                        <td class="py-3"><strong>{{ student.name }}</strong></td>
+                                        <td class="py-3">{{ student.get_gender_display }}</td>
+                                        <td class="py-3">{{ student.course }}</td>
+                                        <td class="py-3">{{ student.year }}</td>
+                                        <td class="py-3">
+                                            {% if student.status == 'ACTIVE' %}
+                                                <span class="badge bg-success px-3 py-2">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary px-3 py-2">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3">{{ student.upload_date|date:"d M Y H:i" }}</td>
+                                        <td class="py-3">
+                                            {% if student.semester_year %}
+                                                <span class="badge {% if student.semester_year.is_active %}bg-success{% else %}bg-secondary{% endif %} px-3 py-2">
+                                                    {{ student.semester_year }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning px-3 py-2">No Semester Assigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3">
+                                            <div class="btn-group">
+                                                <button class="btn btn-info view-btn" 
+                                                        data-id="{{ student.id }}"
+                                                        data-student-no="{{ student.student_no }}"
+                                                        data-name="{{ student.name }}"
+                                                        data-gender="{{ student.get_gender_display }}"
+                                                        data-course="{{ student.course }}"
+                                                        data-year="{{ student.year }}"
+                                                        data-status="{{ student.status }}"
+                                                        data-upload-date="{{ student.upload_date|date:'d M Y H:i' }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#viewModal">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-primary edit-btn" 
+                                                        data-id="{{ student.id }}"
+                                                        data-student-no="{{ student.student_no }}"
+                                                        data-name="{{ student.name }}"
+                                                        data-gender="{{ student.gender }}"
+                                                        data-course="{{ student.course }}"
+                                                        data-year="{{ student.year }}"
+                                                        data-status="{{ student.status }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editModal">
+                                                    <i class="fa-solid fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-danger delete-btn"
+                                                        data-id="{{ student.id }}"
+                                                        data-name="{{ student.name }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteModal">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div>
+                                <p class="text-muted mb-0">Showing <span id="startRecord">1</span> to <span id="endRecord">10</span> of <span id="totalRecords">0</span> records</p>
+                            </div>
+                            <nav aria-label="Student records pagination">
+                                <ul class="pagination mb-0">
+                                    <li class="page-item disabled" id="prevPage">
+                                        <a class="page-link" href="#" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#" data-page="1">1</a></li>
+                                    <li class="page-item" id="nextPage">
+                                        <a class="page-link" href="#" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fa-solid fa-info-circle me-2"></i>
+                            <p class="text-muted mb-0">No student records found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -301,6 +420,40 @@
     </div>
 </div>
 
+<!-- Add Semester Modal -->
+<div class="modal fade" id="semesterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Semester</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'manage_semester' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Semester</label>
+                        <select class="form-select" name="semester" required>
+                            <option value="1ST">First Semester</option>
+                            <option value="2ND">Second Semester</option>
+                            <option value="SUM">Summer</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Academic Year</label>
+                        <input type="text" class="form-control" name="academic_year" 
+                               placeholder="2023-2024" pattern="\d{4}-\d{4}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add Semester</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Handle edit button clicks
@@ -316,6 +469,22 @@
                 document.getElementById('course').value = data.course;
                 document.getElementById('year').value = data.year;
                 document.getElementById('status').value = data.status;
+            });
+        });
+        
+        // Handle view button clicks - Fixed implementation
+        document.querySelectorAll('.view-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const data = this.dataset;
+                
+                // Set modal content
+                document.getElementById('viewStudentNo').textContent = data.studentNo;
+                document.getElementById('viewName').textContent = data.name;
+                document.getElementById('viewGender').textContent = data.gender;
+                document.getElementById('viewCourse').textContent = data.course;
+                document.getElementById('viewYear').textContent = data.year;
+                document.getElementById('viewStatus').textContent = data.status;
+                document.getElementById('viewUploadDate').textContent = data.uploadDate;
             });
         });
         
@@ -449,23 +618,23 @@
         
         // Handle search functionality
         const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
         
         function performSearch() {
             const searchTerm = searchInput.value.toUpperCase();
             let visibleRows = 0;
             
             rows.forEach(row => {
-                const studentNo = row.cells[0].textContent.toUpperCase();
-                const name = row.cells[1].textContent.toUpperCase();
-                const course = row.cells[3].textContent.toUpperCase();
-                const year = row.cells[4].textContent.toUpperCase();
+                const studentNo = row.cells[1].textContent.toUpperCase();
+                const name = row.cells[2].textContent.toUpperCase();
+                const course = row.cells[4].textContent.toUpperCase(); // Fixed index
+                const year = row.cells[5].textContent.toUpperCase();   // Fixed index
                 
                 if (studentNo.includes(searchTerm) || 
                     name.includes(searchTerm) || 
                     course.includes(searchTerm) ||
                     year.includes(searchTerm)) {
                     row.classList.add('search-match');
+                    row.style.display = '';
                     visibleRows++;
                 } else {
                     row.classList.remove('search-match');
@@ -473,11 +642,8 @@
                 }
             });
             
-            // If search is active, show only matching rows and hide pagination
+            // If search is active, hide pagination
             if (searchTerm) {
-                document.querySelectorAll('.search-match').forEach(row => {
-                    row.style.display = '';
-                });
                 document.querySelector('.pagination').closest('div.d-flex').style.display = 'none';
             } else {
                 // If search is cleared, restore pagination
@@ -486,17 +652,8 @@
             }
         }
         
-        // Search when button is clicked
-        searchButton.addEventListener('click', performSearch);
-        
-        // Search when Enter key is pressed
-        searchInput.addEventListener('keyup', function(event) {
-            if (event.key === 'Enter') {
-                performSearch();
-            }
-            // Also search as you type
-            performSearch();
-        });
+        // Search as you type
+        searchInput.addEventListener('keyup', performSearch);
         
         // Handle delete button clicks
         document.querySelectorAll('.delete-btn').forEach(button => {
@@ -507,22 +664,33 @@
                 document.getElementById('deleteStudentName').textContent = data.name;
             });
         });
+
+        // Handle select all checkbox
+        const selectAllCheckbox = document.getElementById('selectAllStudents');
+        const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+        const assignSemesterBtn = document.getElementById('assignSemesterBtn');
         
-        // Handle view button clicks
-        document.querySelectorAll('.view-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const data = this.dataset;
-                
-                // Set modal content
-                document.getElementById('viewStudentNo').textContent = data.studentNo;
-                document.getElementById('viewName').textContent = data.name;
-                document.getElementById('viewGender').textContent = data.gender;
-                document.getElementById('viewCourse').textContent = data.course;
-                document.getElementById('viewYear').textContent = data.year;
-                document.getElementById('viewStatus').textContent = data.status;
-                document.getElementById('viewUploadDate').textContent = data.uploadDate;
+        selectAllCheckbox.addEventListener('change', function() {
+            studentCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
             });
+            updateAssignButton();
         });
+        
+        studentCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateAssignButton);
+        });
+        
+        function updateAssignButton() {
+            const checkedCount = document.querySelectorAll('.student-checkbox:checked').length;
+            assignSemesterBtn.disabled = checkedCount === 0;
+            
+            // Update button text with count
+            const btnContent = document.querySelector('#assignSemesterBtn .d-flex .text-start .fw-bold');
+            if (btnContent) {
+                btnContent.textContent = checkedCount > 0 ? `Selected Students (${checkedCount})` : 'Selected Students';
+            }
+        }
     });
 </script>
 {% endblock %}

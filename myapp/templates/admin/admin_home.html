@@ -19,17 +19,12 @@
                 <img src="{% static 'img/LOGO.png' %}" alt="ROTC Logo" height="45" class="rounded-circle bg-white p-1">
                 <div class="fw-bold fs-4 text-white text-uppercase">ROTC Management System</div>
             </div>
-            {% if user.is_authenticated %}
-                <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 d-none d-md-inline-flex align-items-center gap-2" data-aos="fade-left" data-aos-duration="800">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-            {% endif %}
+           
         </div>
     </header>
     
     <!-- Hero section with improved visual hierarchy -->
-    <section class="position-relative d-flex align-items-center justify-content-center text-white" style="height: 600px; overflow: hidden;">
+    <section class="position-relative d-flex align-items-center justify-content-center text-white" style="height: 800px; overflow: hidden;">
         <div class="position-absolute top-0 start-0 w-100 h-100">
             <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-75" style="z-index: 1;"></div>
             <img src="{% static 'img/WALL.jpg' %}" alt="ROTC Background" class="w-100 h-100" 
@@ -57,158 +52,17 @@
                     <i class="fas fa-arrow-right"></i>
                 </a>
             {% else %}
-                <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg d-inline-flex align-items-center gap-2" data-aos="fade-up" data-aos-delay="700">
-                    <span class="fw-bold">Get Started</span>
-                    <i class="fas fa-arrow-right"></i>
-                </a>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg d-inline-flex align-items-center gap-2" data-aos="fade-up" data-aos-delay="700">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span class="fw-bold">Login</span>
+                    </a>
+                </div>
             {% endif %}
         </div>
     </section>
     
-    <!-- Features section with improved cards -->
-    <section class="py-5 bg-light">
-        <div class="container py-4">
-            <div class="text-center mb-5" data-aos="fade-up">
-                <h6 class="text-primary fw-bold text-uppercase">Core Features</h6>
-                <h2 class="display-5 fw-bold mb-4">What We Offer</h2>
-                <div class="mx-auto bg-primary" style="width: 100px; height: 4px; border-radius: 2px;"></div>
-            </div>
-            
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-3">
-                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
-                        <div class="card-body p-0">
-                            <div class="bg-primary text-white p-4">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                         style="width: 50px; height: 50px;">
-                                        <i class="fas fa-users fs-4"></i>
-                                    </div>
-                                    <h5 class="card-title mb-0 fw-bold">Student Records</h5>
-                                </div>
-                                <p class="card-text opacity-75">Streamlined management of student information and records.</p>
-                            </div>
-                            <div class="p-4">
-                                <ul class="list-unstyled mb-0">
-                                    <li class="mb-2 d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Student profiles</span>
-                                    </li>
-                                    <li class="mb-2 d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Daily attendance</span>
-                                    </li>
-                                    <li class="d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Contact info</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-3">
-                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
-                        <div class="card-body p-0">
-                            <div class="bg-primary text-white p-4">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                         style="width: 50px; height: 50px;">
-                                        <i class="fas fa-calendar-check fs-4"></i>
-                                    </div>
-                                    <h5 class="card-title mb-0 fw-bold">Class Schedule</h5>
-                                </div>
-                                <p class="card-text opacity-75">Easy scheduling and monitoring of ROTC activities.</p>
-                            </div>
-                            <div class="p-4">
-                                <ul class="list-unstyled mb-0">
-                                    <li class="mb-2 d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Class calendar</span>
-                                    </li>
-                                    <li class="mb-2 d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Training plans</span>
-                                    </li>
-                                    <li class="d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Alerts</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-3">
-                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden" data-aos="fade-up" data-aos-delay="300">
-                        <div class="card-body p-0">
-                            <div class="bg-primary text-white p-4">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                         style="width: 50px; height: 50px;">
-                                        <i class="fas fa-clipboard-list fs-4"></i>
-                                    </div>
-                                    <h5 class="card-title mb-0 fw-bold">Grading System</h5>
-                                </div>
-                                <p class="card-text opacity-75">Simple and efficient grade management for students.</p>
-                            </div>
-                            <div class="p-4">
-                                <ul class="list-unstyled mb-0">
-                                    <li class="mb-2 d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Grade records</span>
-                                    </li>
-                                    <li class="mb-2 d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Performance tracking</span>
-                                    </li>
-                                    <li class="d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Awards system</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6 col-lg-3">
-                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden" data-aos="fade-up" data-aos-delay="400">
-                        <div class="card-body p-0">
-                            <div class="bg-primary text-white p-4">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                         style="width: 50px; height: 50px;">
-                                        <i class="fas fa-user-tie fs-4"></i>
-                                    </div>
-                                    <h5 class="card-title mb-0 fw-bold">Personnel Management</h5>
-                                </div>
-                                <p class="card-text opacity-75">Efficient management of ROTC personnel and staff.</p>
-                            </div>
-                            <div class="p-4">
-                                <ul class="list-unstyled mb-0">
-                                    <li class="mb-2 d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Staff profiles</span>
-                                    </li>
-                                    <li class="mb-2 d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Role assignment</span>
-                                    </li>
-                                    <li class="d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-primary me-2"></i>
-                                        <span>Performance reviews</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    
     
     <!-- Gallery section with improved carousel -->
     <section class="py-5 bg-white">
@@ -270,26 +124,7 @@
         </div>
     </section>
     
-    <!-- Call to action section -->
-    <section class="py-5 bg-primary text-white">
-        <div class="container py-4 text-center" data-aos="fade-up">
-            <h2 class="fw-bold mb-4">Ready to get started?</h2>
-            <p class="lead mb-4 mx-auto" style="max-width: 700px;">
-                Join our ROTC Management System today and experience a more efficient way to manage your ROTC program.
-            </p>
-            {% if user.is_authenticated %}
-                <a href="{% url 'admin_dashboard' %}" class="btn btn-light btn-lg px-5 py-3 rounded-pill shadow d-inline-flex align-items-center gap-2">
-                    <span class="fw-bold">Go to Dashboard</span>
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            {% else %}
-                <a href="{% url 'login' %}" class="btn btn-light btn-lg px-5 py-3 rounded-pill shadow d-inline-flex align-items-center gap-2">
-                    <span class="fw-bold">Get Started</span>
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            {% endif %}
-        </div>
-    </section>
+   
     
     <!-- Footer with improved design -->
     <footer class="bg-dark text-white py-4">
@@ -423,6 +258,10 @@
     .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
     
     /* Fix spacing issues with base template - only for admin home */
+    body.admin-home {
+        padding-top: 0 !important; /* Override the default padding-top */
+    }
+    
     body.admin-home .main-content {
         padding: 0 !important;
         margin: 0 !important;

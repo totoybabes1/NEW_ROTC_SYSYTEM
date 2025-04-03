@@ -41,7 +41,7 @@ def personnel_logout(request):
         # Record logout activity
         UserActivity.objects.create(user=request.user, activity_type='logout')
     logout(request)
-    return redirect('personnel_login')
+    return redirect('home')
 
 @cache_page(60 * 5)  # Cache for 5 minutes
 def personnel_dashboard(request):

@@ -1,0 +1,132 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Manage Semesters{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-25 rounded-circle p-4">
+                                <i class="fa-solid fa-calendar-alt text-primary fa-3x fw-bold"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="display-4 mb-0 fw-bolder">Semester Management</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Semester List -->
+    <div class="card">
+        <div class="card-header py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Semesters</h3>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSemesterModal">
+                    <i class="fas fa-plus me-2"></i>Add New Semester
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if semester_years %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Semester</th>
+                                <th>Academic Year</th>
+                                <th>Status</th>
+                                <th>Date Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for semester in semester_years %}
+                                <tr>
+                                    <td>{{ semester.get_semester_display }}</td>
+                                    <td>{{ semester.academic_year }}</td>
+                                    <td>
+                                        {% if semester.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ semester.date_created|date:"M d, Y" }}</td>
+                                    <td>
+                                        <form action="{% url 'set_active_semester' %}" method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="semester_id" value="{{ semester.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" 
+                                                    {% if semester.is_active %}disabled{% endif %}>
+                                                <i class="fas fa-check me-1"></i>Set Active
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No semesters have been created yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Semester Modal -->
+<div class="modal fade" id="addSemesterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Semester</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'manage_semester' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Semester</label>
+                        <select class="form-select" name="semester" required>
+                            <option value="1ST">First Semester</option>
+                            <option value="2ND">Second Semester</option>
+                            <option value="SUM">Summer</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Academic Year</label>
+                        <input type="text" class="form-control" name="academic_year" 
+                               placeholder="2023-2024" pattern="\d{4}-\d{4}" required>
+                        <div class="form-text">Format: YYYY-YYYY (e.g., 2023-2024)</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add Semester</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

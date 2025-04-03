@@ -37,11 +37,14 @@ urlpatterns = [
     path('delete-excel/<int:upload_id>/', admin_uploadfiles_display_views.delete_excel_upload, name='delete_excel_upload'),
     path('edit-student/', admin_uploadfiles_display_views.edit_student_record, name='edit_student_record'),
     path('delete-student/', admin_uploadfiles_display_views.delete_student_record, name='delete_student_record'),
+    path('manage-semester/', admin_upload_views.manage_semester, name='manage_semester'),
+    path('set-active-semester/', admin_upload_views.set_active_semester, name='set_active_semester'),
+    path('assign-semester-to-students/', admin_upload_views.assign_semester_to_students, name='assign_semester_to_students'),
+    path('toggle-semester-status/', admin_upload_views.toggle_semester_status, name='toggle_semester_status'),
 
     path('api/activities/', admin_views.get_activities, name='get_activities'),
 
     # Personnel URLs
-    path('personnel/login/', personnel_views.personnel_login, name='personnel_login'),
     path('personnel/logout/', personnel_views.personnel_logout, name='personnel_logout'),
     path('personnel/dashboard/', personnel_views.personnel_dashboard, name='personnel_dashboard'),
     path('personnel/profile/', personnel_views.personnel_profile, name='personnel_profile'),
@@ -67,6 +70,9 @@ urlpatterns = [
     path('handle-special-cases/', admin_assigned_personnel_views.handle_special_cases, name='handle_special_cases'),
     path('remove-special-case/<int:case_id>/', admin_assigned_personnel_views.remove_special_case, name='remove_special_case'),
     path('bulk-remove-special-cases/', admin_assigned_personnel_views.bulk_remove_special_cases, name='bulk_remove_special_cases'),
+    path('manual-special-case-assignment/', 
+         admin_assigned_personnel_views.manual_special_case_assignment, 
+         name='manual_special_case_assignment'),
 
     # Personnel Student URLs
     path('personnel/assigned-students/', personnel_student_views.view_assigned_students, name='view_students_assigned'),
@@ -90,7 +96,6 @@ urlpatterns = [
          name='get_student_attendance'),
 
     # Student URLs
-    path('student/login/', student_views.student_login, name='student_login'),
     path('student/dashboard/', student_views.student_dashboard, name='student_dashboard'),
     path('student/logout/', student_views.student_logout, name='student_logout'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import connection
-from .models import StudentRecord, ExcelUpload
+from .models import StudentRecord, ExcelUpload, SemesterYear
 import pandas as pd
 import numpy as np
 import uuid
@@ -20,6 +20,9 @@ def upload_excel(request):
             total_records_created = 0
             successful_files = 0
             failed_files = 0
+            
+            # Get active semester
+            active_semester = SemesterYear.objects.filter(is_active=True).first()
             
             for excel_file in excel_files:
                 if excel_file.name.endswith(('.xlsx', '.xls')):
@@ -227,13 +230,14 @@ def upload_excel(request):
                                     existing_student.save()
                                 else:
                                     # Create new record
-                                    StudentRecord.objects.create(
+                                    student = StudentRecord.objects.create(
                                         student_no=student_no,
                                         name=name,
                                         gender=gender,
                                         course=course,
                                         year=year,
-                                        status='ACTIVE'
+                                        status='ACTIVE',
+                                        semester_year=active_semester  # Automatically assign active semester
                                     )
                                 
                                 records_created += 1
@@ -273,7 +277,14 @@ def upload_excel(request):
             messages.error(request, 'Please select at least one Excel file to upload.')
     
     uploads = ExcelUpload.objects.all().order_by('-upload_date')
-    return render(request, 'upload/excel_upload.html', {'uploads': uploads})
+    semester_years = SemesterYear.objects.all()
+    active_semester = SemesterYear.objects.filter(is_active=True).first()
+    
+    return render(request, 'upload/excel_upload.html', {
+        'uploads': uploads,
+        'semester_years': semester_years,
+        'active_semester': active_semester
+    })
 
 @login_required
 def display_uploaded_tables(request):
@@ -435,5 +446,97 @@ def export_students(request):
         return response
     except Exception as e:
         messages.error(request, f'Error exporting records: {str(e)}')
+    
+    return redirect('display_uploaded_tables')
+
+@login_required
+def manage_semester(request):
+    if request.method == 'POST':
+        semester = request.POST.get('semester')
+        academic_year = request.POST.get('academic_year')
+        
+        try:
+            semester_year = SemesterYear.objects.create(
+                semester=semester,
+                academic_year=academic_year
+            )
+            messages.success(request, f'Successfully created {semester_year}')
+        except Exception as e:
+            messages.error(request, f'Error creating semester: {str(e)}')
+    
+    semester_years = SemesterYear.objects.all()
+    return render(request, 'upload/manage_semester.html', {'semester_years': semester_years})
+
+@login_required
+def set_active_semester(request):
+    if request.method == 'POST':
+        semester_id = request.POST.get('semester_id')
+        try:
+            # First check if the semester exists
+            semester_year = SemesterYear.objects.get(id=semester_id)
+            
+            # Set all semesters as inactive
+            SemesterYear.objects.all().update(is_active=False)
+            
+            # Set selected semester as active
+            semester_year.is_active = True
+            semester_year.save()
+            
+            messages.success(request, f'Successfully set {semester_year} as active semester')
+        except SemesterYear.DoesNotExist:
+            messages.error(request, 'Selected semester does not exist')
+        except Exception as e:
+            messages.error(request, f'Error setting active semester: {str(e)}')
+    
+    return redirect('manage_semester')
+
+@login_required
+def assign_semester_to_students(request):
+    if request.method == 'POST':
+        semester_year_id = request.POST.get('semester_year_id')
+        student_ids = request.POST.getlist('student_ids[]')
+        
+        try:
+            if not semester_year_id:
+                raise ValueError("No semester selected")
+            if not student_ids:
+                raise ValueError("No students selected")
+                
+            semester_year = SemesterYear.objects.get(id=semester_year_id)
+            updated_count = StudentRecord.objects.filter(id__in=student_ids).update(semester_year=semester_year)
+            
+            messages.success(request, f'Successfully assigned {updated_count} students to {semester_year}')
+            
+            # Log the action for debugging
+            print(f"Assigned semester {semester_year} to students: {student_ids}")
+            
+        except SemesterYear.DoesNotExist:
+            messages.error(request, 'Selected semester does not exist')
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, f'Error assigning semester to students: {str(e)}')
+    
+    return redirect('display_uploaded_tables')
+
+@login_required
+def toggle_semester_status(request):
+    if request.method == 'POST':
+        semester_id = request.POST.get('semester_id')
+        try:
+            semester = SemesterYear.objects.get(id=semester_id)
+            if semester.is_active:
+                # Deactivating semester
+                semester.is_active = False
+                semester.save()
+                messages.success(request, f'Successfully deactivated {semester}')
+            else:
+                # Activating semester - deactivate all other semesters first
+                SemesterYear.objects.all().update(is_active=False)
+                semester.is_active = True
+                semester.save()
+                messages.success(request, f'Successfully activated {semester}')
+        except Exception as e:
+            messages.error(request, f'Error toggling semester status: {str(e)}')
     
     return redirect('display_uploaded_tables')

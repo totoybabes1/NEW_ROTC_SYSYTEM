@@ -21,12 +21,18 @@
 </head>
 <body>
     <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg bg-dark">
+    <nav class="navbar navbar-expand-lg bg-dark fixed-top">
         <div class="container-fluid px-4">
             {% if user.is_authenticated %}
-            <button class="btn btn-light rounded-circle p-2 shadow-sm border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas">
-                <i class="fas fa-bars text-primary"></i>
-            </button>
+            <button class="btn rounded-circle p-2 d-flex align-items-center justify-content-center" 
+            style="width: 40px; height: 40px; background: rgba(255, 255, 255, 1); border: 1px solid #ddd;" 
+            type="button" 
+            data-bs-toggle="offcanvas" 
+            data-bs-target="#sidebarOffcanvas" 
+            aria-controls="sidebarOffcanvas">
+        <i class="fas fa-bars" style="color: #0d6efd; font-size: 1.1rem;"></i>
+    </button>
+    
 
             <div class="navbar-right d-flex align-items-center">
                 <div class="dropdown">
@@ -299,6 +305,11 @@
         .sidebar-link.text-danger,
         .sidebar-link.text-danger:hover {
             color: #dc3545 !important;
+        }
+
+        /* Add padding to body to prevent content from hiding behind fixed navbar */
+        body {
+            padding-top: 76px; /* Adjust this value based on your navbar height */
         }
     </style>
     <!-- Scripts -->

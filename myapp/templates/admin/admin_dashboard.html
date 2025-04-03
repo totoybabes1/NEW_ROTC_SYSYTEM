@@ -1,5 +1,6 @@
 {% extends 'admin/base.html' %}
 {% load static %}
+{% load event_tags %}
 
 {% block title %}Admin Dashboard{% endblock %}
 
@@ -181,61 +182,72 @@
                 </div>
             </div>
 
-            <!-- Event Calendar Section -->
-            <div class="col-12 mb-4">
-                <div class="card shadow-sm mb-4" id="calendarSection">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                        <h5 class="mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i> Event Calendar</h5>
-                        <div>
-                            <a href="{% url 'admin_event_calendar' %}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-external-link-alt"></i> Full Calendar
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <!-- Calendar Navigation -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <a href="?{% if year %}year={% if month == 1 %}{{ year|add:"-1" }}{% else %}{{ year }}{% endif %}&{% endif %}month={% if month == 1 %}12{% else %}{{ month|add:"-1" }}{% endif %}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-chevron-left"></i> Previous
-                            </a>
-                            <h5 class="month-title mb-0">{{ month_name }} {{ year }}</h5>
-                            <a href="?{% if year %}year={% if month == 12 %}{{ year|add:"1" }}{% else %}{{ year }}{% endif %}&{% endif %}month={% if month == 12 %}1{% else %}{{ month|add:"1" }}{% endif %}" class="btn btn-sm btn-primary">
-                                Next <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </div>
-                        
-                        <!-- Calendar -->
-                        <div class="calendar-container border rounded shadow-sm">
-                            <div class="calendar-header rounded-top">
-                                <div class="calendar-day">Sun</div>
-                                <div class="calendar-day">Mon</div>
-                                <div class="calendar-day">Tue</div>
-                                <div class="calendar-day">Wed</div>
-                                <div class="calendar-day">Thu</div>
-                                <div class="calendar-day">Fri</div>
-                                <div class="calendar-day">Sat</div>
+            <!-- Calendar Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border rounded-lg">
+                        <div class="card-body p-4">
+                            <!-- Calendar Navigation -->
+                            <div class="calendar-navigation mb-4 d-flex justify-content-between align-items-center">
+                                <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-light border rounded-pill btn-lg px-4">
+                                    <i class="fas fa-chevron-left me-2"></i> Previous
+                                </a>
+                                <h2 class="month-title">{{ month_name }} {{ year }}</h2>
+                                <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-light border rounded-pill btn-lg px-4">
+                                    Next <i class="fas fa-chevron-right ms-2"></i>
+                                </a>
                             </div>
-                            <div class="calendar-body">
-                                {% for week in calendar_weeks %}
-                                    <div class="calendar-week">
-                                        {% for day in week %}
-                                            <div class="calendar-date {% if day.empty %}empty{% endif %} {% if day.today %}today{% endif %} {% if day.weekday == 0 %}sunday{% endif %} {% if day.weekday == 6 %}saturday{% endif %}" 
-                                                     {% if not day.empty %}data-date="{{ day.date }}"{% endif %}>
-                                                {% if not day.empty %}
-                                                    <div class="date-number">{{ day.day }}</div>
-                                                    {% if day.events %}
-                                                        <div class="event-count badge bg-primary rounded-pill">{{ day.events|length }}</div>
-                                                        <div class="event-indicator-container">
-                                                            {% for event in day.events %}
-                                                                <div class="event-dot" style="background-color: {{ event.color }};" title="{{ event.title }}"></div>
-                                                            {% endfor %}
-                                                        </div>
-                                                    {% endif %}
+
+                            <!-- Calendar -->
+                            <div class="calendar-container border rounded">
+                                <div class="calendar-header rounded-top">
+                                    <div class="calendar-day">Sun</div>
+                                    <div class="calendar-day">Mon</div>
+                                    <div class="calendar-day">Tue</div>
+                                    <div class="calendar-day">Wed</div>
+                                    <div class="calendar-day">Thu</div>
+                                    <div class="calendar-day">Fri</div>
+                                    <div class="calendar-day">Sat</div>
+                                </div>
+                                <div class="calendar-body">
+                                    {% for week in calendar %}
+                                        <div class="calendar-week">
+                                            {% for date in week %}
+                                                {% if date.empty %}
+                                                    <div class="calendar-date empty"></div>
+                                                {% else %}
+                                                    <div class="calendar-date{% if date.weekday == 0 %} sunday{% endif %}{% if date.weekday == 6 %} saturday{% endif %}{% if date.today %} today{% endif %}" 
+                                                         data-date="{{ date.date }}" 
+                                                         {% with day_events=events|filter_events_by_date:date.date %}
+                                                             {% if day_events %}
+                                                                 data-event-type="{{ day_events.0.event_type|default:'other' }}"
+                                                             {% endif %}
+                                                         {% endwith %}
+                                                         {% if date.events %}data-bs-toggle="popover" data-bs-trigger="hover focus" 
+                                                         data-bs-placement="top" data-bs-html="true" 
+                                                         data-bs-title="Events on {{ date.date }}"{% endif %}>
+                                                        <div class="date-number">{{ date.day }}</div>
+                                                        {% with day_events=events|filter_events_by_date:date.date %}
+                                                            {% if day_events %}
+                                                                <span class="event-count badge bg-primary position-absolute top-0 end-0 m-2">
+                                                                    {{ day_events|length }}
+                                                                </span>
+                                                                <div class="event-indicator-container">
+                                                                    {% for event in day_events|slice:":3" %}
+                                                                        <div class="event-dot" data-event-type="{{ event.event_type|default:'other' }}"></div>
+                                                                    {% endfor %}
+                                                                    {% if day_events|length > 3 %}
+                                                                        <span class="more-events">+{{ day_events|length|add:"-3" }}</span>
+                                                                    {% endif %}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    </div>
                                                 {% endif %}
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% endfor %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -279,9 +291,9 @@
     <div class="modal fade" id="eventDetailsModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title selected-date"></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="event-details-content">
@@ -299,38 +311,16 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize event details modal
-            const eventDetailsModal = new bootstrap.Modal(document.getElementById('eventDetailsModal'));
-            
-            // Add click event to calendar dates
+            // Initialize popovers and event handlers
             const calendarDates = document.querySelectorAll('.calendar-date:not(.empty)');
+            const eventDetailsModal = new bootstrap.Modal(document.getElementById('eventDetailsModal'));
             
             calendarDates.forEach(date => {
                 date.addEventListener('click', function() {
                     const dateStr = this.getAttribute('data-date');
                     if (!dateStr) return;
                     
-                    // Get events for this date from the server-side rendered data
-                    const events = [];
-                    {% for week in calendar_weeks %}
-                        {% for day in week %}
-                            {% if not day.empty and day.events %}
-                                if (dateStr === "{{ day.date }}") {
-                                    {% for event in day.events %}
-                                        events.push({
-                                            id: {{ event.id }},
-                                            title: "{{ event.title|escapejs }}",
-                                            content: "{{ event.content|escapejs }}",
-                                            color: "{{ event.color }}",
-                                            flight_groups: [{% for group in event.flight_groups %}"{{ group }}"{% if not forloop.last %}, {% endif %}{% endfor %}]
-                                        });
-                                    {% endfor %}
-                                }
-                            {% endif %}
-                        {% endfor %}
-                    {% endfor %}
-                    
-                    // Format the selected date
+                    // Format the date for display
                     const dateObj = new Date(dateStr);
                     const formattedDate = dateObj.toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -339,6 +329,9 @@
                         day: 'numeric'
                     });
                     
+                    // Get events for this date
+                    const dateEvents = {{ events_json|safe }}.filter(event => event.date === dateStr);
+                    
                     // Set modal title
                     document.querySelector('.selected-date').textContent = formattedDate;
                     
@@ -346,9 +339,9 @@
                     const eventDetailsContent = document.querySelector('.event-details-content');
                     eventDetailsContent.innerHTML = '';
                     
-                    if (events.length > 0) {
+                    if (dateEvents.length > 0) {
                         // Create event list
-                        events.forEach(event => {
+                        dateEvents.forEach(event => {
                             const eventItem = document.createElement('div');
                             eventItem.className = 'event-item mb-3 p-3 border rounded';
                             eventItem.style.borderLeft = `4px solid ${event.color || '#0d6efd'}`;
@@ -356,12 +349,12 @@
                             eventItem.innerHTML = `
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h5 class="mb-0">${event.title}</h5>
-                                    <span class="badge rounded-pill" style="background-color: ${event.color || '#0d6efd'}">Event</span>
+                                    <span class="badge bg-primary rounded-pill">Event</span>
                                 </div>
                                 <p class="mb-2">${event.content || 'No description available'}</p>
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-users me-2 text-secondary"></i>
-                                    <small class="text-muted">Flight Groups: ${event.flight_groups ? event.flight_groups.join(', ') : 'All Groups'}</small>
+                                    <small class="text-muted">Flight Groups: ${event.flight_group || 'All Groups'}</small>
                                 </div>
                             `;
                             
@@ -369,18 +362,43 @@
                         });
                     } else {
                         // No events for this day
-                        const noEvents = document.createElement('div');
-                        noEvents.className = 'text-center py-4';
-                        noEvents.innerHTML = `
-                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                            <p class="lead text-muted">No events scheduled for this day.</p>
+                        eventDetailsContent.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                <p class="lead text-muted">No events scheduled for this day.</p>
+                            </div>
                         `;
-                        eventDetailsContent.appendChild(noEvents);
                     }
                     
                     // Show the modal
                     eventDetailsModal.show();
                 });
+
+                // Initialize popovers for hover preview
+                if (date.hasAttribute('data-bs-toggle')) {
+                    const dateStr = date.getAttribute('data-date');
+                    const dateEvents = {{ events_json|safe }}.filter(event => event.date === dateStr);
+                    
+                    if (dateEvents.length > 0) {
+                        let popoverContent = '<div class="popover-event-list">';
+                        dateEvents.forEach(event => {
+                            popoverContent += `
+                                <div class="popover-event mb-2">
+                                    <div class="fw-bold text-primary">${event.title}</div>
+                                    <div class="small text-muted">${event.flight_group || 'All Groups'}</div>
+                                </div>
+                            `;
+                        });
+                        popoverContent += '</div>';
+                        
+                        new bootstrap.Popover(date, {
+                            content: popoverContent,
+                            html: true,
+                            trigger: 'hover',
+                            placement: 'top'
+                        });
+                    }
+                }
             });
             
             // Initialize Intro.js tour
@@ -463,32 +481,7 @@
         });
     </script>
 
-    <style>
-        /* Custom styles for Intro.js */
-        .customTooltip {
-            background-color: #2c3e50;
-            border-radius: 10px;
-        }
-        
-        .customHighlight {
-            box-shadow: 0 0 0 5px rgba(33, 150, 243, 0.5);
-        }
-        
-        /* Style for the tour button */
-        #startTourBtn {
-            transition: all 0.3s ease;
-        }
-        
-        #startTourBtn:hover {
-            transform: scale(1.1);
-        }
-        
-        /* Make sure the intro.js tooltips are visible */
-        .introjs-tooltip {
-            min-width: 300px;
-        }
-    </style>
-
+    
 {% else %}
     <p>You do not have permission to access this page.</p>
 {% endif %}

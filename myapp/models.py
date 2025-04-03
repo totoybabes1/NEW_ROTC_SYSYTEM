@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Profile model for storing additional user information and this is part of the admin
 class Profile(models.Model):
@@ -79,7 +81,27 @@ class Announcement(models.Model):
         return f"{self.title} - {self.flight_group.name}"
 
 
-# Add this new model
+# Add this new model for semester/year management
+class SemesterYear(models.Model):
+    SEMESTER_CHOICES = [
+        ('1ST', 'First Semester'),
+        ('2ND', 'Second Semester'),
+        ('SUM', 'Summer')
+    ]
+    
+    semester = models.CharField(max_length=3, choices=SEMESTER_CHOICES)
+    academic_year = models.CharField(max_length=9)  # Format: 2023-2024
+    is_active = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['semester', 'academic_year']
+        ordering = ['-academic_year', 'semester']
+    
+    def __str__(self):
+        return f"{self.get_semester_display()} {self.academic_year}"
+
+# Modify StudentRecord model to include semester year
 class StudentRecord(models.Model):
     student_no = models.CharField(max_length=20)
     name = models.CharField(max_length=100)
@@ -88,6 +110,7 @@ class StudentRecord(models.Model):
     year = models.IntegerField()
     status = models.CharField(max_length=10, choices=[('ACTIVE', 'Active'), ('INACTIVE', 'Inactive')], default='ACTIVE')
     upload_date = models.DateTimeField(auto_now_add=True)
+    semester_year = models.ForeignKey(SemesterYear, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.student_no} - {self.name}"
@@ -224,4 +247,27 @@ class StudentGrade(models.Model):
             self.subject_proficiency * proficiency_weight
         )
         return self.total_grade
+
+class UserProfile(models.Model):
+    USER_TYPES = (
+        ('admin', 'Administrator'),
+        ('personnel', 'Personnel'),
+        ('student', 'Student'),
+    )
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_type = models.CharField(max_length=10, choices=USER_TYPES)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.get_user_type_display()}"
+
+@receiver(post_save, sender=Personnel)
+def create_personnel_profile(sender, instance, created, **kwargs):
+    if created and instance.user:
+        UserProfile.objects.create(user=instance.user, user_type='personnel')
+
+@receiver(post_save, sender=StudentRecord)
+def create_student_profile(sender, instance, created, **kwargs):
+    if created and hasattr(instance, 'user'):
+        UserProfile.objects.create(user=instance.user, user_type='student')
 

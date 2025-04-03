@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Personnel, StudentRecord, PersonnelStudentAssignment, StudentSpecialCase
+from .models import Personnel, StudentRecord, PersonnelStudentAssignment, StudentSpecialCase, SemesterYear
+from django.db.models import Q
 
 @login_required
 def assigned_personnel_list(request):
@@ -10,10 +11,26 @@ def assigned_personnel_list(request):
     """
     # Get all personnel and students
     personnel_list = Personnel.objects.all()
-    student_list = StudentRecord.objects.all()
     
-    # Get existing assignments
-    assignments = PersonnelStudentAssignment.objects.all()
+    # Modify the semester years query to only get active semesters
+    semester_years = SemesterYear.objects.filter(is_active=True).order_by('-academic_year', 'semester')
+    
+    # Get students from active semesters only
+    active_semester_ids = semester_years.values_list('id', flat=True)
+    student_list = StudentRecord.objects.filter(
+        Q(semester_year__in=active_semester_ids) | Q(semester_year__isnull=True)
+    )
+    
+    # Update assignments to only show students from active semesters
+    assignments = PersonnelStudentAssignment.objects.filter(
+        student__semester_year__in=active_semester_ids
+    )
+    
+    # Update unassigned students query
+    assigned_student_ids = assignments.values_list('student_id', flat=True)
+    unassigned_students = student_list.exclude(
+        id__in=assigned_student_ids
+    ).order_by('name')
     
     # Create a dictionary to store students assigned to each personnel
     personnel_assignments = {}
@@ -24,12 +41,6 @@ def assigned_personnel_list(request):
     for assignment in assignments:
         if assignment.personnel_id in personnel_assignments:
             personnel_assignments[assignment.personnel_id].append(assignment.student)
-    
-    # Get unassigned students with related special cases
-    assigned_student_ids = assignments.values_list('student_id', flat=True)
-    unassigned_students = StudentRecord.objects.exclude(
-        id__in=assigned_student_ids
-    ).select_related('special_case').order_by('name')
     
     # Get all assignments for the student assignment table
     all_assignments = PersonnelStudentAssignment.objects.select_related('student', 'personnel').all()
@@ -48,8 +59,9 @@ def assigned_personnel_list(request):
         'total_students': student_list.count(),
         'total_personnel': personnel_list.count(),
         'total_assignments': assignments.count(),
-        'all_assignments': all_assignments,
+        'all_assignments': assignments,  # Updated to filtered assignments
         'special_cases': special_cases,
+        'semester_years': semester_years,  # Now only contains active semesters
     }
     
     return render(request, 'admin/admin_assigned_personnel.html', context)
@@ -61,21 +73,29 @@ def auto_assign_students(request):
     """
     if request.method == 'POST':
         try:
-            # Get the maximum limit from the form
             max_limit = int(request.POST.get('max_limit', 50))
             
-            # Get all personnel with gender assignments
-            male_personnel = list(Personnel.objects.filter(gender_assignment='Male'))
-            female_personnel = list(Personnel.objects.filter(gender_assignment='Female'))
+            # Get IDs of personnel who are handling special cases
+            special_case_handler_ids = StudentSpecialCase.objects.values_list('handler_id', flat=True).distinct()
             
-            # IMPORTANT: This part excludes special cases from auto-assignment
-            special_case_students = StudentSpecialCase.objects.values_list('student_id', flat=True)
+            # Get all personnel with gender assignments, excluding special case handlers
+            male_personnel = list(Personnel.objects.filter(gender_assignment='Male')
+                                .exclude(id__in=special_case_handler_ids))
+            female_personnel = list(Personnel.objects.filter(gender_assignment='Female')
+                                .exclude(id__in=special_case_handler_ids))
+            
+            # Get IDs of students with special cases
+            special_case_ids = StudentSpecialCase.objects.values_list('student_id', flat=True)
+            
+            # Get currently assigned students
             assigned_student_ids = PersonnelStudentAssignment.objects.values_list('student_id', flat=True)
+            
+            # Get unassigned students excluding special cases
             unassigned_students = StudentRecord.objects.exclude(
-                id__in=list(assigned_student_ids) + list(special_case_students)
+                Q(id__in=assigned_student_ids) | Q(id__in=special_case_ids)
             )
             
-            # Only non-special case students are assigned
+            # Split by gender
             male_students = list(unassigned_students.filter(gender='M'))
             female_students = list(unassigned_students.filter(gender='F'))
             
@@ -216,17 +236,22 @@ def reassign_student(request):
 @login_required
 def reset_all_assignments(request):
     """
-    Reset all student assignments by deleting all PersonnelStudentAssignment records
+    Reset all student assignments and special cases
     """
     if request.method == 'POST':
         try:
-            # Count assignments before deletion for the success message
+            # Count assignments and special cases before deletion
             assignment_count = PersonnelStudentAssignment.objects.count()
+            special_case_count = StudentSpecialCase.objects.count()
             
-            # Delete all assignment records
+            # Delete all assignment records and special cases
             PersonnelStudentAssignment.objects.all().delete()
+            StudentSpecialCase.objects.all().delete()
             
-            messages.success(request, f'Successfully reset all assignments. {assignment_count} assignments were cleared.')
+            messages.success(
+                request, 
+                f'Successfully reset all assignments and special cases were cleared).'
+            )
         except Exception as e:
             messages.error(request, f'Error resetting assignments: {str(e)}')
     
@@ -325,4 +350,63 @@ def bulk_remove_special_cases(request):
         except Exception as e:
             messages.error(request, f'Error removing special cases: {str(e)}')
     
+    return redirect('assigned_personnel_list')
+
+@login_required
+def manual_special_case_assignment(request):
+    """
+    Manually assign multiple special case students to a specific personnel
+    These assignments will be excluded from auto-assignment process
+    """
+    if request.method == 'POST':
+        student_ids = request.POST.getlist('student_ids[]')  # Note the [] for multiple select
+        personnel_id = request.POST.get('personnel_id')
+        case_type = request.POST.get('case_type')
+        notes = request.POST.get('notes', '')
+
+        try:
+            personnel = Personnel.objects.get(id=personnel_id)
+            success_count = 0
+
+            for student_id in student_ids:
+                try:
+                    student = StudentRecord.objects.get(id=student_id)
+
+                    # Create or update the special case
+                    special_case, created = StudentSpecialCase.objects.update_or_create(
+                        student=student,
+                        defaults={
+                            'case_type': case_type,
+                            'handler': personnel,
+                            'handler_name': f"{personnel.first_name} {personnel.last_name}",
+                            'notes': notes
+                        }
+                    )
+
+                    # Create the manual assignment
+                    PersonnelStudentAssignment.objects.update_or_create(
+                        student=student,
+                        defaults={
+                            'personnel': personnel,
+                        }
+                    )
+                    
+                    success_count += 1
+
+                except StudentRecord.DoesNotExist:
+                    messages.warning(request, f'Student with ID {student_id} not found.')
+                except Exception as e:
+                    messages.warning(request, f'Error processing student {student_id}: {str(e)}')
+
+            if success_count > 0:
+                messages.success(
+                    request,
+                    f'Successfully created special case assignments for {success_count} student(s) to {personnel.first_name} {personnel.last_name}'
+                )
+
+        except Personnel.DoesNotExist:
+            messages.error(request, 'Personnel not found.')
+        except Exception as e:
+            messages.error(request, f'Error creating special case assignments: {str(e)}')
+
     return redirect('assigned_personnel_list')

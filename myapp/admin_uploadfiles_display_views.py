@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-from .models import StudentRecord, ExcelUpload
+from .models import StudentRecord, ExcelUpload, SemesterYear
 from django.contrib import messages
 import pandas as pd
 from django.utils import timezone
@@ -9,8 +9,21 @@ from datetime import timedelta
 
 @login_required
 def display_uploaded_tables(request):
-    students = StudentRecord.objects.all().order_by('student_no')
-    return render(request, 'admin/admin_display_uploaded_tables.html', {'students': students})
+    students = StudentRecord.objects.all()
+    semester_years = SemesterYear.objects.all().order_by('-academic_year', 'semester')
+    active_semester = SemesterYear.objects.filter(is_active=True).first()
+
+    # Add filter by semester if requested
+    semester_filter = request.GET.get('semester')
+    if semester_filter:
+        students = students.filter(semester_year_id=semester_filter)
+
+    context = {
+        'students': students,
+        'semester_years': semester_years,
+        'active_semester': active_semester,
+    }
+    return render(request, 'admin/admin_display_uploaded_tables.html', context)
 
 @login_required
 def upload_excel(request):
