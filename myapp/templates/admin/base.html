@@ -18,6 +18,7 @@
     <!-- Add custom style to remove scrollbar -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <!-- Custom CSS for sidebar toggle -->
+
 </head>
 <body>
     <!-- Top Navbar -->
@@ -101,6 +102,18 @@
                             <span class="fw-medium fs-5">Dashboard</span>
                         </a>
                     </li>
+                     <li class="nav-item mb-3">
+                        <a href="{% url 'upload_excel' %}" class="nav-link sidebar-link px-4 py-3 rounded-3 d-flex align-items-center {% if request.resolver_match.url_name == 'upload_excel' %}active{% endif %}">
+                            <i class="fas fa-upload me-3 fs-5"></i>
+                            <span class="fw-medium fs-5">Upload Excel</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-3">
+                        <a href="{% url 'display_uploaded_tables' %}" class="nav-link sidebar-link px-4 py-3 rounded-3 d-flex align-items-center {% if request.resolver_match.url_name == 'display_uploaded_tables' %}active{% endif %}">
+                            <i class="fas fa-table me-3 fs-5"></i>
+                            <span class="fw-medium fs-5">Student Records</span>
+                        </a>
+                    </li>
                     <li class="nav-item mb-3">
                         <a href="{% url 'admin_personnel_list' %}" class="nav-link sidebar-link px-4 py-3 rounded-3 d-flex align-items-center {% if request.resolver_match.url_name == 'admin_personnel_list' %}active{% endif %}">
                             <i class="fas fa-users me-3 fs-5"></i>
@@ -125,18 +138,7 @@
                             <span class="fw-medium fs-5">Event Calendar</span>
                         </a>
                     </li>
-                    <li class="nav-item mb-3">
-                        <a href="{% url 'upload_excel' %}" class="nav-link sidebar-link px-4 py-3 rounded-3 d-flex align-items-center {% if request.resolver_match.url_name == 'upload_excel' %}active{% endif %}">
-                            <i class="fas fa-upload me-3 fs-5"></i>
-                            <span class="fw-medium fs-5">Upload Excel</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a href="{% url 'display_uploaded_tables' %}" class="nav-link sidebar-link px-4 py-3 rounded-3 d-flex align-items-center {% if request.resolver_match.url_name == 'display_uploaded_tables' %}active{% endif %}">
-                            <i class="fas fa-table me-3 fs-5"></i>
-                            <span class="fw-medium fs-5">Student Records</span>
-                        </a>
-                    </li>
+                   
                     <li class="nav-item mb-3">
                         <a href="{% url 'admin_profile' %}" class="nav-link sidebar-link px-4 py-3 rounded-3 d-flex align-items-center {% if request.resolver_match.url_name == 'admin_profile' %}active{% endif %}">
                             <i class="fas fa-user me-3 fs-5"></i>
@@ -156,7 +158,7 @@
         </div>
     </div>
     {% endif %}
-
+    
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
         <div class="container-fluid py-3">

@@ -10,13 +10,6 @@ import calendar as cal
 import json
 
 
-def home(request):
-    stats = {
-        'total_personnel': Personnel.objects.count(),
-        'total_groups': FlightGroup.objects.count(),
-    }
-    return render(request, 'admin/admin_home.html', {'stats': stats})
-
 @login_required(login_url='login')
 def admin_dashboard(request):
     # Get current statistics

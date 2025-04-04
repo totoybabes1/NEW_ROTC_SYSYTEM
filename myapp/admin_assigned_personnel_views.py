@@ -75,6 +75,9 @@ def auto_assign_students(request):
         try:
             max_limit = int(request.POST.get('max_limit', 50))
             
+            # Get active semester IDs
+            active_semester_ids = SemesterYear.objects.filter(is_active=True).values_list('id', flat=True)
+            
             # Get IDs of personnel who are handling special cases
             special_case_handler_ids = StudentSpecialCase.objects.values_list('handler_id', flat=True).distinct()
             
@@ -90,8 +93,10 @@ def auto_assign_students(request):
             # Get currently assigned students
             assigned_student_ids = PersonnelStudentAssignment.objects.values_list('student_id', flat=True)
             
-            # Get unassigned students excluding special cases
-            unassigned_students = StudentRecord.objects.exclude(
+            # Get unassigned students excluding special cases and only from active semesters
+            unassigned_students = StudentRecord.objects.filter(
+                Q(semester_year__in=active_semester_ids) | Q(semester_year__isnull=True)
+            ).exclude(
                 Q(id__in=assigned_student_ids) | Q(id__in=special_case_ids)
             )
             
@@ -236,22 +241,30 @@ def reassign_student(request):
 @login_required
 def reset_all_assignments(request):
     """
-    Reset all student assignments and special cases
+    Reset all student assignments
     """
     if request.method == 'POST':
         try:
-            # Count assignments and special cases before deletion
-            assignment_count = PersonnelStudentAssignment.objects.count()
-            special_case_count = StudentSpecialCase.objects.count()
+            # Get active semester IDs
+            active_semester_ids = SemesterYear.objects.filter(is_active=True).values_list('id', flat=True)
             
-            # Delete all assignment records and special cases
-            PersonnelStudentAssignment.objects.all().delete()
-            StudentSpecialCase.objects.all().delete()
+            # Check if we have any active semesters
+            if not active_semester_ids:
+                messages.warning(request, 'No active semesters found. No assignments were reset.')
+                return redirect('assigned_personnel_list')
             
-            messages.success(
-                request, 
-                f'Successfully reset all assignments and special cases were cleared).'
-            )
+            # Only delete assignments for students in active semesters
+            # Use a more inclusive query that handles null semester_year values
+            deleted_count, _ = PersonnelStudentAssignment.objects.filter(
+                Q(student__semester_year__in=active_semester_ids) | 
+                Q(student__semester_year__isnull=True)
+            ).delete()
+            
+            if deleted_count > 0:
+                messages.success(request, f'Successfully reset {deleted_count} student assignments.')
+            else:
+                messages.info(request, 'No assignments were found to reset.')
+                
         except Exception as e:
             messages.error(request, f'Error resetting assignments: {str(e)}')
     

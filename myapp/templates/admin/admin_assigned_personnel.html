@@ -664,6 +664,8 @@
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold text-primary">
                                 <i class="fas fa-user-slash me-2"></i>Unassigned Students
+                                <span class="badge bg-primary ms-2">{{ unassigned_count }}</span>
+                                <small class="text-muted ms-2">(Active Semesters Only)</small>
                             </h6>
                             <div class="input-group shadow-sm" style="width: 450px;">
                                 <span class="input-group-text bg-primary text-white border-0" style="font-size: 1.1rem;">
@@ -788,10 +790,12 @@
 
     <!-- Auto Assign Modal -->
     <div class="modal fade" id="autoAssignModal" tabindex="-1" aria-labelledby="autoAssignModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="autoAssignModalLabel">Auto-Assign Students</h5>
+                    <h5 class="modal-title" id="autoAssignModalLabel">
+                        <i class="fas fa-magic me-2"></i>Auto-Assign Students
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{% url 'auto_assign_students' %}" method="post">
@@ -799,7 +803,7 @@
                     <div class="modal-body">
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            This will automatically assign unassigned students to personnel based on gender matching.
+                            This will automatically assign unassigned students from <strong>active semesters only</strong> to personnel based on gender matching.
                         </div>
                         <p class="mb-0">Currently <strong>{{ unassigned_count }}</strong> unassigned students.</p>
                     </div>
@@ -1027,29 +1031,27 @@
 
     <!-- Reset Assignments Modal -->
     <div class="modal fade" id="resetAssignmentsModal" tabindex="-1" aria-labelledby="resetAssignmentsModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="resetAssignmentsModalLabel">Reset All Assignments</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="resetAssignmentsModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Reset All Assignments
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{% url 'reset_all_assignments' %}" method="post">
+                <form action="{% url 'reset_all_assignments' %}" method="POST">
                     {% csrf_token %}
                     <div class="modal-body">
-                        <div class="alert alert-danger">
+                        <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Warning:</strong> This will remove all student assignments and special cases. This action cannot be undone.
+                            <strong>Warning:</strong> This will remove all student assignments from <strong>active semesters only</strong>. This action cannot be undone.
                         </div>
-                        <p class="mb-0">Currently:</p>
-                        <ul>
-                            <li><strong>{{ total_assignments }}</strong> active assignments</li>
-                            <li><strong>{{ special_cases.count }}</strong> special cases</li>
-                        </ul>
+                        <p>Are you sure you want to reset all student assignments?</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash-alt me-1"></i> Reset Everything
+                            <i class="fas fa-trash-alt me-2"></i>Reset All Assignments
                         </button>
                     </div>
                 </form>

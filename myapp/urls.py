@@ -1,14 +1,17 @@
 from django.urls import path
-from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views, personnel_student_views, personnel_activity_grading_views, student_attendance_views, student_views
+from . import admin_views, admin_member_views, admin_group_views, admin_upload_views, admin_assign_views, admin_uploadfiles_display_views, admin_profile_views, personnel_views, admin_event_calendar_views, admin_assigned_personnel_views, personnel_student_views, personnel_activity_grading_views, student_attendance_views, student_views, homepage_views
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    # Homepage URLs
+    path('', homepage_views.home, name='home'),
+    path('login/', homepage_views.login_view, name='login'),
+    path('logout/', homepage_views.logout_view, name='logout'),
+    path('admin-login/', homepage_views.admin_login, name='admin_login'),
+
     # Admin Page URLs
-    path('', admin_views.home, name='home'),
     path('admin-dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
-    path('login/', admin_views.admin_login, name='login'),
-    path('logout/', admin_views.admin_logout, name='logout'),
 
     # Admin Group URLs
     path('admin-flight-groups/', admin_member_views.add_flight_group, name='admin_flight_groups'),
