@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
-from .models import Personnel, StudentActivity, StudentGrade, PersonnelStudentAssignment
+from .models import Personnel, StudentActivity, StudentGrade, PersonnelStudentAssignment, SemesterYear, StudentRecord
 from datetime import datetime
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, landscape
@@ -56,72 +56,119 @@ def activity_record(request):
 @login_required(login_url='personnel_login')
 def compute_grades(request):
     personnel = get_object_or_404(Personnel, user=request.user)
-    assignments = PersonnelStudentAssignment.objects.filter(personnel=personnel)
+    
+    # Get active semesters for the dropdown
+    active_semesters = SemesterYear.objects.filter(is_active=True)
     
     if request.method == 'POST':
-        student_id = request.POST.get('student')
         period = request.POST.get('period')
+        semester_id = request.POST.get('semester_id')
         
-        # Validate if student and period are selected
-        if not student_id or not period:
-            messages.error(request, 'Please select a student and specify the grading period.')
+        # Validate if period and semester are specified
+        if not period or not semester_id:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'Please specify both the grading period and semester.'
+                })
+            messages.error(request, 'Please specify both the grading period and semester.')
             return redirect('compute_grades')
         
+        # Verify the semester exists and is active
         try:
-            # Check if grade already exists for this student and period
-            if StudentGrade.objects.filter(student_id=student_id, period=period).exists():
-                messages.warning(request, 'Grades for this student and period already exist.')
-                return redirect('compute_grades')
-            
-            # Get attendance score
-            attendance = float(request.POST.get('attendance', 0))
-            if attendance < 0 or attendance > 100:
-                messages.error(request, 'Attendance score must be between 0 and 100.')
-                return redirect('compute_grades')
-            
-            # Calculate military aptitude
-            activities = StudentActivity.objects.filter(student_id=student_id)
-            merits = sum(activity.merits for activity in activities)
-            demerits = sum(activity.demerits for activity in activities)
-            military_score = 100 - (demerits * 3)  # Deduct 3 points per demerit
-            
-            # Get subject proficiency
-            proficiency = float(request.POST.get('proficiency', 0))
-            if proficiency < 0 or proficiency > 100:
-                messages.error(request, 'Subject proficiency score must be between 0 and 100.')
-                return redirect('compute_grades')
-            
-            # Create grade object
-            grade = StudentGrade(
-                student_id=student_id,
-                personnel=personnel,
-                period=period,
-                attendance_score=attendance,
-                military_aptitude=military_score,
-                subject_proficiency=proficiency,
-                total_grade=0  # Initialize with a default value
-            )
-            
-            # Compute and set the total grade
-            grade.compute_grade()
-            
-            # Now save the grade object
-            grade.save()
-            
-            student_name = grade.student.name
-            messages.success(request, f'Grades for {student_name} have been computed successfully. Total Grade: {grade.total_grade:.2f}')
+            semester = SemesterYear.objects.get(id=semester_id, is_active=True)
+        except SemesterYear.DoesNotExist:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'The selected semester is not active or does not exist.'
+                })
+            messages.error(request, 'The selected semester is not active or does not exist.')
             return redirect('compute_grades')
-            
-        except ValueError:
-            messages.error(request, 'Invalid input values. Please check your entries.')
-            return redirect('compute_grades')
-        except Exception as e:
-            messages.error(request, f'An error occurred while computing grades: {str(e)}')
+        
+        # Process each student's grades
+        success_count = 0
+        error_messages = []
+        
+        # Find all student IDs in the form data
+        student_ids = []
+        for key in request.POST:
+            if key.startswith('student_id_'):
+                student_id = key.split('_')[-1]
+                student_ids.append(student_id)
+        
+        # If no student IDs found, try to get them from the hidden inputs
+        if not student_ids:
+            student_ids = request.POST.getlist('student_id')
+        
+        for student_id in student_ids:
+            try:
+                # Verify the student belongs to the selected semester
+                student = StudentRecord.objects.get(id=student_id, semester_year=semester)
+                
+                # Get the grade components
+                attendance_score = float(request.POST.get(f'attendance_{student_id}', 0))
+                military_aptitude = float(request.POST.get(f'military_{student_id}', 0))
+                subject_proficiency = float(request.POST.get(f'proficiency_{student_id}', 0))
+                
+                # Check if grade already exists for this student and period
+                grade, created = StudentGrade.objects.get_or_create(
+                    student_id=student_id,
+                    personnel=personnel,
+                    period=period,
+                    defaults={
+                        'attendance_score': attendance_score,
+                        'military_aptitude': military_aptitude,
+                        'subject_proficiency': subject_proficiency,
+                        'total_grade': 0  # Will be computed below
+                    }
+                )
+                
+                if not created:
+                    # Update existing grade
+                    grade.attendance_score = attendance_score
+                    grade.military_aptitude = military_aptitude
+                    grade.subject_proficiency = subject_proficiency
+                
+                # Compute and save the total grade
+                grade.total_grade = grade.compute_grade()
+                grade.save()
+                
+                success_count += 1
+            except StudentRecord.DoesNotExist:
+                error_messages.append(f"Student ID {student_id} not found in the selected semester")
+            except ValueError as e:
+                error_messages.append(f"Invalid input values for student ID {student_id}: {str(e)}")
+            except Exception as e:
+                error_messages.append(f"Error processing student ID {student_id}: {str(e)}")
+        
+        # Prepare response
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if success_count > 0:
+                return JsonResponse({
+                    'success': True, 
+                    'message': f'Successfully saved grades for {success_count} students. ' + 
+                               (f'Errors: {"; ".join(error_messages)}' if error_messages else '')
+                })
+            else:
+                return JsonResponse({
+                    'success': False, 
+                    'message': f'Failed to save any grades. Errors: {"; ".join(error_messages)}'
+                })
+        
+        # Regular form submission response
+        if success_count > 0:
+            messages.success(request, f'Successfully saved grades for {success_count} students.')
+            if error_messages:
+                messages.warning(request, f'Some grades could not be saved: {"; ".join(error_messages)}')
+            return redirect('view_grades')
+        else:
+            messages.error(request, f'Failed to save any grades. Errors: {"; ".join(error_messages)}')
             return redirect('compute_grades')
     
     context = {
         'personnel': personnel,
-        'assignments': assignments,
+        'active_semesters': active_semesters,
     }
     return render(request, 'personnel/compute_grades.html', context)
 
@@ -415,4 +462,43 @@ def export_grades(request, format):
         response['Content-Disposition'] = f'attachment; filename="NOSU_student_grades_{timezone.now().strftime("%Y%m%d")}.xlsx"'
         return response
         
-    return HttpResponse('Invalid export format specified.', status=400) 
+    return HttpResponse('Invalid export format specified.', status=400)
+
+# Add this new API endpoint to fetch students by semester
+@login_required(login_url='personnel_login')
+def get_semester_students(request, semester_id):
+    """API endpoint to get students for a specific semester"""
+    try:
+        personnel = get_object_or_404(Personnel, user=request.user)
+        
+        # Get the semester
+        semester = get_object_or_404(SemesterYear, id=semester_id)
+        
+        # Get students assigned to this personnel who are in the selected semester
+        assignments = PersonnelStudentAssignment.objects.filter(
+            personnel=personnel,
+            student__semester_year=semester
+        ).select_related('student')
+        
+        # Format student data for response
+        students = []
+        for assignment in assignments:
+            student = assignment.student
+            students.append({
+                'id': student.id,
+                'name': student.name,
+                'student_no': student.student_no,
+                'course': student.course,
+                'year': student.year,
+                'gender': student.gender
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'students': students
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }) 

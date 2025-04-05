@@ -13,7 +13,7 @@
                     <div class="row align-items-center">
                         <div class="col-auto">
                             <div class="text-center logo-container">
-                                <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="width: 80px;">
+                                <img src="{% static 'img/LOGO3.jpeg' %}" alt="Logo" class="img-fluid" style="width: 80px;">
                             </div>
                         </div>
                         <div class="col">
@@ -35,11 +35,22 @@
         {% endfor %}
     {% endif %}
 
-    <!-- Grading Period Input -->
+    <!-- Semester Selection and Grading Period Input -->
     <div class="row mb-4">
         <div class="col-md-4">
+            <label class="form-label fw-bold">Active Semester</label>
+            <select class="form-select" id="semesterSelect" required>
+                <option value="">Select a semester</option>
+                {% for semester in active_semesters %}
+                    <option value="{{ semester.id }}">{{ semester }}</option>
+                {% endfor %}
+            </select>
+            <div class="form-text">Only students from the selected semester will be shown</div>
+        </div>
+        <div class="col-md-4">
             <label class="form-label fw-bold">Grading Period</label>
-            <input type="text" class="form-control" id="gradingPeriod" required placeholder="First Semester 2023-2024">
+            <input type="text" class="form-control" id="gradingPeriod" required placeholder="First Semester 2023-2024" readonly>
+            <div class="form-text">This field is automatically set based on the selected semester</div>
         </div>
     </div>
     
@@ -48,7 +59,10 @@
         {% csrf_token %}
         <div class="card shadow-sm">
             <div class="card-body">
-                <div class="table-responsive">
+                <div id="noStudentsMessage" class="alert alert-info d-none">
+                    <i class="fas fa-info-circle me-2"></i>Please select a semester to view students.
+                </div>
+                <div id="studentTableContainer" class="table-responsive d-none">
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">
                             <tr>
@@ -70,59 +84,14 @@
                                 <th class="text-center">Final</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for assignment in assignments %}
-                            <tr>
-                                <td>
-                                    {{ assignment.student.name }}
-                                    <input type="hidden" name="student_id" value="{{ assignment.student.id }}">
-                                </td>
-                                <!-- Attendance -->
-                                <td class="text-center">
-                                    <input type="number" class="form-control-plaintext text-center days-present" 
-                                           id="days_present_{{ assignment.student.id }}" readonly>
-                                </td>
-                                <td class="text-center">
-                                    <input type="number" class="form-control-plaintext text-center total-days" 
-                                           id="total_days_{{ assignment.student.id }}" readonly>
-                                </td>
-                                <td class="text-center">
-                                    <input type="number" class="form-control-plaintext text-center attendance-score" 
-                                           id="attendance_{{ assignment.student.id }}" readonly>
-                                </td>
-                                <!-- Military Aptitude -->
-                                <td class="text-center">
-                                    <input type="number" class="form-control-plaintext text-center total-merits" 
-                                           id="merits_{{ assignment.student.id }}" readonly>
-                                </td>
-                                <td class="text-center">
-                                    <input type="number" class="form-control-plaintext text-center total-demerits" 
-                                           id="demerits_{{ assignment.student.id }}" readonly>
-                                </td>
-                                <td class="text-center">
-                                    <input type="number" class="form-control-plaintext text-center military-score" 
-                                           id="military_{{ assignment.student.id }}" readonly>
-                                </td>
-                                <!-- Subject Proficiency -->
-                                <td class="text-center">
-                                    <input type="number" class="form-control proficiency-score" 
-                                           id="proficiency_{{ assignment.student.id }}" 
-                                           name="proficiency_{{ assignment.student.id }}"
-                                           min="0" max="100" required>
-                                </td>
-                                <!-- Total Grade -->
-                                <td class="text-center">
-                                    <input type="number" class="form-control-plaintext text-center total-grade" 
-                                           id="total_{{ assignment.student.id }}" readonly>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="studentTableBody">
+                            <!-- Student rows will be populated dynamically -->
                         </tbody>
                     </table>
                 </div>
 
                 <div class="mt-4 d-flex justify-content-center">
-                    <button type="submit" class="btn btn-primary position-relative py-2">
+                    <button type="submit" class="btn btn-primary position-relative py-2" id="submitButton" disabled>
                         <div class="d-flex align-items-center">
                             <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
                                 <i class="fas fa-save text-white"></i>
@@ -141,11 +110,16 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Load initial data for all students
-    {% for assignment in assignments %}
-        loadStudentData({{ assignment.student.id }});
-    {% endfor %}
-
+    const semesterSelect = document.getElementById('semesterSelect');
+    const gradingPeriod = document.getElementById('gradingPeriod');
+    const studentTableContainer = document.getElementById('studentTableContainer');
+    const noStudentsMessage = document.getElementById('noStudentsMessage');
+    const studentTableBody = document.getElementById('studentTableBody');
+    const submitButton = document.getElementById('submitButton');
+    
+    // Show the no students message initially
+    noStudentsMessage.classList.remove('d-none');
+    
     // Function to load student data
     function loadStudentData(studentId) {
         // Fetch attendance data
@@ -180,24 +154,284 @@ document.addEventListener('DOMContentLoaded', function() {
         const total = (attendance * 0.3) + (military * 0.3) + (proficiency * 0.4);
         document.getElementById(`total_${studentId}`).value = total.toFixed(2);
     }
-
-    // Add event listeners for proficiency score inputs
-    document.querySelectorAll('.proficiency-score').forEach(input => {
-        input.addEventListener('input', function() {
-            const studentId = this.id.split('_')[1];
-            calculateTotal(studentId);
-        });
+    
+    // Load students for the selected semester
+    semesterSelect.addEventListener('change', function() {
+        const semesterId = this.value;
+        
+        if (!semesterId) {
+            studentTableContainer.classList.add('d-none');
+            noStudentsMessage.classList.remove('d-none');
+            submitButton.disabled = true;
+            gradingPeriod.value = ''; // Clear grading period
+            return;
+        }
+        
+        // Show loading indicator
+        noStudentsMessage.textContent = 'Loading students...';
+        noStudentsMessage.classList.remove('d-none');
+        studentTableContainer.classList.add('d-none');
+        
+        // Set the grading period based on the selected semester
+        const selectedSemesterText = this.options[this.selectedIndex].text;
+        gradingPeriod.value = selectedSemesterText;
+        
+        // Fetch students for the selected semester
+        fetch(`/api/semester-students/${semesterId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.students.length > 0) {
+                    // Clear existing rows
+                    studentTableBody.innerHTML = '';
+                    
+                    // Create rows for each student
+                    data.students.forEach(student => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>
+                                ${student.name}
+                                <input type="hidden" name="student_id" value="${student.id}">
+                            </td>
+                            <!-- Attendance -->
+                            <td class="text-center">
+                                <input type="number" class="form-control-plaintext text-center days-present" 
+                                       id="days_present_${student.id}" readonly>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control-plaintext text-center total-days" 
+                                       id="total_days_${student.id}" readonly>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control-plaintext text-center attendance-score" 
+                                       id="attendance_${student.id}" readonly>
+                            </td>
+                            <!-- Military Aptitude -->
+                            <td class="text-center">
+                                <input type="number" class="form-control-plaintext text-center total-merits" 
+                                       id="merits_${student.id}" readonly>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control-plaintext text-center total-demerits" 
+                                       id="demerits_${student.id}" readonly>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control-plaintext text-center military-score" 
+                                       id="military_${student.id}" readonly>
+                            </td>
+                            <!-- Subject Proficiency -->
+                            <td class="text-center">
+                                <input type="number" class="form-control proficiency-score" 
+                                       id="proficiency_${student.id}" 
+                                       name="proficiency_${student.id}"
+                                       min="0" max="100" required>
+                            </td>
+                            <!-- Total Grade -->
+                            <td class="text-center">
+                                <input type="number" class="form-control-plaintext text-center total-grade" 
+                                       id="total_${student.id}" readonly>
+                            </td>
+                        `;
+                        studentTableBody.appendChild(row);
+                        
+                        // Load data for this student
+                        loadStudentData(student.id);
+                    });
+                    
+                    // Add event listeners for proficiency score inputs
+                    document.querySelectorAll('.proficiency-score').forEach(input => {
+                        input.addEventListener('input', function() {
+                            const studentId = this.id.split('_')[1];
+                            calculateTotal(studentId);
+                        });
+                    });
+                    
+                    // Show the table and enable submit button
+                    noStudentsMessage.classList.add('d-none');
+                    studentTableContainer.classList.remove('d-none');
+                    submitButton.disabled = false;
+                } else {
+                    // No students found
+                    noStudentsMessage.textContent = 'No students found for the selected semester.';
+                    noStudentsMessage.classList.remove('d-none');
+                    studentTableContainer.classList.add('d-none');
+                    submitButton.disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                noStudentsMessage.textContent = 'Error loading students. Please try again.';
+                noStudentsMessage.classList.remove('d-none');
+                studentTableContainer.classList.add('d-none');
+                submitButton.disabled = true;
+            });
     });
 
     // Form submission handling
     document.getElementById('gradesForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const gradingPeriod = document.getElementById('gradingPeriod').value;
+        const semesterId = document.getElementById('semesterSelect').value;
+        
         if (!gradingPeriod) {
-            alert('Please enter a grading period');
+            // Enhanced validation message with styling
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Error!</strong> Please enter a grading period before submitting.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insert the alert at the top of the form
+            this.insertBefore(alertDiv, this.firstChild);
+            
+            // Scroll to the alert
+            alertDiv.scrollIntoView({ behavior: 'smooth' });
             return;
         }
-        // Add your form submission logic here
+        
+        if (!semesterId) {
+            // Enhanced validation message with styling
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Error!</strong> Please select a semester before submitting.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insert the alert at the top of the form
+            this.insertBefore(alertDiv, this.firstChild);
+            
+            // Scroll to the alert
+            alertDiv.scrollIntoView({ behavior: 'smooth' });
+            return;
+        }
+        
+        // Validate that all proficiency scores are entered
+        let missingScores = false;
+        document.querySelectorAll('.proficiency-score').forEach(input => {
+            if (!input.value) {
+                input.classList.add('is-invalid');
+                missingScores = true;
+            } else {
+                input.classList.remove('is-invalid');
+            }
+        });
+        
+        if (missingScores) {
+            // Show validation message for missing scores
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Warning!</strong> Please enter all subject proficiency scores before submitting.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insert the alert at the top of the form
+            this.insertBefore(alertDiv, this.firstChild);
+            
+            // Scroll to the alert
+            alertDiv.scrollIntoView({ behavior: 'smooth' });
+            return;
+        }
+        
+        // Create a FormData object to collect all form data
+        const formData = new FormData(this);
+        formData.append('period', gradingPeriod);
+        formData.append('semester_id', semesterId);
+        
+        // Add all student grades to the form data
+        document.querySelectorAll('.proficiency-score').forEach(input => {
+            const studentId = input.id.split('_')[1];
+            const attendance = document.getElementById(`attendance_${studentId}`).value;
+            const military = document.getElementById(`military_${studentId}`).value;
+            const proficiency = input.value;
+            
+            formData.append(`student_id_${studentId}`, studentId);
+            formData.append(`attendance_${studentId}`, attendance);
+            formData.append(`military_${studentId}`, military);
+            formData.append(`proficiency_${studentId}`, proficiency);
+        });
+        
+        // Show loading message
+        const loadingAlert = document.createElement('div');
+        loadingAlert.className = 'alert alert-info alert-dismissible fade show';
+        loadingAlert.role = 'alert';
+        loadingAlert.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="spinner-border spinner-border-sm me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span>Processing grades. Please wait...</span>
+            </div>
+        `;
+        this.insertBefore(loadingAlert, this.firstChild);
+        
+        // Submit the form using fetch API
+        fetch('{% url "compute_grades" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove loading message
+            loadingAlert.remove();
+            
+            if (data.success) {
+                // Show success message with Bootstrap alert
+                const successAlert = document.createElement('div');
+                successAlert.className = 'alert alert-success alert-dismissible fade show';
+                successAlert.role = 'alert';
+                successAlert.innerHTML = `
+                    <strong>Success!</strong> ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                this.insertBefore(successAlert, this.firstChild);
+                
+                // Redirect after a short delay
+                setTimeout(() => {
+                    window.location.href = '{% url "view_grades" %}';
+                }, 2000);
+            } else {
+                // Show error message with Bootstrap alert
+                const errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+                errorAlert.role = 'alert';
+                errorAlert.innerHTML = `
+                    <strong>Error!</strong> ${data.message || 'An error occurred while saving grades.'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                this.insertBefore(errorAlert, this.firstChild);
+                
+                // Scroll to the alert
+                errorAlert.scrollIntoView({ behavior: 'smooth' });
+            }
+        })
+        .catch(error => {
+            // Remove loading message
+            loadingAlert.remove();
+            
+            console.error('Error:', error);
+            
+            // Show error message with Bootstrap alert
+            const errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+            errorAlert.role = 'alert';
+            errorAlert.innerHTML = `
+                <strong>Error!</strong> An unexpected error occurred while saving grades. Please try again.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            this.insertBefore(errorAlert, this.firstChild);
+            
+            // Scroll to the alert
+            errorAlert.scrollIntoView({ behavior: 'smooth' });
+        });
     });
 });
 </script>

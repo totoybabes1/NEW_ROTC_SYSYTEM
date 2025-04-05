@@ -48,7 +48,7 @@ urlpatterns = [
     path('api/activities/', admin_views.get_activities, name='get_activities'),
 
     # Personnel URLs
-    path('personnel/logout/', personnel_views.personnel_logout, name='personnel_logout'),
+    path('personnel/logout/', homepage_views.logout_view, name='personnel_logout'),
     path('personnel/dashboard/', personnel_views.personnel_dashboard, name='personnel_dashboard'),
     path('personnel/profile/', personnel_views.personnel_profile, name='personnel_profile'),
 
@@ -90,6 +90,9 @@ urlpatterns = [
     path('api/student-activities/<int:student_id>/', 
          personnel_activity_grading_views.get_student_activities, 
          name='get_student_activities'),
+    path('api/semester-students/<int:semester_id>/', 
+         personnel_activity_grading_views.get_semester_students, 
+         name='get_semester_students'),
 
     # Attendance URLs
     path('personnel/record-attendance/', student_attendance_views.record_attendance, name='record_attendance'),
@@ -99,6 +102,10 @@ urlpatterns = [
          name='get_student_attendance'),
 
     # Student URLs
+    path('student/login/', homepage_views.login_view, name='login'),
     path('student/dashboard/', student_views.student_dashboard, name='student_dashboard'),
-    path('student/logout/', student_views.student_logout, name='student_logout'),
+    path('student/profile/', student_views.student_profile, name='student_profile'),
+    path('student/attendance/', student_views.student_attendance, name='student_attendance'),
+    path('student/activities/', student_views.student_activities, name='student_activities'),
+    path('student/logout/', homepage_views.logout_view, name='student_logout'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

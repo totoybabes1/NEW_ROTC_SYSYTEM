@@ -1,0 +1,190 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block title %}Attendance Records{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="min-height: 100vh;">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-25 rounded-circle p-4" style="width: 96px; height: 96px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-calendar-check text-primary" style="font-size: 48px;"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="display-4 mb-0 fw-bolder">Attendance Records</h1>
+                            <p class="text-primary fs-4 mb-0">{{ student.name }} | {{ student.student_no }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white p-4">
+                    <h4 class="mb-0"><i class="fas fa-chart-pie me-3 text-primary"></i>Attendance Overview</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <!-- Attendance Percentage -->
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body p-4 text-center">
+                                    <div class="mb-3">
+                                        <div class="position-relative d-inline-block">
+                                            <div class="progress rounded-circle" style="height: 120px; width: 120px; transform: rotate(-90deg);">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ attendance_percentage }}%"></div>
+                                            </div>
+                                            <div class="position-absolute top-50 start-50 translate-middle">
+                                                <h2 class="mb-0 fw-bold">{{ attendance_percentage|floatformat:1 }}%</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h5 class="mb-0">Attendance Rate</h5>
+                                    <p class="text-muted">Based on {{ total_records }} records</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attendance Breakdown -->
+                        <div class="col-md-8">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body p-4">
+                                    <h5 class="mb-3">Attendance Breakdown</h5>
+                                    <div class="row g-3">
+                                        <div class="col-md-6 col-lg-3">
+                                            <div class="p-3 rounded bg-success bg-opacity-10 text-center">
+                                                <h3 class="mb-1 text-success">{{ present_count }}</h3>
+                                                <p class="mb-0">Present</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-3">
+                                            <div class="p-3 rounded bg-danger bg-opacity-10 text-center">
+                                                <h3 class="mb-1 text-danger">{{ absent_count }}</h3>
+                                                <p class="mb-0">Absent</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-3">
+                                            <div class="p-3 rounded bg-warning bg-opacity-10 text-center">
+                                                <h3 class="mb-1 text-warning">{{ late_count }}</h3>
+                                                <p class="mb-0">Late</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-3">
+                                            <div class="p-3 rounded bg-info bg-opacity-10 text-center">
+                                                <h3 class="mb-1 text-info">{{ excused_count }}</h3>
+                                                <p class="mb-0">Excused</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Records Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white p-4 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-list-alt me-3 text-primary"></i>Detailed Records</h4>
+                    <div class="d-flex">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search records...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if attendance_records %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="attendanceTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="px-4 py-3">Date</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Recorded By</th>
+                                        <th class="px-4 py-3">Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in attendance_records %}
+                                    <tr>
+                                        <td class="px-4 py-3">{{ record.date|date:"F d, Y" }}</td>
+                                        <td class="px-4 py-3">
+                                            {% if record.status == 'present' %}
+                                                <span class="badge bg-success">Present</span>
+                                            {% elif record.status == 'absent' %}
+                                                <span class="badge bg-danger">Absent</span>
+                                            {% elif record.status == 'late' %}
+                                                <span class="badge bg-warning text-dark">Late</span>
+                                            {% elif record.status == 'excused' %}
+                                                <span class="badge bg-info">Excused</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-4 py-3">{{ record.personnel.first_name }} {{ record.personnel.last_name }}</td>
+                                        <td class="px-4 py-3">{{ record.remarks|default:"No remarks" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center p-5">
+                            <div class="mb-4">
+                                <i class="fas fa-calendar-times fa-4x text-muted"></i>
+                            </div>
+                            <h5 class="text-muted">No attendance records found</h5>
+                            <p class="text-muted">Your attendance records will appear here once they are recorded.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simple search functionality for the attendance table
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const table = document.getElementById('attendanceTable');
+        
+        if (searchInput && table) {
+            searchInput.addEventListener('keyup', function() {
+                const searchText = this.value.toLowerCase();
+                const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+                
+                for (let i = 0; i < rows.length; i++) {
+                    const rowText = rows[i].textContent.toLowerCase();
+                    rows[i].style.display = rowText.includes(searchText) ? '' : 'none';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

@@ -61,9 +61,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-auto d-flex align-items-center">
-                                    <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid" style="max-height: 120px;">
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
@@ -76,27 +74,27 @@
         
     </div>
 
-    <div class="accordion mb-4" id="dashboardAccordion">
+    <div class="accordion mb-5" id="dashboardAccordion">
         <div class="accordion-item border-primary">
             <h2 class="accordion-header">
-                <button class="accordion-button p-4 bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardContent">
+                <button class="accordion-button p-5 bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardContent">
                     <div class="d-flex align-items-center">
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
-                            <i class="fa-solid fa-compass text-primary fa-lg"></i>
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                            <i class="fa-solid fa-compass text-primary fa-2x"></i>
                         </div>
                         <div>
-                            <h5 class="mb-1">Message PSL</h5>
-                            <p class="text-muted mb-0 small">Click to view your messages and notifications</p>
+                            <h4 class="mb-2">Message PSL</h4>
+                            <p class="text-muted mb-0">Click to view your messages and notifications</p>
                         </div>
                     </div>
                 </button>
             </h2>
             <div id="dashboardContent" class="accordion-collapse collapse show" data-bs-parent="#dashboardAccordion">
-                <div class="accordion-body p-4">
-                    <ul class="text-muted mb-0">
-                        <li>View and interact with your assigned students</li>
-                        <li>Update and manage your profile information</li>
-                        <li>Access quick actions for common tasks</li>
+                <div class="accordion-body p-5">
+                    <ul class="text-muted mb-0 fs-5">
+                        <li class="mb-2">View and interact with your assigned students</li>
+                        <li class="mb-2">Update and manage your profile information</li>
+                        <li class="mb-2">Access quick actions for common tasks</li>
                         <li>Stay updated with important announcements and notifications</li>
                     </ul>
                 </div>
@@ -105,79 +103,69 @@
     </div>
 
     <!-- Main Content -->
-    <div class="row g-4">
-        <div class="col-md-4">
-            <!-- Quick Actions -->
-            <div class="card h-100 w-100">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-bolt me-2 text-primary"></i>Quick Actions</h5>
+    <div class="row g-5">
+        <div class="col-12">
+            <!-- Stats Cards -->
+            <div class="card">
+                <div class="card-header bg-white p-4">
+                    <h4 class="mb-0"><i class="fas fa-chart-bar me-3 text-primary fa-lg"></i>Your Statistics</h4>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex flex-column gap-3">
-                        <a href="{% url 'view_students_assigned' %}" class="btn btn-primary position-relative py-2">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
-                                    <i class="fas fa-user-graduate text-white"></i>
-                                </div>
-                                <div class="text-start">
-                                    <small class="d-block text-white-50">View</small>
-                                    <span class="fw-bold">Students</span>
-                                </div>
-                            </div>
-                        </a>
-                        <a href="{% url 'personnel_profile' %}" class="btn btn-primary position-relative py-2">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
-                                    <i class="fas fa-user-edit text-white"></i>
-                                </div>
-                                <div class="text-start">
-                                    <small class="d-block text-white-50">Edit</small>
-                                    <span class="fw-bold">Profile</span>
+                <div class="card-body p-5">
+                    <div class="row g-5">
+                        <!-- Total Students Card -->
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 p-4 me-4">
+                                            <i class="fas fa-users fa-3x text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted mb-2 fs-5">Total Students</p>
+                                            <h1 class="mb-0 fw-bold">{{ personnel.assigned_students.count }}</h1>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </a>
-                        <!-- New Quick Action Button for Recording Attendance -->
-                        <a href="{% url 'record_attendance' %}" class="btn btn-primary position-relative py-2">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
-                                    <i class="fas fa-clipboard-check text-white"></i>
-                                </div>
-                                <div class="text-start">
-                                    <small class="d-block text-white-50">Record</small>
-                                    <span class="fw-bold">Attendance</span>
-                                </div>
-                            </div>
-                        </a>
-                        <!-- New Quick Action Button for Activity Record -->
-                        <a href="{% url 'activity_record' %}" class="btn btn-primary position-relative py-2">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
-                                    <i class="fas fa-tasks text-white"></i>
-                                </div>
-                                <div class="text-start">
-                                    <small class="d-block text-white-50">Record</small>
-                                    <span class="fw-bold">Activities</span>
+                        </div>
+
+                        <!-- Attendance Rate Card -->
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-success bg-opacity-10 p-4 me-4">
+                                            <i class="fas fa-check-circle fa-3x text-success"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted mb-2 fs-5">Present Today</p>
+                                            <h1 class="mb-0 fw-bold">{{ attendance_count|default:"0" }}</h1>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </a>
-                        <!-- New Quick Action Button for Grade Computation -->
-                        <a href="{% url 'compute_grades' %}" class="btn btn-primary position-relative py-2">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-white bg-opacity-25 p-1 me-2">
-                                    <i class="fas fa-calculator text-white"></i>
-                                </div>
-                                <div class="text-start">
-                                    <small class="d-block text-white-50">Compute</small>
-                                    <span class="fw-bold">Grades</span>
+                        </div>
+
+                        <!-- Activities Card -->
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-info bg-opacity-10 p-4 me-4">
+                                            <i class="fas fa-tasks fa-3x text-info"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted mb-2 fs-5">Activities Recorded</p>
+                                            <h1 class="mb-0 fw-bold">{{ activity_count|default:"0" }}</h1>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-       
     </div>
 </div>
 

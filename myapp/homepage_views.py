@@ -4,7 +4,12 @@ from django.contrib import messages
 from myapp.models import Personnel, FlightGroup, UserProfile, StudentRecord
 from django.contrib.auth.models import User
 from django.views.decorators.cache import never_cache
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 
+def logout_view(request):
+    logout(request)
+    return redirect('home')  # This will redirect to the homepage after logout 
 def home(request):
     """View for the homepage"""
     stats = {
@@ -84,77 +89,55 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            login(request, user)
-            
             # Check if user is admin (superuser)
             if user.is_superuser:
                 messages.info(request, 'Admin users should use the admin login page')
                 logout(request)
                 return redirect('login')
             
-            # Determine user type and redirect accordingly
+            login(request, user)
+            
             try:
+                # First try to get user profile
                 user_profile = UserProfile.objects.get(user=user)
                 
                 if user_profile.user_type == 'personnel':
                     messages.success(request, f'Welcome back, {user.username}!')
-                    response = redirect('personnel_dashboard')
-                    # Add cache control headers
-                    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-                    response['Pragma'] = 'no-cache'
-                    response['Expires'] = '0'
-                    return response
-                    
+                    return redirect('personnel_dashboard')
                 elif user_profile.user_type == 'student':
-                    messages.success(request, f'Welcome back, {user.username}!')
-                    response = redirect('student_dashboard')
-                    # Add cache control headers
-                    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-                    response['Pragma'] = 'no-cache'
-                    response['Expires'] = '0'
-                    return response
-                    
-                else:
-                    # Fallback for unknown user types
-                    messages.warning(request, 'User type not recognized')
-                    response = redirect('home')
-                    # Add cache control headers
-                    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-                    response['Pragma'] = 'no-cache'
-                    response['Expires'] = '0'
-                    return response
-                    
+                    # Get student record for proper name display
+                    student = StudentRecord.objects.get(user=user)
+                    messages.success(request, f'Welcome back, {student.name}!')
+                    return redirect('student_dashboard')
+                
             except UserProfile.DoesNotExist:
-                # If no profile exists, try to determine type from related models
-                is_personnel = hasattr(user, 'personnel')
-                
-                # Check if user is associated with a student record
-                is_student = StudentRecord.objects.filter(user=user).exists()
-                
-                if is_personnel:
-                    messages.success(request, f'Welcome back, {user.username}!')
-                    response = redirect('personnel_dashboard')
-                    # Add cache control headers
-                    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-                    response['Pragma'] = 'no-cache'
-                    response['Expires'] = '0'
-                    return response
-                elif is_student:
-                    messages.success(request, f'Welcome back, {user.username}!')
-                    response = redirect('student_dashboard')
-                    # Add cache control headers
-                    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-                    response['Pragma'] = 'no-cache'
-                    response['Expires'] = '0'
-                    return response
-                else:
-                    messages.warning(request, 'Your account is not properly configured')
-                    logout(request)
-                    return redirect('login')
+                # If no profile exists, check if it's a student
+                try:
+                    student = StudentRecord.objects.get(user=user)
+                    # Create student profile if it doesn't exist
+                    UserProfile.objects.create(user=user, user_type='student')
+                    messages.success(request, f'Welcome back, {student.name}!')
+                    return redirect('student_dashboard')
+                except StudentRecord.DoesNotExist:
+                    if hasattr(user, 'personnel'):
+                        messages.success(request, f'Welcome back, {user.username}!')
+                        return redirect('personnel_dashboard')
+                    else:
+                        messages.warning(request, 'Your account is not properly configured')
+                        logout(request)
+                        return redirect('login')
         else:
-            messages.error(request, 'Invalid username or password')
+            # Check if trying to log in as student
+            try:
+                student = StudentRecord.objects.get(student_no=username)
+                expected_password = f"{student.student_no}{student.get_lastname()}"
+                if password == expected_password:
+                    messages.error(request, 'Please wait while your account is being set up. Try again in a few minutes.')
+                else:
+                    messages.error(request, 'Invalid credentials. For students, use your Student No. and Student No. + Lastname as password')
+            except StudentRecord.DoesNotExist:
+                messages.error(request, 'Invalid username or password')
     
-    # Add cache control headers to the login page response
     response = render(request, 'homepage/login.html')
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response['Pragma'] = 'no-cache'

@@ -58,7 +58,7 @@
                 <!-- Add your logo image here -->
                 <img src="{% static 'img/LOGO.png' %}" alt="Logo" class="img-fluid mb-2" style="max-height: 80px;">
                 <img src="{% static 'img/LOGO3.jpeg' %}" alt="Logo" class="img-fluid mb-3" style="max-height: 80px;">
-                <h2 class="fw-bold">Welcome Back</h2>
+                <h2 class="fw-bold">Welcome!</h2>
                 <small class="d-block text-black-50">Please login to continue</small>
             </div>
             
@@ -86,6 +86,13 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Add this hint for students -->
+                <div class="mb-3 text-center text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    For students: Your password is your Student No. + Lastname
+                </div>
+
                 <button type="submit" class="btn btn-primary w-100 py-3 mb-4 rounded-3" id="loginButton" data-aos="fade-up" data-aos-delay="800">
                     Login <i class="fas fa-arrow-right ms-2"></i>
                 </button>

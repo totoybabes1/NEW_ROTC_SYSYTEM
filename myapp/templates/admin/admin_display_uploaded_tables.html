@@ -195,6 +195,8 @@
                                         <th class="py-3">Course</th>
                                         <th class="py-3">Year</th>
                                         <th class="py-3">Status</th>
+                                        <th class="py-3">Username</th>
+                                        <th class="py-3">Password</th>
                                         <th class="py-3">Upload Date</th>
                                         <th class="py-3">Semester</th>
                                         <th class="py-3">Actions</th>
@@ -217,6 +219,16 @@
                                             {% else %}
                                                 <span class="badge bg-secondary px-3 py-2">Inactive</span>
                                             {% endif %}
+                                        </td>
+                                        <td class="py-3">{{ student.student_no }}</td>
+                                        <td>
+                                            <div class="input-group">
+                                                <input type="password" class="form-control form-control-sm password-field" 
+                                                       value="{{ student.student_no }}{{ student.get_lastname }}" readonly>
+                                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                         <td class="py-3">{{ student.upload_date|date:"d M Y H:i" }}</td>
                                         <td class="py-3">
@@ -695,7 +707,38 @@
                 btnContent.textContent = checkedCount > 0 ? `Selected Students (${checkedCount})` : 'Selected Students';
             }
         }
+
+        // Add click handlers for all password toggle buttons
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const passwordField = this.previousElementSibling;
+                const icon = this.querySelector('i');
+                
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    passwordField.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
     });
 </script>
+
+<style>
+/* Add some styling for the password fields */
+.password-field {
+    font-family: monospace;
+}
+.toggle-password {
+    cursor: pointer;
+}
+.input-group {
+    width: auto;
+}
+</style>
 {% endblock %}
 

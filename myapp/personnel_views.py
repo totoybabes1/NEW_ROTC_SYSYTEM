@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Personnel, Profile, UserActivity
+from .models import Personnel, Profile, UserActivity, StudentActivity, StudentAttendance
 from django.utils import timezone
 from datetime import timedelta, datetime
 from django.db.models import Count, Avg
@@ -47,15 +47,32 @@ def personnel_logout(request):
 def personnel_dashboard(request):
     personnel = get_object_or_404(Personnel, user=request.user)
     
+    # Get today's date
+    today = timezone.now().date()
+    
+    # Get attendance count for today
+    attendance_count = StudentAttendance.objects.filter(
+        personnel=personnel,
+        date=today,
+        status='present'
+    ).count()
+    
+    # Get activity count
+    activity_count = StudentActivity.objects.filter(
+        personnel=personnel
+    ).count()
+    
+    context = {
+        'personnel': personnel,
+        'attendance_count': attendance_count,
+        'activity_count': activity_count,
+    }
+    
     # Check if it's an HTMX request
     if request.headers.get('HX-Request'):
-        return render(request, 'personnel/dashboard_content.html', {
-            'personnel': personnel,
-        })
+        return render(request, 'personnel/dashboard_content.html', context)
     
-    return render(request, 'personnel/dashboard.html', {
-        'personnel': personnel,
-    })
+    return render(request, 'personnel/dashboard.html', context)
 
 @login_required(login_url='personnel_login')
 def personnel_profile(request):

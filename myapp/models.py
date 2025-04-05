@@ -111,6 +111,32 @@ class StudentRecord(models.Model):
     status = models.CharField(max_length=10, choices=[('ACTIVE', 'Active'), ('INACTIVE', 'Inactive')], default='ACTIVE')
     upload_date = models.DateTimeField(auto_now_add=True)
     semester_year = models.ForeignKey(SemesterYear, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def get_lastname(self):
+        """Extract lastname from the name field"""
+        if ',' in self.name:
+            return self.name.split(',')[0].strip()
+        return self.name
+
+    def create_user_account(self):
+        """Create a user account for the student"""
+        if not self.user:
+            lastname = self.get_lastname()
+            username = self.student_no
+            password = f"{self.student_no}{lastname}"
+            
+            # Create user account
+            user = User.objects.create_user(
+                username=username,
+                password=password,
+                first_name=self.name,  # You might want to parse this better
+                email=f"{username}@example.com"  # Optional
+            )
+            
+            # Link user to student record
+            self.user = user
+            self.save()
 
     def __str__(self):
         return f"{self.student_no} - {self.name}"
@@ -267,7 +293,20 @@ def create_personnel_profile(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=instance.user, user_type='personnel')
 
 @receiver(post_save, sender=StudentRecord)
-def create_student_profile(sender, instance, created, **kwargs):
-    if created and hasattr(instance, 'user'):
-        UserProfile.objects.create(user=instance.user, user_type='student')
+def create_student_user(sender, instance, created, **kwargs):
+    """Signal to automatically create user account when student record is created"""
+    if created:
+        instance.create_user_account()
+
+# Model for tracking student account changes
+class StudentAccountChange(models.Model):
+    student = models.ForeignKey(StudentRecord, on_delete=models.CASCADE, related_name='account_changes')
+    action = models.CharField(max_length=255)  # Description of the change
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"{self.student.name} - {self.action} at {self.timestamp}"
 
